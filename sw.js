@@ -4,6 +4,7 @@ const ARCHIVOS = [
   'index.html',
   'manifest.json',
   'logo-header.png',
+  'fondo-palacio.jpg',
   'icono-192.png',
   'icono-512.png'
 ];

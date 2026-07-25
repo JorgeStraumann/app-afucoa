@@ -27,6 +27,21 @@
     max-width:520px;margin:0 auto;position:relative;min-height:100%;
     padding-bottom:76px;
   }
+  /* Fondo con el Palacio Legislativo, tenue detrás del contenido.
+     Se desplaza junto con la página. El velo blanco encima lo suaviza
+     para que el texto siga siendo legible. */
+  body::before{
+    content:"";position:absolute;inset:0;z-index:0;
+    background:
+      linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)),
+      url("fondo-palacio.jpg");
+    background-size:cover;
+    background-position:top center;
+    background-repeat:no-repeat;
+    pointer-events:none;
+  }
+  /* El contenido va por encima del fondo */
+  header, main, nav{position:relative;z-index:1}
 
   /* ---------- Encabezado ---------- */
   header{
@@ -78,12 +93,21 @@
   /* ---------- Convenios ---------- */
   .convenio{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
-    padding:16px;margin-bottom:12px;
+    margin-bottom:12px;overflow:hidden;
     box-shadow:0 2px 10px rgba(26,35,126,.07);
   }
-  .convenio h3{font-size:16px;margin-bottom:4px}
+  .convenio-img{width:100%;height:150px;object-fit:cover;display:block;background:var(--arena-2)}
+  .convenio-cuerpo{padding:16px}
+  .convenio h3{font-size:16px;margin-bottom:6px}
+  .convenio .beneficio{
+    display:inline-block;font-size:13px;font-weight:700;color:#fff;
+    background:var(--verde);padding:4px 12px;border-radius:20px;margin-bottom:8px;
+  }
   .convenio .plazo{font-size:12px;color:var(--rojo);font-weight:600;margin-bottom:8px}
-  .convenio p{font-size:13px;color:var(--tinta-suave);line-height:1.5;margin-bottom:12px}
+  .convenio p{font-size:13px;color:var(--tinta-suave);line-height:1.5;margin-bottom:10px}
+  .convenio .dato{font-size:13px;color:var(--tinta);line-height:1.5;margin-bottom:6px}
+  .convenio .dato-tit{font-weight:700;color:var(--verde)}
+  .convenio .btn{margin-top:10px}
 
   /* ---------- Formularios ---------- */
   .campo{margin-bottom:16px}
@@ -276,29 +300,107 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ============================================================
-   Datos de ejemplo (en la versión final vendrían del sindicato)
-   ============================================================ */
+/* ==================================================================
+   ▼▼▼  ZONA EDITABLE — ANUNCIOS Y CONVENIOS  ▼▼▼
+
+   Esta es la parte que vas a tocar seguido. Editá con confianza:
+   solo cambiá los TEXTOS entre comillas. No borres las comas,
+   las llaves { } ni los corchetes [ ].
+
+   PARA AGREGAR un anuncio nuevo: copiá un bloque entero (desde una
+   llave { hasta la coma que le sigue }) y pegalo. Cambiale los textos.
+
+   PARA QUITAR un anuncio: borrá su bloque completo, desde la { hasta } y su coma.
+   ================================================================== */
+
 const ANUNCIOS = [
-  {urgente:true,  etiqueta:"Asamblea", fecha:"Hoy",
-   titulo:"Prueba de cambio de anuncios",
-   texto:"Convocamos a todos los afiliados el jueves 31 a las 18:00 en la sede central. Orden del día: negociación salarial."},
-  {urgente:false, etiqueta:"Salud", fecha:"Ayer",
-   titulo:"Nuevo convenio con óptica",
-   texto:"Descuento del 30% para afiliados y familiares directos presentando el carné. Ver detalles en la sección Convenios."},
-  {urgente:false, etiqueta:"Comunicado", fecha:"22 jul",
-   titulo:"Resultado de la reunión con Dirección",
-   texto:"Informamos los avances sobre la reestructura de cargos planteada el mes pasado. Se logró incluir tres de los cuatro puntos."},
+
+  // --- Anuncio (poné urgente:true para que salga en rojo) ---
+  {
+    urgente: true,
+    etiqueta: "Asamblea",
+    fecha: "Hoy",
+    titulo: "Asamblea general extraordinaria",
+    texto: "Convocamos a todos los afiliados el jueves 31 a las 18:00 en la sede central. Orden del día: negociación salarial."
+  },
+
+  // --- Anuncio ---
+  {
+    urgente: false,
+    etiqueta: "Salud",
+    fecha: "Ayer",
+    titulo: "Nuevo convenio con óptica",
+    texto: "Descuento del 30% para afiliados y familiares directos presentando el carné. Ver detalles en la sección Convenios."
+  },
+
+  // --- Anuncio ---
+  {
+    urgente: false,
+    etiqueta: "Comunicado",
+    fecha: "22 jul",
+    titulo: "Resultado de la reunión con Dirección",
+    texto: "Informamos los avances sobre la reestructura de cargos planteada el mes pasado. Se logró incluir tres de los cuatro puntos."
+  },
+
 ];
 
 const CONVENIOS = [
-  {titulo:"Beca de formación 2026", plazo:"Cierra el 15 de agosto",
-   texto:"Apoyo económico para cursos y tecnicaturas vinculadas a la función. Cupos limitados por sector."},
-  {titulo:"Convenio odontológico", plazo:"Inscripción permanente",
-   texto:"Cobertura de tratamientos con prestadores adheridos. Se aplica a afiliados con más de 6 meses de antigüedad."},
-  {titulo:"Colonia de vacaciones", plazo:"Cierra el 1 de setiembre",
-   texto:"Para hijos de afiliados de 5 a 12 años. Enero y febrero, con transporte incluido desde la sede."},
+
+  /* CADA CONVENIO puede tener estos campos. Los que no quieras mostrar,
+     dejalos con las comillas vacías  ""  o borrá esa línea entera.
+
+       imagen     -> nombre del archivo de imagen que subiste a GitHub
+                     (ej: "optica.jpg"). Dejar "" si no tiene imagen.
+       titulo     -> nombre del convenio
+       beneficio  -> el descuento o ventaja (sale en una etiqueta verde)
+       plazo      -> vigencia o cierre (sale en rojo)
+       texto      -> descripción
+       requisitos -> qué se necesita para acceder
+       contacto   -> teléfono, dirección, etc.
+
+     PARA SUBIR UNA IMAGEN: en GitHub, entrá a tu repositorio, tocá
+     "Add file" -> "Upload files", subí la foto, y después poné su nombre
+     exacto en el campo "imagen" (respetando mayúsculas y la extensión). */
+
+  // --- Convenio ---
+  {
+    imagen: "",
+    titulo: "Convenio con óptica",
+    beneficio: "30% de descuento",
+    plazo: "Vigente todo el año",
+    texto: "Descuento en armazones y cristales para afiliados y familiares directos.",
+    requisitos: "Presentar carné de afiliado vigente.",
+    contacto: "Tel. 2900 0000 · Av. 18 de Julio 1234"
+  },
+
+  // --- Convenio ---
+  {
+    imagen: "",
+    titulo: "Beca de formación 2026",
+    beneficio: "Apoyo económico",
+    plazo: "Cierra el 15 de agosto",
+    texto: "Para cursos y tecnicaturas vinculadas a la función. Cupos limitados por sector.",
+    requisitos: "Antigüedad mínima de 1 año.",
+    contacto: "formacion@afucoa.uy"
+  },
+
+  // --- Convenio ---
+  {
+    imagen: "",
+    titulo: "Colonia de vacaciones",
+    beneficio: "",
+    plazo: "Cierra el 1 de setiembre",
+    texto: "Para hijos de afiliados de 5 a 12 años. Enero y febrero, con transporte incluido desde la sede.",
+    requisitos: "Inscripción previa en la sede.",
+    contacto: ""
+  },
+
 ];
+
+/* ▲▲▲  FIN DE LA ZONA EDITABLE  ▲▲▲
+   De acá para abajo es el funcionamiento interno. Mejor no tocar
+   salvo que sepas lo que hacés (o me preguntes primero). */
+
 
 /* ============================================================
    Navegación entre vistas
@@ -330,10 +432,16 @@ function pintarAnuncios(){
 function pintarConvenios(){
   document.getElementById('lista-convenios').innerHTML = CONVENIOS.map((c,i)=>`
     <article class="convenio">
-      <h3>${c.titulo}</h3>
-      <div class="plazo">${c.plazo}</div>
-      <p>${c.texto}</p>
-      <button class="btn dorado" onclick="aplicarConvenio(${i})">Aplicar a este convenio</button>
+      ${c.imagen ? `<img class="convenio-img" src="${c.imagen}" alt="${c.titulo}">` : ``}
+      <div class="convenio-cuerpo">
+        <h3>${c.titulo}</h3>
+        ${c.beneficio ? `<div class="beneficio">${c.beneficio}</div>` : ``}
+        ${c.plazo ? `<div class="plazo">${c.plazo}</div>` : ``}
+        ${c.texto ? `<p>${c.texto}</p>` : ``}
+        ${c.requisitos ? `<div class="dato"><span class="dato-tit">Requisitos:</span> ${c.requisitos}</div>` : ``}
+        ${c.contacto ? `<div class="dato"><span class="dato-tit">Contacto:</span> ${c.contacto}</div>` : ``}
+        <button class="btn dorado" onclick="aplicarConvenio(${i})">Aplicar a este convenio</button>
+      </div>
     </article>`).join('');
 }
 
