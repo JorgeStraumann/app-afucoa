@@ -193,6 +193,41 @@
     font-size:11px;color:var(--tinta-suave);text-align:center;
     padding:14px 20px 0;line-height:1.5;
   }
+
+  /* ============================================================
+     PANTALLA GRANDE (computadora): aprovechar el ancho.
+     En celular no cambia nada; esto se activa solo desde 760px.
+     ============================================================ */
+  @media (min-width: 760px){
+    body{ max-width: 1100px; padding-bottom: 24px; }
+
+    /* la barra de navegación pasa de abajo a arriba, tipo menú */
+    nav{
+      position: static; transform: none; max-width: 1100px;
+      border-top: none; border-bottom: 1px solid var(--linea);
+      justify-content: center; gap: 10px; padding: 6px 20px;
+    }
+    nav button{ flex: none; padding: 10px 18px; flex-direction: row; gap: 8px; font-size: 13px; }
+    nav button svg{ width: 18px; height: 18px; }
+
+    main{ padding: 26px 24px 40px; }
+
+    /* anuncios y convenios en varias columnas */
+    #lista-anuncios, #lista-convenios{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    /* los formularios (Enviar) no se estiran a lo ancho: quedan legibles */
+    #v-enviar, #v-mis{ max-width: 620px; margin: 0 auto; }
+
+    .intro{ text-align: center; }
+  }
+
+  /* Pantalla muy ancha: tres columnas */
+  @media (min-width: 1000px){
+    #lista-anuncios, #lista-convenios{ grid-template-columns: repeat(3, 1fr); }
+  }
 </style>
 </head>
 <body>
