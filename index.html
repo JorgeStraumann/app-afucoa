@@ -199,16 +199,11 @@
      En celular no cambia nada; esto se activa solo desde 760px.
      ============================================================ */
   @media (min-width: 760px){
-    body{ max-width: 1100px; padding-bottom: 24px; }
+    body{ max-width: 1100px; padding-bottom: 90px; }
 
-    /* la barra de navegación pasa de abajo a arriba, tipo menú */
-    nav{
-      position: static; transform: none; max-width: 1100px;
-      border-top: none; border-bottom: 1px solid var(--linea);
-      justify-content: center; gap: 10px; padding: 6px 20px;
-    }
-    nav button{ flex: none; padding: 10px 18px; flex-direction: row; gap: 8px; font-size: 13px; }
-    nav button svg{ width: 18px; height: 18px; }
+    /* la barra sigue abajo (como en el celular), pero más ancha y centrada */
+    nav{ max-width: 1100px; justify-content: center; gap: 40px; }
+    nav button{ flex: none; padding: 4px 20px; }
 
     main{ padding: 26px 24px 40px; }
 
