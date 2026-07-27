@@ -239,11 +239,18 @@
 
     main{ padding: 26px 24px 40px; }
 
-    /* anuncios y convenios en varias columnas */
+    /* anuncios y convenios en varias columnas.
+       Usamos columnas CSS (no grid) para que al expandir el formulario
+       de un convenio, los demás NO queden con espacio en blanco. */
     #lista-anuncios, #lista-convenios{
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      column-count: 2;
+      column-gap: 16px;
+    }
+    #lista-anuncios > *, #lista-convenios > *{
+      break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+      display: inline-block;
+      width: 100%;
     }
     /* los formularios (Enviar) no se estiran a lo ancho: quedan legibles */
     #v-enviar, #v-mis{ max-width: 620px; margin: 0 auto; }
@@ -253,7 +260,7 @@
 
   /* Pantalla muy ancha: tres columnas */
   @media (min-width: 1000px){
-    #lista-anuncios, #lista-convenios{ grid-template-columns: repeat(3, 1fr); }
+    #lista-anuncios, #lista-convenios{ column-count: 3; }
   }
 </style>
 </head>
