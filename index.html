@@ -108,6 +108,9 @@
   .convenio .dato{font-size:13px;color:var(--tinta);line-height:1.5;margin-bottom:6px}
   .convenio .dato-tit{font-weight:700;color:var(--verde)}
   .convenio .btn{margin-top:10px}
+  .form-convenio{
+    border-top:1px solid var(--linea);margin-top:14px;padding-top:4px;
+  }
 
   /* ---------- Formularios ---------- */
   .campo{margin-bottom:16px}
@@ -533,10 +536,33 @@ function pintarConvenios(){
         ${c.texto ? `<p>${c.texto}</p>` : ``}
         ${c.requisitos ? `<div class="dato"><span class="dato-tit">Requisitos:</span> ${c.requisitos}</div>` : ``}
         ${c.contacto ? `<div class="dato"><span class="dato-tit">Contacto:</span> ${c.contacto}</div>` : ``}
-        <button class="btn dorado" onclick="aplicarConvenio(${i})">Aplicar a este convenio</button>
+        <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Aplicar a este convenio</button>
+
+        <!-- formulario de datos, oculto hasta que tocan Aplicar -->
+        <div class="form-convenio" id="form-convenio-${i}" style="display:none">
+          <div class="campo" style="margin-top:14px">
+            <label>Nombre completo</label>
+            <input type="text" id="conv-nombre-${i}" placeholder="Ej: Juan Pérez">
+          </div>
+          <div class="campo">
+            <label>Teléfono</label>
+            <input type="tel" id="conv-tel-${i}" placeholder="Ej: 099 123 456">
+          </div>
+          <div class="campo">
+            <label>Correo <span class="ayuda">(opcional)</span></label>
+            <input type="email" id="conv-mail-${i}" placeholder="Ej: juan@correo.com">
+          </div>
+          <button class="btn" onclick="confirmarConvenio(${i})">Enviar solicitud</button>
+        </div>
       </div>
     </article>`).join('');
 }
+
+// muestra u oculta el formulario de un convenio
+window.mostrarFormConvenio = function(i){
+  const f = document.getElementById('form-convenio-'+i);
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+};
 
 /* ============================================================
    Envíos
@@ -671,21 +697,44 @@ document.getElementById('btn-enviar').addEventListener('click', async ()=>{
   });
 });
 
-window.aplicarConvenio = function(i){
+window.confirmarConvenio = function(i){
   const c = CONVENIOS[i];
-  const registro = {
-    tipo:"Convenio", asunto:"Aplicación: "+c.titulo,
-    mensaje:'Solicito aplicar al convenio: '+c.titulo, area:""
-  };
+  const nombre = document.getElementById('conv-nombre-'+i).value.trim();
+  const tel    = document.getElementById('conv-tel-'+i).value.trim();
+  const mail   = document.getElementById('conv-mail-'+i).value.trim();
+
+  // nombre y teléfono son obligatorios
+  if(!nombre || !tel){
+    avisar('Completá tu nombre y teléfono', true);
+    return;
+  }
+
+  // armar el mensaje con los datos de contacto
+  const mensaje =
+    'Solicito aplicar al convenio: ' + c.titulo + '\n' +
+    'Nombre: ' + nombre + '\n' +
+    'Teléfono: ' + tel +
+    (mail ? ('\nCorreo: ' + mail) : '');
+
+  const registro = { tipo:"Convenio", asunto:"Aplicación: "+c.titulo,
+                     mensaje, sector:"", nombre };
+
   // guardar en el celular
   const lista = leerEnvios();
-  lista.unshift(Object.assign({}, registro,
-    {fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'})}));
+  lista.unshift({ tipo:"Convenio", asunto:"Aplicación: "+c.titulo, mensaje, area:"",
+    fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) });
   guardarEnvios(lista);
-  // mandar a la planilla
-  enviarAlSindicato({ tipo:registro.tipo, asunto:registro.asunto,
-                      mensaje:registro.mensaje, sector:"", nombre:"" });
-  avisar('Aplicación registrada');
+
+  // mandar a la planilla y al correo
+  enviarAlSindicato(registro);
+
+  // limpiar y ocultar el formulario
+  document.getElementById('conv-nombre-'+i).value='';
+  document.getElementById('conv-tel-'+i).value='';
+  document.getElementById('conv-mail-'+i).value='';
+  document.getElementById('form-convenio-'+i).style.display='none';
+
+  avisar('¡Solicitud enviada! El sindicato se contactará con vos.');
 };
 
 function pintarMisEnvios(){
