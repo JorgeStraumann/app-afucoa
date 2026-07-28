@@ -303,14 +303,7 @@
     #v-enviar, #v-mis{ max-width: 620px; margin: 0 auto; }
 
     .intro{ text-align: center; }
-
-    /* La imagen de Integración de Directiva, centrada y sin estirarse de más */
-    #v-directiva{ max-width: 620px; margin: 0 auto; }
   }
-
-  /* Espacio extra al final de la vista de Directiva para que el pie de la
-     imagen no quede tapado por la barra inferior en ningún celular */
-  #v-directiva{ padding-bottom: 24px; }
 
   /* Pantalla muy ancha: tres columnas */
   @media (min-width: 1000px){
@@ -337,10 +330,6 @@
     <button class="menu-item" onclick="abrirDesdeMenu('v-actas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
       Actas de reuniones
-    </button>
-    <button class="menu-item" onclick="abrirDesdeMenu('v-directiva')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M15 11a3 3 0 1 0-2-5.2"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M15 15c2.8.2 5 2.1 5 5"/></svg>
-      Integración de Directiva
     </button>
   </div>
 </header>
@@ -449,13 +438,6 @@
     <div class="titulo-seccion">Actas de reuniones</div>
     <p class="propuestas-intro">Acá podés leer las actas de las reuniones del sindicato. Tocá una para abrirla.</p>
     <div id="lista-actas"></div>
-  </section>
-
-  <!-- ======== INTEGRACIÓN DE DIRECTIVA ======== -->
-  <section class="vista" id="v-directiva">
-    <div class="titulo-seccion">Integración de la Comisión Directiva</div>
-    <img src="integracion-directiva.png" alt="Integración de la Comisión Directiva de AFUCOA"
-         style="width:100%;border-radius:14px;box-shadow:0 2px 10px rgba(26,35,126,.10);margin-bottom:40px">
   </section>
 </main>
 
@@ -593,6 +575,41 @@ const CONVENIOS = [
    Poné las más nuevas arriba. */
 
 const ACTAS = [
+
+  // --- Acta ---
+  {
+    titulo: "Acta N.º 8 - 2026/2027",
+    fecha: "2026",
+    archivo: "actas/ACTA-8-2026-2027.pdf"
+  },
+
+  // --- Acta ---
+  {
+    titulo: "Acta N.º 7 - 2026/2027",
+    fecha: "2026",
+    archivo: "actas/ACTA-7-2026-2027.pdf"
+  },
+
+  // --- Acta ---
+  {
+    titulo: "Acta N.º 6 - 2026/2027",
+    fecha: "2026",
+    archivo: "actas/ACTA-6-2026-2027.pdf"
+  },
+
+  // --- Acta ---
+  {
+    titulo: "Acta N.º 5 - 2026/2027 (con propuestas y acuerdos anexados)",
+    fecha: "2026",
+    archivo: "actas/ACTA-5-2026-2027-Propuestas-Acuerdo-anexadas.pdf"
+  },
+
+  // --- Acta ---
+  {
+    titulo: "Acta N.º 4 - 2026/2027",
+    fecha: "2026",
+    archivo: "actas/ACTA-4-2026-2027.pdf"
+  },
 
   // --- Acta ---
   {
