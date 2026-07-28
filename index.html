@@ -308,6 +308,10 @@
     #v-directiva{ max-width: 620px; margin: 0 auto; }
   }
 
+  /* Espacio extra al final de la vista de Directiva para que el pie de la
+     imagen no quede tapado por la barra inferior en ningún celular */
+  #v-directiva{ padding-bottom: 24px; }
+
   /* Pantalla muy ancha: tres columnas */
   @media (min-width: 1000px){
     #lista-anuncios, #lista-convenios{ column-count: 3; }
@@ -451,7 +455,7 @@
   <section class="vista" id="v-directiva">
     <div class="titulo-seccion">Integración de la Comisión Directiva</div>
     <img src="integracion-directiva.png" alt="Integración de la Comisión Directiva de AFUCOA"
-         style="width:100%;border-radius:14px;box-shadow:0 2px 10px rgba(26,35,126,.10)">
+         style="width:100%;border-radius:14px;box-shadow:0 2px 10px rgba(26,35,126,.10);margin-bottom:40px">
   </section>
 </main>
 
