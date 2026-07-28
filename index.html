@@ -106,35 +106,49 @@
   .acta-flecha{flex:none;color:var(--tinta-suave)}
   .acta-flecha svg{width:20px;height:20px}
 
-  /* ---------- Comisión Directiva (sobrio, lineal) ---------- */
-  .directiva-lista{
-    background:#fff;border:1px solid var(--linea);border-radius:12px;
-    overflow:hidden;box-shadow:0 1px 4px rgba(26,35,126,.05);
+  /* ---------- Comisión Directiva (protocolar) ---------- */
+  #v-directiva{ padding:0 !important; }
+  .dir-hero{
+    background:var(--verde);color:#fff;
+    padding:34px 22px 30px;position:relative;overflow:hidden;
   }
-  .miembro{
-    display:flex;align-items:baseline;gap:12px;
-    padding:15px 18px;border-bottom:1px solid var(--linea);
+  .dir-hero-sup{
+    font-size:12px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.55);font-weight:700;margin-bottom:12px;
   }
-  .miembro:last-child{border-bottom:none}
-  .miembro-cargo{
-    flex:none;width:38%;font-size:11px;font-weight:700;letter-spacing:.8px;
-    text-transform:uppercase;color:var(--verde);line-height:1.4;
+  .dir-hero-tit{
+    font-family:Georgia,'Times New Roman',serif;font-weight:700;
+    font-size:30px;line-height:1.1;letter-spacing:.5px;margin-bottom:12px;
   }
-  .miembro-nombre{
-    flex:1;font-size:15px;color:var(--tinta);font-weight:500;line-height:1.4;
+  .dir-hero-sub{font-size:15px;color:rgba(255,255,255,.75)}
+  .dir-hero-circulo{
+    position:absolute;top:-40px;right:-50px;width:180px;height:180px;
+    border:2px solid rgba(255,255,255,.12);border-radius:50%;
   }
-  .directiva-encabezado{
+  .dir-cuerpo{padding:22px;}
+  .dir-grupo-tit{
+    font-size:13px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--dorado);font-weight:700;margin:22px 0 6px;
+  }
+  .dir-grupo-tit:first-child{margin-top:0}
+  .dir-fila{
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+    padding:20px 2px;border-bottom:1px solid var(--linea);
+  }
+  .dir-cargo{
+    flex:none;font-size:16px;color:var(--tinta-suave);font-weight:400;
+  }
+  .dir-nombre{
+    flex:1;text-align:right;
+    font-family:Georgia,'Times New Roman',serif;font-weight:700;
+    font-size:20px;color:var(--verde);line-height:1.2;
+  }
+  .dir-pie{
     background:var(--verde);color:#fff;text-align:center;
-    padding:16px;border-radius:12px;margin-bottom:16px;
+    padding:22px;margin-top:10px;
   }
-  .directiva-encabezado .linea1{
-    font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:3px;
-  }
-  .directiva-encabezado .linea2{font-size:16px;font-weight:700;letter-spacing:.5px}
-  .directiva-grupo-titulo{
-    font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
-    color:var(--tinta-suave);font-weight:700;margin:20px 4px 10px;
-  }
+  .dir-pie-nombre{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:6px}
+  .dir-pie-sigla{font-size:12px;letter-spacing:3px;color:rgba(255,255,255,.5)}
 
   /* ---------- Vistas ---------- */
   main{padding:18px 16px 20px}
@@ -476,8 +490,6 @@
 
   <!-- ======== DIRECTIVA ======== -->
   <section class="vista" id="v-directiva">
-    <div class="titulo-seccion">Comisión Directiva</div>
-    <p class="propuestas-intro">Integrantes de la Comisión Directiva de AFUCOA.</p>
     <div id="lista-directiva"></div>
   </section>
 </main>
@@ -617,14 +629,14 @@ const DIRECTIVA = [
   { cargo: "Tesorero",       nombre: "Martín Mariño",      destacado: true },
   { cargo: "Vocal",          nombre: "Marcelo Pozzolo",    destacado: false },
   { cargo: "Vocal",          nombre: "Maite Rivas",        destacado: false },
+  { cargo: "Vocal",          nombre: "Valentina de Fuentes", destacado: false },
   { cargo: "Vocal",          nombre: "Gustavo Amaral",     destacado: false },
-  { cargo: "Vocal",          nombre: "Valentina De Fuentes", destacado: false },
   { cargo: "Vocal",          nombre: "Daniel Sánchez",     destacado: false },
 ];
 
 // Roles fuera de la comisión directiva (se muestran aparte, abajo)
 const OTROS_ROLES = [
-  { cargo: "Encargada de gestión de convenios", nombre: "Sabrina Iglesias" },
+  { cargo: "Encargada de convenios", nombre: "Sabrina Iglesias" },
 ];
 
 /* ===== ACTAS DE REUNIONES =====
@@ -1134,41 +1146,42 @@ function iniciales(nombre){
 
 function pintarDirectiva(){
   const cont = document.getElementById('lista-directiva');
-  const autoridades = DIRECTIVA.filter(p=>p.destacado);
-  const vocales      = DIRECTIVA.filter(p=>!p.destacado);
+  const mesa    = DIRECTIVA.filter(p=>p.destacado);
+  const vocales = DIRECTIVA.filter(p=>!p.destacado);
 
-  let html = `
-    <div class="directiva-encabezado">
-      <div class="linea1">AFUCOA</div>
-      <div class="linea2">Comisión Directiva</div>
+  const fila = (cargo, nombre)=>`
+    <div class="dir-fila">
+      <div class="dir-cargo">${cargo}</div>
+      <div class="dir-nombre">${nombre}</div>
     </div>`;
 
-  // autoridades
-  html += `<div class="directiva-lista">` + autoridades.map(p=>`
-      <div class="miembro">
-        <div class="miembro-cargo">${p.cargo}</div>
-        <div class="miembro-nombre">${p.nombre}</div>
-      </div>`).join('') + `</div>`;
+  let html = `
+    <div class="dir-hero">
+      <div class="dir-hero-circulo"></div>
+      <div class="dir-hero-sup">AFUCOA · Poder Legislativo</div>
+      <div class="dir-hero-tit">Integración de la<br>Comisión Directiva</div>
+      <div class="dir-hero-sub">Autoridades vigentes de la asociación</div>
+    </div>
+    <div class="dir-cuerpo">`;
 
-  // vocales
+  html += `<div class="dir-grupo-tit">Mesa Ejecutiva</div>`;
+  html += mesa.map(p=>fila(p.cargo, p.nombre)).join('');
+
   if(vocales.length){
-    html += `<div class="directiva-grupo-titulo">Vocales</div>`;
-    html += `<div class="directiva-lista">` + vocales.map(p=>`
-      <div class="miembro">
-        <div class="miembro-cargo">Vocal</div>
-        <div class="miembro-nombre">${p.nombre}</div>
-      </div>`).join('') + `</div>`;
+    html += `<div class="dir-grupo-tit">Vocales</div>`;
+    html += vocales.map(p=>fila('Vocal', p.nombre)).join('');
   }
 
-  // otros roles
   if(typeof OTROS_ROLES !== 'undefined' && OTROS_ROLES.length){
-    html += `<div class="directiva-grupo-titulo">Otros roles</div>`;
-    html += `<div class="directiva-lista">` + OTROS_ROLES.map(p=>`
-      <div class="miembro">
-        <div class="miembro-cargo">${p.cargo}</div>
-        <div class="miembro-nombre">${p.nombre}</div>
-      </div>`).join('') + `</div>`;
+    html += `<div class="dir-grupo-tit">Convenios</div>`;
+    html += OTROS_ROLES.map(p=>fila(p.cargo, p.nombre)).join('');
   }
+
+  html += `</div>
+    <div class="dir-pie">
+      <div class="dir-pie-nombre">Asociación de Funcionarios de la Comisión Administrativa del Poder Legislativo</div>
+      <div class="dir-pie-sigla">AFUCOA</div>
+    </div>`;
 
   cont.innerHTML = html;
 }
