@@ -106,6 +106,33 @@
   .acta-flecha{flex:none;color:var(--tinta-suave)}
   .acta-flecha svg{width:20px;height:20px}
 
+  /* ---------- Comisión Directiva ---------- */
+  .miembro{
+    background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;
+    box-shadow:0 2px 10px rgba(26,35,126,.07);
+  }
+  .miembro-inicial{
+    flex:none;width:48px;height:48px;border-radius:50%;
+    background:var(--verde);color:#fff;display:grid;place-items:center;
+    font-weight:700;font-size:17px;letter-spacing:.5px;
+  }
+  .miembro-inicial.chica{width:40px;height:40px;font-size:14px}
+  .miembro-info{flex:1;min-width:0}
+  .miembro-cargo{
+    font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:var(--dorado);margin-bottom:2px;
+  }
+  .miembro-nombre{font-size:16px;font-weight:600;color:var(--tinta);line-height:1.2}
+  .miembro-destacado .miembro-nombre{font-size:17px}
+  .miembro-vocal .miembro-nombre{font-size:14px}
+  .miembro-subtitulo{
+    font-size:12px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--tinta-suave);font-weight:700;margin:20px 2px 12px;
+    padding-top:14px;border-top:1px solid var(--linea);
+  }
+  .vocales-grid{display:grid;grid-template-columns:1fr;gap:0}
+
   /* ---------- Vistas ---------- */
   main{padding:18px 16px 20px}
   .vista{display:none;animation:sube .25s ease}
@@ -331,6 +358,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
       Actas de reuniones
     </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-directiva')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M18 20c0-2-1-3.5-2.5-4.3"/></svg>
+      Comisión Directiva
+    </button>
   </div>
 </header>
 
@@ -438,6 +469,13 @@
     <div class="titulo-seccion">Actas de reuniones</div>
     <p class="propuestas-intro">Acá podés leer las actas de las reuniones del sindicato. Tocá una para abrirla.</p>
     <div id="lista-actas"></div>
+  </section>
+
+  <!-- ======== DIRECTIVA ======== -->
+  <section class="vista" id="v-directiva">
+    <div class="titulo-seccion">Comisión Directiva</div>
+    <p class="propuestas-intro">Integrantes de la Comisión Directiva de AFUCOA.</p>
+    <div id="lista-directiva"></div>
   </section>
 </main>
 
@@ -562,6 +600,28 @@ const CONVENIOS = [
     contacto: ""
   },
 
+];
+
+/* ===== COMISIÓN DIRECTIVA =====
+   Para cambiar un integrante, editá el nombre o el cargo entre comillas.
+   El campo "destacado: true" es para las autoridades (salen más grandes,
+   arriba). Los vocales van con "destacado: false". */
+
+const DIRECTIVA = [
+  { cargo: "Presidente",     nombre: "Emanuel Basualdo",   destacado: true },
+  { cargo: "Vicepresidente", nombre: "Julio Pintos",       destacado: true },
+  { cargo: "Secretario",     nombre: "Jorge Carrara",      destacado: true },
+  { cargo: "Tesorero",       nombre: "Martín Mariño",      destacado: true },
+  { cargo: "Vocal",          nombre: "Marcelo Pozzolo",    destacado: false },
+  { cargo: "Vocal",          nombre: "Maite Rivas",        destacado: false },
+  { cargo: "Vocal",          nombre: "Gustavo Amaral",     destacado: false },
+  { cargo: "Vocal",          nombre: "Valentina De Fuentes", destacado: false },
+  { cargo: "Vocal",          nombre: "Daniel Sánchez",     destacado: false },
+];
+
+// Roles fuera de la comisión directiva (se muestran aparte, abajo)
+const OTROS_ROLES = [
+  { cargo: "Encargada de gestión de convenios", nombre: "Sabrina Iglesias" },
 ];
 
 /* ===== ACTAS DE REUNIONES =====
@@ -1061,6 +1121,59 @@ function pintarActas(){
     </a>`).join('');
 }
 
+// saca las iniciales de un nombre (ej: "Emanuel Basualdo" -> "EB")
+function iniciales(nombre){
+  const partes = nombre.trim().split(/\s+/);
+  const a = partes[0] ? partes[0][0] : '';
+  const b = partes.length > 1 ? partes[partes.length-1][0] : '';
+  return (a + b).toUpperCase();
+}
+
+function pintarDirectiva(){
+  const cont = document.getElementById('lista-directiva');
+  const destacados = DIRECTIVA.filter(p=>p.destacado);
+  const vocales    = DIRECTIVA.filter(p=>!p.destacado);
+
+  let html = '';
+
+  // autoridades (destacadas)
+  html += destacados.map(p=>`
+    <div class="miembro miembro-destacado">
+      <div class="miembro-inicial">${iniciales(p.nombre)}</div>
+      <div class="miembro-info">
+        <div class="miembro-cargo">${p.cargo}</div>
+        <div class="miembro-nombre">${p.nombre}</div>
+      </div>
+    </div>`).join('');
+
+  // vocales
+  if(vocales.length){
+    html += `<div class="miembro-subtitulo">Vocales</div>`;
+    html += `<div class="vocales-grid">` + vocales.map(p=>`
+      <div class="miembro miembro-vocal">
+        <div class="miembro-inicial chica">${iniciales(p.nombre)}</div>
+        <div class="miembro-info">
+          <div class="miembro-nombre">${p.nombre}</div>
+        </div>
+      </div>`).join('') + `</div>`;
+  }
+
+  // otros roles
+  if(typeof OTROS_ROLES !== 'undefined' && OTROS_ROLES.length){
+    html += `<div class="miembro-subtitulo">Otros roles</div>`;
+    html += OTROS_ROLES.map(p=>`
+      <div class="miembro">
+        <div class="miembro-inicial">${iniciales(p.nombre)}</div>
+        <div class="miembro-info">
+          <div class="miembro-cargo">${p.cargo}</div>
+          <div class="miembro-nombre">${p.nombre}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  cont.innerHTML = html;
+}
+
 // abrir/cerrar el menú desplegable
 const menuBtn = document.getElementById('menu-btn');
 const menuDesplegable = document.getElementById('menu-desplegable');
@@ -1076,6 +1189,7 @@ window.abrirDesdeMenu = function(idVista){
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
   menuDesplegable.classList.remove('abierto');
   if(idVista === 'v-actas') pintarActas();
+  if(idVista === 'v-directiva') pintarDirectiva();
   window.scrollTo(0,0);
 };
 
