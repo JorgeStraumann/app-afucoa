@@ -184,24 +184,61 @@
   /* ---------- Convenios ---------- */
   .convenio{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
-    margin-bottom:12px;overflow:hidden;
+    margin-bottom:16px;overflow:hidden;
     box-shadow:0 2px 10px rgba(26,35,126,.07);
   }
-  .convenio-img{width:100%;height:150px;object-fit:cover;display:block;background:var(--arena-2)}
-  .convenio-cuerpo{padding:16px}
-  .convenio h3{font-size:16px;margin-bottom:6px}
-  .convenio .beneficio{
-    display:inline-block;font-size:13px;font-weight:700;color:#fff;
-    background:var(--verde);padding:4px 12px;border-radius:20px;margin-bottom:8px;
+  /* galería de imágenes del comercio */
+  .conv-galeria{background:var(--arena-2)}
+  .conv-img-principal{
+    width:100%;max-height:420px;object-fit:contain;display:block;
+    background:#fff;cursor:zoom-in;
   }
-  .convenio .plazo{font-size:12px;color:var(--rojo);font-weight:600;margin-bottom:8px}
-  .convenio p{font-size:13px;color:var(--tinta-suave);line-height:1.5;margin-bottom:10px}
-  .convenio .dato{font-size:13px;color:var(--tinta);line-height:1.5;margin-bottom:6px}
-  .convenio .dato-tit{font-weight:700;color:var(--verde)}
-  .convenio .btn{margin-top:10px}
+  .conv-miniaturas{
+    display:flex;gap:8px;padding:10px;overflow-x:auto;background:#fff;
+    border-top:1px solid var(--linea);
+  }
+  .conv-mini{
+    width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer;
+    border:2px solid transparent;flex:none;opacity:.6;transition:.15s;
+  }
+  .conv-mini.activa{border-color:var(--verde);opacity:1}
+  .convenio-cuerpo{padding:18px}
+  .conv-rubro{
+    font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--dorado);margin-bottom:4px;
+  }
+  .convenio h3{font-size:20px;margin-bottom:14px;color:var(--verde)}
+  .conv-bloque{margin-bottom:16px}
+  .conv-subtit{
+    font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:var(--tinta-suave);margin-bottom:8px;
+  }
+  .conv-beneficios{list-style:none;padding:0;margin:0}
+  .conv-beneficios li{
+    font-size:14px;color:var(--tinta);line-height:1.5;padding-left:24px;
+    position:relative;margin-bottom:8px;
+  }
+  .conv-beneficios li::before{
+    content:'';position:absolute;left:2px;top:8px;width:8px;height:8px;
+    background:var(--verde);border-radius:50%;
+  }
+  .conv-requisitos{font-size:13px;color:var(--tinta-suave);line-height:1.5}
+  .conv-contacto{
+    font-size:14px;color:var(--tinta);line-height:1.5;margin-bottom:6px;
+    display:block;
+  }
+  a.conv-contacto.enlace{color:var(--verde);text-decoration:none;font-weight:500}
+  a.conv-contacto.enlace:active{opacity:.6}
+  .convenio .btn{margin-top:12px}
   .form-convenio{
     border-top:1px solid var(--linea);margin-top:14px;padding-top:4px;
   }
+  /* imagen ampliada a pantalla completa */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
+    display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;
+  }
+  .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 
   /* ---------- Formularios ---------- */
   .campo{margin-bottom:16px}
@@ -564,55 +601,224 @@ const ANUNCIOS = [
 
 ];
 
+/* CADA CONVENIO puede tener estos campos:
+     titulo      -> nombre del comercio o beneficio
+     rubro       -> categoría (ej: "Óptica", "Alojamiento")
+     imagenes    -> lista de imágenes que mandó el comercio (van en la carpeta
+                    "convenios" de GitHub). Ej: ["convenios/optica-ariel-1.jpg"]
+                    Si no mandó imagen, dejar la lista vacía: []
+     beneficios  -> lista de beneficios (cada uno entre comillas, separados por coma)
+     requisitos  -> texto con condiciones/restricciones (opcional, "" si no hay)
+     contactos   -> lista de datos de contacto. Cada uno con:
+                      tipo: "tel" | "mail" | "web" | "texto" | "instagram"
+                      valor: lo que se muestra
+                    Los mail, web e instagram quedan clickeables solos.
+*/
+
 const CONVENIOS = [
 
-  /* CADA CONVENIO puede tener estos campos. Los que no quieras mostrar,
-     dejalos con las comillas vacías  ""  o borrá esa línea entera.
-
-       imagen     -> nombre del archivo de imagen que subiste a GitHub
-                     (ej: "optica.jpg"). Dejar "" si no tiene imagen.
-       titulo     -> nombre del convenio
-       beneficio  -> el descuento o ventaja (sale en una etiqueta verde)
-       plazo      -> vigencia o cierre (sale en rojo)
-       texto      -> descripción
-       requisitos -> qué se necesita para acceder
-       contacto   -> teléfono, dirección, etc.
-
-     PARA SUBIR UNA IMAGEN: en GitHub, entrá a tu repositorio, tocá
-     "Add file" -> "Upload files", subí la foto, y después poné su nombre
-     exacto en el campo "imagen" (respetando mayúsculas y la extensión). */
-
-  // --- Convenio ---
+  // ===== HOTEL DEL LAGO (sin imagen propia) =====
   {
-    imagen: "",
-    titulo: "Convenio con óptica",
-    beneficio: "30% de descuento",
-    plazo: "Vigente todo el año",
-    texto: "Descuento en armazones y cristales para afiliados y familiares directos.",
-    requisitos: "Presentar carné de afiliado vigente.",
-    contacto: "Tel. 2900 0000 · Av. 18 de Julio 1234"
+    titulo: "Hotel del Lago Golf & Art Resort",
+    rubro: "Alojamiento · Punta del Este",
+    imagenes: [],
+    beneficios: [
+      "37% de descuento sobre la tarifa RACK vigente.",
+      "Early check-in y late check-out sin costo (según disponibilidad).",
+      "Upgrade de categoría de habitación (según disponibilidad).",
+      "50% de descuento en canchas de paddle.",
+      "5% de descuento en el restaurante La Navicella.",
+      "10% de descuento en Spa & Wellness.",
+      "Descuentos en green fees del campo de golf.",
+      "Uso libre de kayaks y canchas de tenis.",
+      "Beneficios especiales para eventos corporativos."
+    ],
+    requisitos: "Prepago no reembolsable. Beneficio no acumulable con otras promociones. Máximo 2 habitaciones por funcionario. Estadía mínima de 2 noches (3 noches en temporada alta). Reservas por la web con código promocional.",
+    contactos: [
+      { tipo:"texto", valor:"Contacto: Romina Romero y Stella Ciccardini" },
+      { tipo:"texto", valor:"Costanera Laguna del Sauce, Ruta Interbalnearia Km 116, Punta del Este – Maldonado" },
+      { tipo:"mail",  valor:"ventas@hoteldellago.com.uy" },
+      { tipo:"tel",   valor:"42 577 444" },
+      { tipo:"tel",   valor:"094 587 189" },
+      { tipo:"web",   valor:"hoteldellago.uy" }
+    ]
   },
 
-  // --- Convenio ---
+  // ===== AEBU =====
   {
-    imagen: "",
-    titulo: "Beca de formación 2026",
-    beneficio: "Apoyo económico",
-    plazo: "Cierra el 15 de agosto",
-    texto: "Para cursos y tecnicaturas vinculadas a la función. Cupos limitados por sector.",
-    requisitos: "Antigüedad mínima de 1 año.",
-    contacto: "formacion@afucoa.uy"
+    titulo: "AEBU",
+    rubro: "Club Deportivo · Vacacional",
+    imagenes: [
+      "convenios/aebu-1.jpg","convenios/aebu-2.jpg","convenios/aebu-3.jpg",
+      "convenios/aebu-4.jpg","convenios/aebu-5.jpg","convenios/aebu-6.jpg",
+      "convenios/aebu-7.jpg","convenios/aebu-8.jpg","convenios/aebu-9.jpg"
+    ],
+    beneficios: [
+      "Tarifa Convenio en el Club Deportivo (mínimo 10 beneficiarios).",
+      "Acceso a los complejos vacacionales de Piriápolis y Daymán.",
+      "Jardín de Infantes y Extensión Escolar (mínimo 10 alumnos)."
+    ],
+    requisitos: "",
+    contactos: [
+      { tipo:"texto", valor:"Contacto general: Ana Tassino" },
+      { tipo:"mail",  valor:"Ana.Tassino@aebu.org.uy" },
+      { tipo:"texto", valor:"Club Deportivo — Camacuá 575 · Tel. 2916 1060 int. 104" },
+      { tipo:"mail",  valor:"clubdeportivo@aebu.com.uy" },
+      { tipo:"texto", valor:"Complejo Daymán (Juanjo Ramos), Salto · Tel. 092 982 829" },
+      { tipo:"mail",  valor:"complejojuanjoramos@aebu.org.uy" },
+      { tipo:"texto", valor:"Parque Vacacional Piriápolis, Maldonado · Tel. 098 309 557" },
+      { tipo:"mail",  valor:"piriapolis@aebu.org.uy" },
+      { tipo:"texto", valor:"Jardín y Extensión — Juan Carlos Gómez 1265 · Tel. 2915 5818 / 092 023 319" },
+      { tipo:"mail",  valor:"jardinyextension@aebu.org.uy" }
+    ]
   },
 
-  // --- Convenio ---
+  // ===== INMOBILIARIA PERFILES (sin imagen propia) =====
   {
-    imagen: "",
-    titulo: "Colonia de vacaciones",
-    beneficio: "",
-    plazo: "Cierra el 1 de setiembre",
-    texto: "Para hijos de afiliados de 5 a 12 años. Enero y febrero, con transporte incluido desde la sede.",
-    requisitos: "Inscripción previa en la sede.",
-    contacto: ""
+    titulo: "Inmobiliaria Perfiles",
+    rubro: "Inmobiliaria",
+    imagenes: [],
+    beneficios: [
+      "Tasación de inmuebles sin costo.",
+      "Bonificación en la comisión por venta.",
+      "Bonificación en la comisión por alquileres."
+    ],
+    requisitos: "",
+    contactos: [
+      { tipo:"texto", valor:"Contacto: Jorge Franco Gasamán" },
+      { tipo:"texto", valor:"Guayabos 1718, Oficina 602 – Montevideo" },
+      { tipo:"tel",   valor:"2408 7058" },
+      { tipo:"tel",   valor:"099 606 218" },
+      { tipo:"mail",  valor:"tasadorjfranco@inmobiliariaperfiles.com" },
+      { tipo:"web",   valor:"inmobiliariaperfiles.com" }
+    ]
+  },
+
+  // ===== ÓPTICA ARIEL =====
+  {
+    titulo: "Óptica Ariel",
+    rubro: "Óptica",
+    imagenes: ["convenios/optica-ariel-1.jpg"],
+    beneficios: [
+      "15% de descuento sobre lista en todos los productos (salvo promociones).",
+      "20% de descuento en lentes de contacto anuales.",
+      "Adaptación de lentes de contacto sin costo.",
+      "Seguro por 1 año en líneas gas permeables."
+    ],
+    requisitos: "Para socios y familiares directos. No incluye lentes de contacto descartables ni productos de mantenimiento.",
+    contactos: [
+      { tipo:"texto", valor:"Contacto: Carla Monetti" },
+      { tipo:"texto", valor:"18 de Julio 1399" },
+      { tipo:"tel",   valor:"2901 9376" },
+      { tipo:"mail",  valor:"optica.ariel@gmail.com" },
+      { tipo:"web",   valor:"opticaariel.com.uy" }
+    ]
+  },
+
+  // ===== ÓPTICA BRIOZZO =====
+  {
+    titulo: "Óptica Briozzo",
+    rubro: "Óptica",
+    imagenes: ["convenios/optica-briozzo-1.jpg","convenios/optica-briozzo-2.jpg"],
+    beneficios: [
+      "25% de descuento en compras contado o débito.",
+      "15% de descuento con tarjetas de crédito.",
+      "5% de descuento en productos de lentes de contacto.",
+      "20% de descuento contado en descartables.",
+      "10% de descuento crédito en descartables.",
+      "Descuento en el consultorio oftalmológico HORUS.",
+      "Reparaciones y ajustes sin costo.",
+      "Garantía escrita de 1 año en todos los productos."
+    ],
+    requisitos: "Para socios y familiares directos.",
+    contactos: [
+      { tipo:"texto", valor:"Contacto: Luis Briozzo" },
+      { tipo:"texto", valor:"Montevideo — San José 1260 · Tel. 2902 501" },
+      { tipo:"texto", valor:"Canelones — Treinta y Tres 536 · Tel. 4332 3506" },
+      { tipo:"mail",  valor:"opticabriozzo@gmail.com" },
+      { tipo:"web",   valor:"opticabriozzo.com" }
+    ]
+  },
+
+  // ===== ÓPTICA ONIX =====
+  {
+    titulo: "Óptica Onix",
+    rubro: "Óptica",
+    imagenes: [
+      "convenios/optica-onix-1.jpg","convenios/optica-onix-2.jpg",
+      "convenios/optica-onix-3.jpg","convenios/optica-onix-4.jpg"
+    ],
+    beneficios: [
+      "Chequeo visual completo sin costo.",
+      "50% de descuento en armazones en stock + 15% en cristales.",
+      "20% de descuento en lente completo con armazón nuevo.",
+      "20% de descuento en lentes de sol.",
+      "20% de descuento en lentes de contacto anuales.",
+      "10% de descuento en accesorios.",
+      "Consulta oftalmológica a mitad de precio."
+    ],
+    requisitos: "Acepta órdenes de BPS, ASSE, AVTE y CJPB, y todas las tarjetas.",
+    contactos: [
+      { tipo:"texto", valor:"Av. 18 de Julio 1785" },
+      { tipo:"mail",  valor:"hola@opticaonix.uy" },
+      { tipo:"tel",   valor:"2409 9127" },
+      { tipo:"tel",   valor:"099 106 295" },
+      { tipo:"web",   valor:"opticaonix.uy" },
+      { tipo:"instagram", valor:"optica.onix" }
+    ]
+  },
+
+  // ===== SALÓN COLONIAL (sin imagen propia) =====
+  {
+    titulo: "Salón Colonial",
+    rubro: "Salón de eventos",
+    imagenes: [],
+    beneficios: [
+      "10% de descuento sobre el costo final del evento.",
+      "Servicio de fiesta completo.",
+      "Para eventos de 100 a 250 invitados (15 años, bodas, reuniones)."
+    ],
+    requisitos: "Seña del 30%, saldo el lunes previo al evento.",
+    contactos: [
+      { tipo:"texto", valor:"Dr. Juan Campisteguy 2921 esq. Gustavo Gallinal" },
+      { tipo:"mail",  valor:"info@saloncolonial.com.uy" },
+      { tipo:"tel",   valor:"2209 1407" },
+      { tipo:"tel",   valor:"2209 1396" },
+      { tipo:"tel",   valor:"099 669 816" },
+      { tipo:"web",   valor:"saloncolonial.com.uy" },
+      { tipo:"instagram", valor:"saloncolonial" }
+    ]
+  },
+
+  // ===== MACROMERCADO =====
+  {
+    titulo: "Macromercado",
+    rubro: "Supermercado mayorista",
+    imagenes: ["convenios/macromercado-1.jpg"],
+    beneficios: [
+      "Acceso a la escala de descuento más alta, de lunes a viernes.",
+      "Beneficio con la tarjeta Macropass.",
+      "Sucursales en Montevideo e interior (Las Piedras, Maldonado, Colonia, Rivera)."
+    ],
+    requisitos: "Para obtener la tarjeta, enviar un correo a conveniosafuco@gmail.com con nombre completo, cédula, dirección, departamento y celular.",
+    contactos: [
+      { tipo:"mail", valor:"conveniosafuco@gmail.com" }
+    ]
+  },
+
+  // ===== COMO ME VEO =====
+  {
+    titulo: "Como Me Veo",
+    rubro: "Alquiler de vestidos y trajes",
+    imagenes: ["convenios/como-me-veo-1.jpeg"],
+    beneficios: [
+      "30% de descuento en el alquiler de vestidos y trajes."
+    ],
+    requisitos: "Presentar la imagen del convenio para acceder al beneficio.",
+    contactos: [
+      { tipo:"tel", valor:"093 804 689" },
+      { tipo:"instagram", valor:"alquiler_comomeveo.uy" }
+    ]
   },
 
 ];
@@ -742,23 +948,74 @@ function pintarAnuncios(){
       <p>${a.texto}</p>
     </article>`).join('');
 }
-function pintarConvenios(){
-  document.getElementById('lista-convenios').innerHTML = CONVENIOS.map((c,i)=>`
-    <article class="convenio">
-      ${c.imagen ? `<img class="convenio-img" src="${c.imagen}" alt="${c.titulo}">` : ``}
-      <div class="convenio-cuerpo">
-        <h3>${c.titulo}</h3>
-        ${c.beneficio ? `<div class="beneficio">${c.beneficio}</div>` : ``}
-        ${c.plazo ? `<div class="plazo">${c.plazo}</div>` : ``}
-        ${c.texto ? `<p>${c.texto}</p>` : ``}
-        ${c.requisitos ? `<div class="dato"><span class="dato-tit">Requisitos:</span> ${c.requisitos}</div>` : ``}
-        ${c.contacto ? `<div class="dato"><span class="dato-tit">Contacto:</span> ${c.contacto}</div>` : ``}
-        <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Aplicar a este convenio</button>
+// arma un dato de contacto, clickeable según su tipo
+function contactoHTML(c){
+  if(c.tipo === 'mail'){
+    return `<a class="conv-contacto enlace" href="mailto:${c.valor}">✉️ ${c.valor}</a>`;
+  }
+  if(c.tipo === 'tel'){
+    const limpio = c.valor.replace(/[^0-9+]/g,'');
+    return `<a class="conv-contacto enlace" href="tel:${limpio}">📞 ${c.valor}</a>`;
+  }
+  if(c.tipo === 'web'){
+    return `<a class="conv-contacto enlace" href="https://${c.valor}" target="_blank" rel="noopener">🌐 ${c.valor}</a>`;
+  }
+  if(c.tipo === 'instagram'){
+    return `<a class="conv-contacto enlace" href="https://instagram.com/${c.valor}" target="_blank" rel="noopener">📷 @${c.valor}</a>`;
+  }
+  return `<div class="conv-contacto">${c.valor}</div>`;
+}
 
-        <!-- formulario de datos, oculto hasta que tocan Aplicar -->
+function pintarConvenios(){
+  document.getElementById('lista-convenios').innerHTML = CONVENIOS.map((c,i)=>{
+    const tieneImg = c.imagenes && c.imagenes.length > 0;
+    const galeria = tieneImg ? `
+      <div class="conv-galeria">
+        <img class="conv-img-principal" id="conv-img-${i}" src="${c.imagenes[0]}" alt="${c.titulo}"
+             onclick="ampliarImagen('${c.imagenes[0]}')">
+        ${c.imagenes.length > 1 ? `
+          <div class="conv-miniaturas">
+            ${c.imagenes.map((img,n)=>`
+              <img class="conv-mini ${n===0?'activa':''}" src="${img}" alt="imagen ${n+1}"
+                   onclick="cambiarImagen(${i}, '${img}', this)">`).join('')}
+          </div>` : ``}
+      </div>` : ``;
+
+    const beneficios = (c.beneficios && c.beneficios.length) ? `
+      <div class="conv-bloque">
+        <div class="conv-subtit">Beneficios</div>
+        <ul class="conv-beneficios">
+          ${c.beneficios.map(b=>`<li>${b}</li>`).join('')}
+        </ul>
+      </div>` : ``;
+
+    const requisitos = c.requisitos ? `
+      <div class="conv-bloque">
+        <div class="conv-subtit">Condiciones</div>
+        <p class="conv-requisitos">${c.requisitos}</p>
+      </div>` : ``;
+
+    const contactos = (c.contactos && c.contactos.length) ? `
+      <div class="conv-bloque">
+        <div class="conv-subtit">Contacto</div>
+        ${c.contactos.map(contactoHTML).join('')}
+      </div>` : ``;
+
+    return `
+    <article class="convenio">
+      ${galeria}
+      <div class="convenio-cuerpo">
+        ${c.rubro ? `<div class="conv-rubro">${c.rubro}</div>` : ``}
+        <h3>${c.titulo}</h3>
+        ${beneficios}
+        ${requisitos}
+        ${contactos}
+        <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Solicitar convenio</button>
+
+        <!-- formulario de datos, oculto hasta que tocan Solicitar -->
         <div class="form-convenio" id="form-convenio-${i}" style="display:none">
           <div class="campo" style="margin-top:14px">
-            <label>Nombre completo</label>
+            <label>Nombre y apellido</label>
             <input type="text" id="conv-nombre-${i}" placeholder="Ej: Juan Pérez">
           </div>
           <div class="campo">
@@ -772,13 +1029,31 @@ function pintarConvenios(){
           <button class="btn" onclick="confirmarConvenio(${i})">Enviar solicitud</button>
         </div>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
 
 // muestra u oculta el formulario de un convenio
 window.mostrarFormConvenio = function(i){
   const f = document.getElementById('form-convenio-'+i);
   f.style.display = f.style.display === 'none' ? 'block' : 'none';
+};
+
+// cambia la imagen principal al tocar una miniatura
+window.cambiarImagen = function(i, src, mini){
+  document.getElementById('conv-img-'+i).src = src;
+  const cont = mini.parentElement;
+  cont.querySelectorAll('.conv-mini').forEach(m=>m.classList.remove('activa'));
+  mini.classList.add('activa');
+};
+
+// amplía una imagen a pantalla completa
+window.ampliarImagen = function(src){
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox';
+  overlay.innerHTML = `<img src="${src}" alt="ampliada">`;
+  overlay.onclick = ()=>overlay.remove();
+  document.body.appendChild(overlay);
 };
 
 /* ============================================================
