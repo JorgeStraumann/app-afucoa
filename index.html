@@ -233,6 +233,10 @@
   .form-convenio{
     border-top:1px solid var(--linea);margin-top:14px;padding-top:4px;
   }
+  .conv-nota-datos{
+    font-size:12px;color:var(--tinta-suave);line-height:1.4;
+    text-align:center;margin-top:10px;
+  }
   /* imagen ampliada a pantalla completa */
   .lightbox{
     position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
@@ -1072,18 +1076,31 @@ function pintarConvenios(){
         <!-- formulario de datos, oculto hasta que tocan Solicitar -->
         <div class="form-convenio" id="form-convenio-${i}" style="display:none">
           <div class="campo" style="margin-top:14px">
-            <label>Nombre y apellido</label>
+            <label>Nombre completo</label>
             <input type="text" id="conv-nombre-${i}" placeholder="Ej: Juan Pérez">
           </div>
           <div class="campo">
-            <label>Teléfono</label>
+            <label>Cédula de identidad</label>
+            <input type="text" id="conv-cedula-${i}" inputmode="numeric" placeholder="Ej: 1.234.567-8">
+          </div>
+          <div class="campo">
+            <label>Dirección</label>
+            <input type="text" id="conv-direccion-${i}" placeholder="Ej: Av. 18 de Julio 1234">
+          </div>
+          <div class="campo">
+            <label>Departamento</label>
+            <input type="text" id="conv-depto-${i}" placeholder="Ej: Montevideo">
+          </div>
+          <div class="campo">
+            <label>Número de celular</label>
             <input type="tel" id="conv-tel-${i}" placeholder="Ej: 099 123 456">
           </div>
           <div class="campo">
-            <label>Correo <span class="ayuda">(opcional)</span></label>
+            <label>Correo electrónico</label>
             <input type="email" id="conv-mail-${i}" placeholder="Ej: juan@correo.com">
           </div>
           <button class="btn" onclick="confirmarConvenio(${i})">Enviar solicitud</button>
+          <p class="conv-nota-datos">Tus datos se envían a AFUCOA únicamente para gestionar tu solicitud de este convenio.</p>
         </div>
       </div>
     </article>`;
@@ -1248,29 +1265,35 @@ document.getElementById('btn-enviar').addEventListener('click', async ()=>{
 
 window.confirmarConvenio = function(i){
   const c = CONVENIOS[i];
-  const nombre = document.getElementById('conv-nombre-'+i).value.trim();
-  const tel    = document.getElementById('conv-tel-'+i).value.trim();
-  const mail   = document.getElementById('conv-mail-'+i).value.trim();
+  const nombre    = document.getElementById('conv-nombre-'+i).value.trim();
+  const cedula    = document.getElementById('conv-cedula-'+i).value.trim();
+  const direccion = document.getElementById('conv-direccion-'+i).value.trim();
+  const depto     = document.getElementById('conv-depto-'+i).value.trim();
+  const tel       = document.getElementById('conv-tel-'+i).value.trim();
+  const mail      = document.getElementById('conv-mail-'+i).value.trim();
 
-  // nombre y teléfono son obligatorios
-  if(!nombre || !tel){
-    avisar('Completá tu nombre y teléfono', true);
+  // todos los campos son obligatorios
+  if(!nombre || !cedula || !direccion || !depto || !tel || !mail){
+    avisar('Completá todos los datos para solicitar el convenio', true);
     return;
   }
 
-  // armar el mensaje con los datos de contacto
+  // armar el mensaje con todos los datos
   const mensaje =
-    'Solicito aplicar al convenio: ' + c.titulo + '\n' +
-    'Nombre: ' + nombre + '\n' +
-    'Teléfono: ' + tel +
-    (mail ? ('\nCorreo: ' + mail) : '');
+    'Solicito el convenio: ' + c.titulo + '\n\n' +
+    'Nombre completo: ' + nombre + '\n' +
+    'Cédula de identidad: ' + cedula + '\n' +
+    'Dirección: ' + direccion + '\n' +
+    'Departamento: ' + depto + '\n' +
+    'Celular: ' + tel + '\n' +
+    'Correo: ' + mail;
 
-  const registro = { tipo:"Convenio", asunto:"Aplicación: "+c.titulo,
+  const registro = { tipo:"Convenio", asunto:"Solicitud: "+c.titulo,
                      mensaje, sector:"", nombre };
 
   // guardar en el celular
   const lista = leerEnvios();
-  lista.unshift({ tipo:"Convenio", asunto:"Aplicación: "+c.titulo, mensaje, area:"",
+  lista.unshift({ tipo:"Convenio", asunto:"Solicitud: "+c.titulo, mensaje, area:"",
     fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) });
   guardarEnvios(lista);
 
@@ -1278,9 +1301,9 @@ window.confirmarConvenio = function(i){
   enviarAlSindicato(registro);
 
   // limpiar y ocultar el formulario
-  document.getElementById('conv-nombre-'+i).value='';
-  document.getElementById('conv-tel-'+i).value='';
-  document.getElementById('conv-mail-'+i).value='';
+  ['nombre','cedula','direccion','depto','tel','mail'].forEach(campo=>{
+    document.getElementById('conv-'+campo+'-'+i).value='';
+  });
   document.getElementById('form-convenio-'+i).style.display='none';
 
   avisar('¡Solicitud enviada! El sindicato se contactará con vos.');
