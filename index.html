@@ -633,29 +633,11 @@ const ANUNCIOS = [
 
   // --- Anuncio (poné urgente:true para que salga en rojo) ---
   {
-    urgente: true,
-    etiqueta: "Asamblea",
-    fecha: "Hoy",
-    titulo: "Asamblea general extraordinaria",
-    texto: "Convocamos a todos los afiliados el jueves 31 a las 18:00 en la sede central. Orden del día: negociación salarial."
-  },
-
-  // --- Anuncio ---
-  {
     urgente: false,
-    etiqueta: "Salud",
-    fecha: "Ayer",
-    titulo: "Nuevo convenio con óptica",
-    texto: "Descuento del 30% para afiliados y familiares directos presentando el carné. Ver detalles en la sección Convenios."
-  },
-
-  // --- Anuncio ---
-  {
-    urgente: false,
-    etiqueta: "Comunicado",
-    fecha: "22 jul",
-    titulo: "Resultado de la reunión con Dirección",
-    texto: "Informamos los avances sobre la reestructura de cargos planteada el mes pasado. Se logró incluir tres de los cuatro puntos."
+    etiqueta: "Bienvenida",
+    fecha: "",
+    titulo: "Estamos construyendo esta app para vos",
+    texto: "Seguimos trabajando para mejorar la aplicación de AFUCOA. Tu opinión es muy importante: aceptamos todo tipo de sugerencias. Escribinos desde la sección Enviar y contanos qué te gustaría ver acá."
   },
 
 ];
@@ -1021,7 +1003,7 @@ function pintarAnuncios(){
     <article class="anuncio ${a.urgente?'urgente':''}">
       <div class="meta">
         <span class="etiqueta ${a.urgente?'urgente':''}">${a.etiqueta}</span>
-        <time>${a.fecha}</time>
+        ${a.fecha ? `<time>${a.fecha}</time>` : ``}
       </div>
       <h3>${a.titulo}</h3>
       <p>${a.texto}</p>
