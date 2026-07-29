@@ -311,9 +311,19 @@
 
   .intro{
     background:var(--verde);color:#fff;border-radius:14px;padding:18px;margin-bottom:18px;
-  }
-  .intro h2{font-size:17px;margin-bottom:6px}
+  }  .intro h2{font-size:17px;margin-bottom:6px}
   .intro p{font-size:13px;opacity:.85;line-height:1.5}
+
+  .btn-compartir{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+    background:#fff;border:1.5px solid var(--verde);color:var(--verde);
+    font-family:inherit;font-size:15px;font-weight:600;
+    padding:14px;border-radius:12px;cursor:pointer;margin-bottom:18px;transition:.15s;
+  }
+  .btn-compartir:hover{background:var(--verde);color:#fff}
+  .btn-compartir:hover svg{stroke:#fff}
+  .btn-compartir:active{transform:scale(.98)}
+  .btn-compartir svg{width:20px;height:20px;flex:none}
 
   .vacio{text-align:center;color:var(--tinta-suave);padding:40px 20px;font-size:14px}
   .vacio svg{opacity:.4;margin-bottom:12px}
@@ -460,6 +470,10 @@
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
+    <button class="btn-compartir" onclick="compartirApp()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      Compartir la app con un compañero
+    </button>
     <div class="titulo-seccion">Novedades</div>
     <div id="lista-anuncios"></div>
   </section>
@@ -1579,6 +1593,27 @@ function pintarContacto(){
 
   cont.innerHTML = CONTACTOS_AFUCOA.map(enlace).join('');
 }
+
+// compartir la app con otras personas
+window.compartirApp = async function(){
+  const url = window.location.origin + window.location.pathname;
+  const texto = 'App de AFUCOA — novedades, convenios, propuestas y más del sindicato. Entrá acá:';
+  // compartir nativo del celular (WhatsApp, Telegram, mail, etc.)
+  if(navigator.share){
+    try{
+      await navigator.share({ title:'App AFUCOA', text:texto, url:url });
+    }catch(e){ /* el usuario canceló, no hacemos nada */ }
+    return;
+  }
+  // plan B (computadora o navegador sin compartir nativo): copiar el link
+  try{
+    await navigator.clipboard.writeText(texto + ' ' + url);
+    avisar('¡Link copiado! Ya lo podés pegar donde quieras.');
+  }catch(e){
+    // último recurso: abrir WhatsApp Web con el mensaje
+    window.open('https://wa.me/?text=' + encodeURIComponent(texto + ' ' + url), '_blank');
+  }
+};
 
 // abrir/cerrar el menú desplegable
 const menuBtn = document.getElementById('menu-btn');
