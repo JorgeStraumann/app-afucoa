@@ -25,7 +25,7 @@
     font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
     background:var(--arena);color:var(--tinta);
     max-width:520px;margin:0 auto;position:relative;min-height:100%;
-    padding-bottom:calc(96px + env(safe-area-inset-bottom));
+    padding-bottom:calc(120px + env(safe-area-inset-bottom));
   }
   /* Fondo con el Palacio Legislativo, tenue detrás del contenido.
      Se desplaza junto con la página. El velo blanco encima lo suaviza
@@ -107,7 +107,7 @@
   .acta-flecha svg{width:20px;height:20px}
 
   /* ---------- Comisión Directiva (protocolar) ---------- */
-  #v-directiva{ padding:0 !important; }
+  #v-directiva{ padding:0 0 110px !important; }
   .dir-hero{
     background:var(--verde);color:#fff;
     padding:34px 22px 30px;position:relative;overflow:hidden;
@@ -151,7 +151,7 @@
   .dir-pie-sigla{font-size:12px;letter-spacing:3px;color:rgba(255,255,255,.5)}
 
   /* ---------- Vistas ---------- */
-  main{padding:18px 16px 20px}
+  main{padding:18px 16px 110px}
   .vista{display:none;animation:sube .25s ease}
   .vista.activa{display:block}
   @keyframes sube{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
