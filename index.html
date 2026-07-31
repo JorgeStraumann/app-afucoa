@@ -89,24 +89,6 @@
   .menu-item:hover{background:rgba(255,255,255,.12)}
   .menu-item svg{width:20px;height:20px;flex:none}
 
-  /* Actas */
-  .acta{
-    background:#fff;border:1px solid var(--linea);border-radius:14px;
-    padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;
-    box-shadow:0 2px 10px rgba(26,35,126,.07);cursor:pointer;
-    text-decoration:none;color:inherit;transition:.15s;
-  }
-  .acta:hover{border-color:var(--verde)}
-  .acta-icono{
-    flex:none;width:44px;height:44px;border-radius:10px;background:var(--arena-2);
-    display:grid;place-items:center;color:var(--verde);
-  }
-  .acta-icono svg{width:24px;height:24px}
-  .acta-info{flex:1;min-width:0}
-  .acta-info h3{font-size:15px;margin-bottom:3px}
-  .acta-fecha{font-size:12px;color:var(--tinta-suave)}
-  .acta-flecha{flex:none;color:var(--tinta-suave)}
-  .acta-flecha svg{width:20px;height:20px}
 
   /* ---------- Comisión Directiva (protocolar) ---------- */
   #v-directiva{ padding:0 0 110px !important; }
@@ -479,10 +461,6 @@
   <!-- Menú desplegable de Información general -->
   <div class="menu-desplegable" id="menu-desplegable">
     <div class="menu-titulo">Información general</div>
-    <button class="menu-item" onclick="abrirDesdeMenu('v-actas')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
-      Actas de reuniones
-    </button>
     <button class="menu-item" onclick="abrirDesdeMenu('v-directiva')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M18 20c0-2-1-3.5-2.5-4.3"/></svg>
       Comisión Directiva
@@ -603,13 +581,6 @@
     <div class="titulo-seccion">Mis envíos</div>
     <div id="lista-mis"></div>
     <p class="nota-prototipo">Tus envíos se guardan en este celular para que los tengas a mano. La copia le llega al sindicato.</p>
-  </section>
-
-  <!-- ======== ACTAS ======== -->
-  <section class="vista" id="v-actas">
-    <div class="titulo-seccion">Actas de reuniones</div>
-    <p class="propuestas-intro">Acá podés leer las actas de las reuniones del sindicato. Tocá una para abrirla.</p>
-    <div id="lista-actas"></div>
   </section>
 
   <!-- ======== DIRECTIVA ======== -->
@@ -980,76 +951,6 @@ const CONTACTOS_AFUCOA = [
   { tipo:"instagram", etiqueta:"Instagram",             valor:"afucoa", muestra:"@afucoa" },
   { tipo:"facebook",  etiqueta:"Facebook (página)",     valor:"https://www.facebook.com/share/1NCRnEU2e8/?mibextid=wwXIfr", muestra:"Comunicación Afucoa" },
   { tipo:"facebook",  etiqueta:"Facebook (grupo)",      valor:"https://www.facebook.com/share/1CCyhAfFBU/?mibextid=wwXIfr", muestra:"Socios de Afucoa" },
-];
-
-/* ===== ACTAS DE REUNIONES =====
-   Para agregar un acta:
-   1. Subí el PDF a GitHub, dentro de una carpeta llamada "actas"
-      (Add file -> Upload files, y poné el archivo en actas/nombre.pdf).
-   2. Copiá un bloque de acá abajo y cambiá los datos:
-        titulo  -> cómo se llama el acta
-        fecha   -> la fecha de la reunión
-        archivo -> la ruta al PDF, siempre empezando con "actas/"
-   Poné las más nuevas arriba. */
-
-const ACTAS = [
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 8 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-8-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 7 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-7-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 6 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-6-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 5 - 2026/2027 (con propuestas y acuerdos anexados)",
-    fecha: "2026",
-    archivo: "actas/ACTA-5-2026-2027-Propuestas-Acuerdo-anexadas.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 4 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-4-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 3 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-3-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 2 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-2-2026-2027.pdf"
-  },
-
-  // --- Acta ---
-  {
-    titulo: "Acta N.º 1 - 2026/2027",
-    fecha: "2026",
-    archivo: "actas/ACTA-1-2026-2027.pdf"
-  },
-
 ];
 
 /* ▲▲▲  FIN DE LA ZONA EDITABLE  ▲▲▲
@@ -1562,28 +1463,8 @@ document.getElementById('btn-enviar-propuesta').addEventListener('click', async 
 });
 
 /* ============================================================
-   ACTAS y MENÚ desplegable
+   MENÚ desplegable
    ============================================================ */
-function pintarActas(){
-  const cont = document.getElementById('lista-actas');
-  if(!ACTAS || ACTAS.length === 0){
-    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay actas publicadas.</p>`;
-    return;
-  }
-  cont.innerHTML = ACTAS.map(a=>`
-    <a class="acta" href="${a.archivo}" target="_blank" rel="noopener">
-      <div class="acta-icono">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
-      </div>
-      <div class="acta-info">
-        <h3>${a.titulo}</h3>
-        <div class="acta-fecha">${a.fecha}</div>
-      </div>
-      <div class="acta-flecha">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-      </div>
-    </a>`).join('');
-}
 
 // saca las iniciales de un nombre (ej: "Emanuel Basualdo" -> "EB")
 function iniciales(nombre){
@@ -1777,7 +1658,6 @@ window.abrirDesdeMenu = function(idVista){
   // ninguna pestaña de abajo queda marcada (esta sección es del menú)
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
   menuDesplegable.classList.remove('abierto');
-  if(idVista === 'v-actas') pintarActas();
   if(idVista === 'v-directiva') pintarDirectiva();
   if(idVista === 'v-contacto') pintarContacto();
   window.scrollTo(0,0);
