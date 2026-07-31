@@ -327,6 +327,33 @@
   .btn-compartir:active{transform:scale(.98)}
   .btn-compartir svg{width:20px;height:20px;flex:none}
 
+  .btn-afiliarse{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+    background:var(--dorado);border:none;color:#fff;
+    font-family:inherit;font-size:15px;
+    padding:16px;border-radius:12px;cursor:pointer;margin-bottom:12px;transition:.15s;
+    box-shadow:0 6px 18px rgba(61,90,254,.28);text-align:left;
+  }
+  .btn-afiliarse span{line-height:1.3}
+  .btn-afiliarse span b{font-size:17px}
+  .btn-afiliarse:active{transform:scale(.98)}
+  .btn-afiliarse svg{width:28px;height:28px;flex:none}
+
+  /* sección afiliación */
+  #v-afiliacion{padding:0 0 110px}
+  .afil-hero{
+    background:var(--verde);color:#fff;padding:30px 22px;text-align:center;
+  }
+  .afil-hero-tit{
+    font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;margin-bottom:8px;
+  }
+  .afil-hero-sub{font-size:14px;color:rgba(255,255,255,.75);line-height:1.4}
+  .afil-cuerpo{padding:20px}
+  .afil-declara{
+    font-size:13px;color:var(--tinta-suave);line-height:1.5;
+    background:var(--arena-2);border-radius:10px;padding:14px;margin:8px 0 18px;
+  }
+
   .vacio{text-align:center;color:var(--tinta-suave);padding:40px 20px;font-size:14px}
   .vacio svg{opacity:.4;margin-bottom:12px}
 
@@ -464,6 +491,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/></svg>
       Contacto y redes
     </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-afiliacion')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M22 11h-6"/></svg>
+      Afiliarse a AFUCOA
+    </button>
   </div>
 </header>
 
@@ -474,6 +505,10 @@
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
+    <button class="btn-afiliarse" onclick="abrirDesdeMenu('v-afiliacion')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M22 11h-6"/></svg>
+      <span>¿Todavía no sos afiliado?<br><b>Afiliate a AFUCOA acá</b></span>
+    </button>
     <button class="btn-compartir" onclick="compartirApp()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       Compartir la app con un compañero
@@ -587,6 +622,47 @@
     <div class="titulo-seccion">Contacto y redes</div>
     <p class="propuestas-intro">Comunicate con AFUCOA o seguinos en nuestras redes. Tocá cualquier opción para abrirla.</p>
     <div id="lista-contacto"></div>
+  </section>
+
+  <!-- ======== AFILIACIÓN ======== -->
+  <section class="vista" id="v-afiliacion">
+    <div class="afil-hero">
+      <div class="afil-hero-tit">Formulario de afiliación</div>
+      <div class="afil-hero-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
+    </div>
+    <div class="afil-cuerpo">
+      <p class="propuestas-intro">Completá tus datos para solicitar la afiliación a AFUCOA. Todos los campos son obligatorios.</p>
+
+      <div class="campo">
+        <label>Fecha</label>
+        <input type="text" id="afil-fecha" placeholder="Ej: 5 de junio de 2026">
+      </div>
+      <div class="campo">
+        <label>Quien suscribe (nombre completo)</label>
+        <input type="text" id="afil-nombre" placeholder="Ej: Juan Pérez">
+      </div>
+      <div class="campo">
+        <label>Ficha N.º</label>
+        <input type="text" id="afil-ficha" inputmode="numeric" placeholder="Ej: 12345">
+      </div>
+      <div class="campo">
+        <label>Cédula de identidad N.º</label>
+        <input type="text" id="afil-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8">
+      </div>
+      <div class="campo">
+        <label>E-mail</label>
+        <input type="email" id="afil-mail" placeholder="Ej: juan@correo.com">
+      </div>
+      <div class="campo">
+        <label>Celular</label>
+        <input type="tel" id="afil-celular" placeholder="Ej: 099 123 456">
+      </div>
+
+      <p class="afil-declara">Al enviar, solicito la afiliación a la Asociación de Funcionarios de la Comisión Administrativa.</p>
+
+      <button class="btn" id="btn-afiliacion" onclick="enviarAfiliacion()">Enviar solicitud de afiliación</button>
+      <p class="conv-nota-datos">Tus datos se envían a AFUCOA únicamente para gestionar tu afiliación.</p>
+    </div>
   </section>
 </main>
 
@@ -1610,6 +1686,60 @@ window.irAlInicio = function(){
   const md = document.getElementById('menu-desplegable');
   if(md) md.classList.remove('abierto');
   window.scrollTo(0,0);
+};
+
+// enviar el formulario de afiliación al mail general de AFUCOA
+window.enviarAfiliacion = function(){
+  const fecha   = document.getElementById('afil-fecha').value.trim();
+  const nombre  = document.getElementById('afil-nombre').value.trim();
+  const ficha   = document.getElementById('afil-ficha').value.trim();
+  const cedula  = document.getElementById('afil-cedula').value.trim();
+  const mail    = document.getElementById('afil-mail').value.trim();
+  const celular = document.getElementById('afil-celular').value.trim();
+
+  // validar uno por uno para avisar exactamente cuál falta
+  const faltantes = [];
+  if(!fecha)   faltantes.push('Fecha');
+  if(!nombre)  faltantes.push('Nombre completo');
+  if(!ficha)   faltantes.push('Ficha N.º');
+  if(!cedula)  faltantes.push('Cédula de identidad');
+  if(!mail)    faltantes.push('E-mail');
+  if(!celular) faltantes.push('Celular');
+
+  if(faltantes.length){
+    avisar('Falta completar: ' + faltantes.join(', '), true);
+    return;
+  }
+
+  // armar el mensaje completo
+  const mensaje =
+    'SOLICITUD DE AFILIACIÓN A AFUCOA\n\n' +
+    'Fecha: ' + fecha + '\n' +
+    'Nombre completo: ' + nombre + '\n' +
+    'Ficha N.º: ' + ficha + '\n' +
+    'Cédula de identidad: ' + cedula + '\n' +
+    'E-mail: ' + mail + '\n' +
+    'Celular: ' + celular;
+
+  // tipo "Afiliación" -> el puente lo manda al mail general (afucoa@gmail.com)
+  const registro = { tipo:"Afiliación", asunto:"Solicitud de afiliación: "+nombre,
+                     mensaje, sector:"", nombre };
+
+  // guardar en Mis envíos
+  const lista = leerEnvios();
+  lista.unshift({ tipo:"Afiliación", asunto:"Solicitud de afiliación", mensaje, area:"",
+    fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) });
+  guardarEnvios(lista);
+
+  // enviar
+  enviarAlSindicato(registro);
+
+  // limpiar
+  ['fecha','nombre','ficha','cedula','mail','celular'].forEach(campo=>{
+    document.getElementById('afil-'+campo).value='';
+  });
+
+  avisar('¡Solicitud de afiliación enviada! AFUCOA se pondrá en contacto con vos.');
 };
 
 // compartir la app con otras personas
