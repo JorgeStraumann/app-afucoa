@@ -1033,7 +1033,7 @@ function pintarConvenios(){
     const galeria = tieneImg ? `
       <div class="conv-galeria">
         <img class="conv-img-principal" id="conv-img-${i}" src="${c.imagenes[0]}" alt="${c.titulo}"
-             onclick="ampliarImagen('${c.imagenes[0]}')">
+             onclick="ampliarImagen(this.src)">
         ${c.imagenes.length > 1 ? `
           <div class="conv-miniaturas">
             ${c.imagenes.map((img,n)=>`
