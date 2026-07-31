@@ -1290,7 +1290,13 @@ window.confirmarConvenio = async function(i){
   if(btnEnviar){ btnEnviar.disabled = true; btnEnviar.textContent = 'Verificando...'; }
 
   let notaVerificacion = '';
+  let constancia = '';
   const resultado = await verificarSocio(ficha, cedula);
+
+  // fecha de emisión en texto (ej: 31 de julio de 2026)
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
+  const hoy = new Date();
+  const fechaEmision = hoy.getDate() + ' de ' + meses[hoy.getMonth()] + ' de ' + hoy.getFullYear();
 
   if(resultado === 'no'){
     // no figura como socio -> no enviar
@@ -1299,9 +1305,22 @@ window.confirmarConvenio = async function(i){
     return;
   }else if(resultado === 'si'){
     notaVerificacion = 'Verificación automática: el solicitante figura como SOCIO ACTIVO en el padrón (número + documento coinciden).';
+    // constancia lista para reenviar a la empresa
+    constancia =
+      '\n\n========================================\n' +
+      'CONSTANCIA PARA LA EMPRESA (lista para reenviar)\n' +
+      '========================================\n\n' +
+      'Montevideo, ' + fechaEmision + '.\n\n' +
+      'La Asociación de Funcionarios de la Comisión Administrativa del Poder ' +
+      'Legislativo (AFUCOA) certifica que ' + nombre + ', documento ' + cedula + ', ' +
+      'es socio/a activo/a de esta Asociación y se encuentra habilitado/a a la fecha ' +
+      'de emisión para acceder al convenio celebrado con ' + c.titulo + '.\n\n' +
+      'Se extiende la presente a solicitud del/de la interesado/a.\n\n' +
+      'Asociación de Funcionarios de la Comisión Administrativa del Poder Legislativo\n' +
+      'AFUCOA';
   }else{
     // 'error' -> modo flexible: enviar igual, con aviso para revisar
-    notaVerificacion = 'Verificación automática: NO SE PUDO VERIFICAR en este momento (problema técnico). Revisar manualmente contra el padrón.';
+    notaVerificacion = 'Verificación automática: NO SE PUDO VERIFICAR en este momento (problema técnico). Revisar manualmente contra el padrón antes de emitir la constancia.';
   }
 
   // armar el mensaje con todos los datos
@@ -1315,7 +1334,8 @@ window.confirmarConvenio = async function(i){
     'Celular: ' + tel + '\n' +
     'Correo: ' + mail + '\n\n' +
     'Autorización: el socio autorizó expresamente a AFUCOA a informar su condición de socio a la empresa del convenio.\n\n' +
-    notaVerificacion;
+    notaVerificacion +
+    constancia;
 
   const registro = { tipo:"Convenio", asunto:"Solicitud: "+c.titulo,
                      mensaje, sector:"", nombre };
