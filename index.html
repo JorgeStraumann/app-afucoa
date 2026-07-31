@@ -1061,6 +1061,10 @@ function pintarConvenios(){
             <input type="text" id="conv-cedula-${i}" inputmode="numeric" placeholder="Ej: 1.234.567-8">
           </div>
           <div class="campo">
+            <label>Número de socio / Ficha</label>
+            <input type="text" id="conv-ficha-${i}" inputmode="numeric" placeholder="Ej: 12345">
+          </div>
+          <div class="campo">
             <label>Dirección</label>
             <input type="text" id="conv-direccion-${i}" placeholder="Ej: Av. 18 de Julio 1234">
           </div>
@@ -1244,14 +1248,23 @@ window.confirmarConvenio = function(i){
   const c = CONVENIOS[i];
   const nombre    = document.getElementById('conv-nombre-'+i).value.trim();
   const cedula    = document.getElementById('conv-cedula-'+i).value.trim();
+  const ficha     = document.getElementById('conv-ficha-'+i).value.trim();
   const direccion = document.getElementById('conv-direccion-'+i).value.trim();
   const depto     = document.getElementById('conv-depto-'+i).value.trim();
   const tel       = document.getElementById('conv-tel-'+i).value.trim();
   const mail      = document.getElementById('conv-mail-'+i).value.trim();
 
-  // todos los campos son obligatorios
-  if(!nombre || !cedula || !direccion || !depto || !tel || !mail){
-    avisar('Completá todos los datos para solicitar el convenio', true);
+  // validar uno por uno para avisar exactamente cuál falta
+  const faltantes = [];
+  if(!nombre)    faltantes.push('Nombre completo');
+  if(!cedula)    faltantes.push('Cédula de identidad');
+  if(!ficha)     faltantes.push('Número de socio / Ficha');
+  if(!direccion) faltantes.push('Dirección');
+  if(!depto)     faltantes.push('Departamento');
+  if(!tel)       faltantes.push('Celular');
+  if(!mail)      faltantes.push('Correo electrónico');
+  if(faltantes.length){
+    avisar('Falta completar: ' + faltantes.join(', '), true);
     return;
   }
 
@@ -1260,10 +1273,12 @@ window.confirmarConvenio = function(i){
     'Solicito el convenio: ' + c.titulo + '\n\n' +
     'Nombre completo: ' + nombre + '\n' +
     'Cédula de identidad: ' + cedula + '\n' +
+    'Número de socio / Ficha: ' + ficha + '\n' +
     'Dirección: ' + direccion + '\n' +
     'Departamento: ' + depto + '\n' +
     'Celular: ' + tel + '\n' +
-    'Correo: ' + mail;
+    'Correo: ' + mail + '\n\n' +
+    '— IMPORTANTE: verificar contra el padrón que el solicitante sea socio vigente de AFUCOA antes de derivar la solicitud a la empresa. —';
 
   const registro = { tipo:"Convenio", asunto:"Solicitud: "+c.titulo,
                      mensaje, sector:"", nombre };
@@ -1278,7 +1293,7 @@ window.confirmarConvenio = function(i){
   enviarAlSindicato(registro);
 
   // limpiar y ocultar el formulario
-  ['nombre','cedula','direccion','depto','tel','mail'].forEach(campo=>{
+  ['nombre','cedula','ficha','direccion','depto','tel','mail'].forEach(campo=>{
     document.getElementById('conv-'+campo+'-'+i).value='';
   });
   document.getElementById('form-convenio-'+i).style.display='none';
