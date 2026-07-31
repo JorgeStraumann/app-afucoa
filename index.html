@@ -1255,7 +1255,7 @@ document.getElementById('btn-enviar').addEventListener('click', async ()=>{
   });
 });
 
-window.confirmarConvenio = function(i){
+window.confirmarConvenio = async function(i){
   const c = CONVENIOS[i];
   const nombre    = document.getElementById('conv-nombre-'+i).value.trim();
   const cedula    = document.getElementById('conv-cedula-'+i).value.trim();
@@ -1285,6 +1285,25 @@ window.confirmarConvenio = function(i){
     return;
   }
 
+  // --- verificar que sea socio (número + documento) ---
+  const btnEnviar = document.querySelector('#form-convenio-'+i+' .btn');
+  if(btnEnviar){ btnEnviar.disabled = true; btnEnviar.textContent = 'Verificando...'; }
+
+  let notaVerificacion = '';
+  const resultado = await verificarSocio(ficha, cedula);
+
+  if(resultado === 'no'){
+    // no figura como socio -> no enviar
+    if(btnEnviar){ btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar solicitud'; }
+    avisar('Tus datos no figuran en el padrón de socios. Revisá el número de funcionario y el documento, o contactá a AFUCOA.', true);
+    return;
+  }else if(resultado === 'si'){
+    notaVerificacion = 'Verificación automática: el solicitante figura como SOCIO ACTIVO en el padrón (número + documento coinciden).';
+  }else{
+    // 'error' -> modo flexible: enviar igual, con aviso para revisar
+    notaVerificacion = 'Verificación automática: NO SE PUDO VERIFICAR en este momento (problema técnico). Revisar manualmente contra el padrón.';
+  }
+
   // armar el mensaje con todos los datos
   const mensaje =
     'Solicito el convenio: ' + c.titulo + '\n\n' +
@@ -1296,7 +1315,7 @@ window.confirmarConvenio = function(i){
     'Celular: ' + tel + '\n' +
     'Correo: ' + mail + '\n\n' +
     'Autorización: el socio autorizó expresamente a AFUCOA a informar su condición de socio a la empresa del convenio.\n\n' +
-    '— IMPORTANTE: verificar contra el padrón que el solicitante sea socio vigente de AFUCOA antes de derivar la solicitud a la empresa. —';
+    notaVerificacion;
 
   const registro = { tipo:"Convenio", asunto:"Solicitud: "+c.titulo,
                      mensaje, sector:"", nombre };
@@ -1316,9 +1335,29 @@ window.confirmarConvenio = function(i){
   });
   document.getElementById('conv-autoriza-'+i).checked = false;
   document.getElementById('form-convenio-'+i).style.display='none';
+  if(btnEnviar){ btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar solicitud'; }
 
   avisar('¡Solicitud enviada! El sindicato se contactará con vos.');
 };
+
+// consulta al "portero" de Supabase. Devuelve 'si', 'no' o 'error'.
+async function verificarSocio(ficha, documento){
+  const num = parseInt(String(ficha).replace(/[^0-9]/g,''), 10);
+  const doc = String(documento).replace(/[^0-9kK]/g,''); // documento tal como está en la base (solo dígitos)
+  if(!num || !doc) return 'error';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_socio`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ num: num, doc: doc })
+    });
+    if(!resp.ok) return 'error';
+    const data = await resp.json();
+    return data === true ? 'si' : 'no';
+  }catch(e){
+    return 'error';
+  }
+}
 
 function pintarMisEnvios(){
   const lista = leerEnvios();
