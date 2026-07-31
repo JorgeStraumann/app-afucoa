@@ -221,6 +221,13 @@
     font-size:12px;color:var(--tinta-suave);line-height:1.4;
     text-align:center;margin-top:10px;
   }
+  .conv-autoriza{
+    display:flex;align-items:flex-start;gap:10px;margin:16px 0 6px;cursor:pointer;
+  }
+  .conv-autoriza input{
+    width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--verde);cursor:pointer;
+  }
+  .conv-autoriza span{font-size:13px;color:var(--tinta);line-height:1.45}
   /* imagen ampliada a pantalla completa */
   .lightbox{
     position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
@@ -1080,6 +1087,10 @@ function pintarConvenios(){
             <label>Correo electrónico</label>
             <input type="email" id="conv-mail-${i}" placeholder="Ej: juan@correo.com">
           </div>
+          <label class="conv-autoriza">
+            <input type="checkbox" id="conv-autoriza-${i}">
+            <span>Autorizo a AFUCOA a informar mi condición de socio a la empresa o comercio de este convenio, al solo efecto de gestionar el beneficio.</span>
+          </label>
           <button class="btn" onclick="confirmarConvenio(${i})">Enviar solicitud</button>
           <p class="conv-nota-datos">Tus datos se envían a AFUCOA únicamente para gestionar tu solicitud de este convenio.</p>
         </div>
@@ -1253,6 +1264,7 @@ window.confirmarConvenio = function(i){
   const depto     = document.getElementById('conv-depto-'+i).value.trim();
   const tel       = document.getElementById('conv-tel-'+i).value.trim();
   const mail      = document.getElementById('conv-mail-'+i).value.trim();
+  const autoriza  = document.getElementById('conv-autoriza-'+i).checked;
 
   // validar uno por uno para avisar exactamente cuál falta
   const faltantes = [];
@@ -1267,6 +1279,11 @@ window.confirmarConvenio = function(i){
     avisar('Falta completar: ' + faltantes.join(', '), true);
     return;
   }
+  // la autorización es obligatoria
+  if(!autoriza){
+    avisar('Para enviar, marcá la casilla de autorización.', true);
+    return;
+  }
 
   // armar el mensaje con todos los datos
   const mensaje =
@@ -1278,6 +1295,7 @@ window.confirmarConvenio = function(i){
     'Departamento: ' + depto + '\n' +
     'Celular: ' + tel + '\n' +
     'Correo: ' + mail + '\n\n' +
+    'Autorización: el socio autorizó expresamente a AFUCOA a informar su condición de socio a la empresa del convenio.\n\n' +
     '— IMPORTANTE: verificar contra el padrón que el solicitante sea socio vigente de AFUCOA antes de derivar la solicitud a la empresa. —';
 
   const registro = { tipo:"Convenio", asunto:"Solicitud: "+c.titulo,
@@ -1296,6 +1314,7 @@ window.confirmarConvenio = function(i){
   ['nombre','cedula','ficha','direccion','depto','tel','mail'].forEach(campo=>{
     document.getElementById('conv-'+campo+'-'+i).value='';
   });
+  document.getElementById('conv-autoriza-'+i).checked = false;
   document.getElementById('form-convenio-'+i).style.display='none';
 
   avisar('¡Solicitud enviada! El sindicato se contactará con vos.');
