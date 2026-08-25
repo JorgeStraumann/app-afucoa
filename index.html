@@ -235,7 +235,37 @@
   }
   .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 
-  /* ---------- Contacto y redes ---------- */
+  /* ---------- Pantalla de ingreso (login) ---------- */
+  #login-pantalla{
+    position:fixed;inset:0;z-index:2000;
+    background:linear-gradient(160deg,#1a237e 0%,#283593 60%,#1a237e 100%);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+    overflow-y:auto;
+  }
+  .login-caja{
+    background:#fff;border-radius:20px;padding:32px 24px;max-width:400px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;
+    margin:auto;
+  }
+  .login-logo{width:88px;height:88px;object-fit:contain;margin-bottom:12px}
+  .login-titulo{font-size:28px;color:var(--verde);font-weight:800;letter-spacing:1px;margin:0}
+  .login-sub{font-size:12px;color:var(--tinta-suave);line-height:1.4;margin:4px 0 0}
+  .login-linea{width:60px;height:3px;background:var(--dorado);margin:16px auto}
+  .login-mensaje{font-size:14px;color:var(--tinta);line-height:1.5;margin-bottom:20px}
+  .login-caja .campo{text-align:left;margin-bottom:16px}
+  .login-caja .btn{width:100%}
+  .login-error{font-size:13px;color:var(--rojo);line-height:1.4;margin-top:12px;min-height:1px}
+  .login-separador{
+    display:flex;align-items:center;text-align:center;color:var(--tinta-suave);
+    font-size:13px;margin:24px 0 16px;
+  }
+  .login-separador::before,.login-separador::after{
+    content:'';flex:1;height:1px;background:var(--linea);
+  }
+  .login-separador span{padding:0 12px}
+  .login-afiliarse{margin-bottom:0}
+  /* mientras el login está activo, no dejar ver la app detrás */
+  body.con-login{overflow:hidden}
   .contacto-item{
     display:flex;align-items:center;gap:16px;
     background:#fff;border:1px solid var(--linea);border-radius:14px;
@@ -452,6 +482,28 @@
 </head>
 <body>
 
+<!-- ======== PANTALLA DE INGRESO (solo socios) ======== -->
+<div id="login-pantalla">
+  <div class="login-caja">
+    <img src="logo-header.png" alt="AFUCOA" class="login-logo">
+    <h1 class="login-titulo">AFUCOA</h1>
+    <p class="login-sub">Asociación de Funcionarios de la Comisión Administrativa</p>
+    <div class="login-linea"></div>
+    <p class="login-mensaje">Esta aplicación es exclusiva para socios de AFUCOA. Ingresá tu cédula de identidad para acceder.</p>
+    <div class="campo">
+      <label>Cédula de identidad</label>
+      <input type="text" id="login-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8" autocomplete="off">
+    </div>
+    <button class="btn dorado" id="login-btn" onclick="ingresar()">Ingresar</button>
+    <p class="login-error" id="login-error"></p>
+    <div class="login-separador"><span>¿Todavía no sos socio?</span></div>
+    <button class="btn-afiliarse login-afiliarse" onclick="afiliarseDesdeLogin()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M22 11h-6"/></svg>
+      <span>Quiero afiliarme a AFUCOA</span>
+    </button>
+  </div>
+</div>
+
 <header>
   <div class="marca">
     <div class="marca-inicio" onclick="irAlInicio()">
@@ -490,10 +542,6 @@
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
-    <button class="btn-afiliarse" onclick="abrirDesdeMenu('v-afiliacion')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M22 11h-6"/></svg>
-      <span>¿Todavía no sos afiliado?<br><b>Afiliate a AFUCOA acá</b></span>
-    </button>
     <button class="btn-compartir" onclick="compartirApp()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
       Compartir la app con un compañero
@@ -1421,6 +1469,83 @@ function avisar(texto, error){
 const SUPABASE_URL = "https://iqybfkzkzniuuokbkmxa.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxeWJma3prem5pdXVva2JrbXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMTkwODMsImV4cCI6MjEwMDY5NTA4M30.OiMqloFZotH9lFVexmUCuujs2cpudUwCj4-S7pSgMTc";
 
+// ============================================================
+//   INGRESO DE SOCIOS (login con cédula)
+// ============================================================
+
+// verifica si una cédula es de un socio activo. Devuelve 'si', 'no' o 'error'.
+async function verificarCedula(cedula){
+  const doc = String(cedula).replace(/[^0-9kK]/g,'');
+  if(!doc) return 'no';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_cedula`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ doc: doc })
+    });
+    if(!resp.ok) return 'error';
+    const data = await resp.json();
+    return data === true ? 'si' : 'no';
+  }catch(e){
+    return 'error';
+  }
+}
+
+// intento de ingreso al tocar "Ingresar"
+window.ingresar = async function(){
+  const cedula = document.getElementById('login-cedula').value.trim();
+  const err = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  err.textContent = '';
+
+  if(!cedula){
+    err.textContent = 'Escribí tu cédula para ingresar.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  const resultado = await verificarCedula(cedula);
+  btn.disabled = false;
+  btn.textContent = 'Ingresar';
+
+  if(resultado === 'si'){
+    // guardar la cédula para recordarla en este celular
+    localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
+    abrirApp();
+  }else if(resultado === 'no'){
+    err.textContent = 'Esta cédula no figura como socio activo de AFUCOA. Verificá el número o afiliate abajo.';
+  }else{
+    err.textContent = 'No se pudo verificar en este momento. Revisá tu conexión e intentá de nuevo.';
+  }
+};
+
+// oculta el login y muestra la app
+function abrirApp(){
+  document.getElementById('login-pantalla').style.display = 'none';
+  document.body.classList.remove('con-login');
+}
+
+// al abrir la app: si ya ingresó antes en este celular, entra directo
+async function revisarSesion(){
+  const guardada = localStorage.getItem('afucoa_socio');
+  if(guardada){
+    // re-verificar por si le dieron de baja desde que entró la última vez
+    const r = await verificarCedula(guardada);
+    if(r === 'si'){ abrirApp(); return; }
+    if(r === 'no'){ localStorage.removeItem('afucoa_socio'); } // ya no es socio
+    // si es 'error' (sin conexión), lo dejamos entrar igual para no bloquearlo
+    if(r === 'error'){ abrirApp(); return; }
+  }
+  // si no hay sesión, la pantalla de login queda visible (es lo que se ve por defecto)
+}
+
+// botón "quiero afiliarme" desde el login: entra y abre el formulario de afiliación
+window.afiliarseDesdeLogin = function(){
+  abrirApp();
+  abrirDesdeMenu('v-afiliacion');
+};
+
 // para no apoyar dos veces la misma propuesta desde el mismo celular
 function propuestasApoyadas(){
   try{ return JSON.parse(localStorage.getItem('afucoa_apoyos')||'[]'); }
@@ -1774,8 +1899,10 @@ window.abrirDesdeMenu = function(idVista){
 };
 
 /* Arranque */
+document.body.classList.add('con-login');
 pintarAnuncios();
 pintarConvenios();
+revisarSesion();
 
 /* Registrar el service worker (para poder instalarla como app) */
 if('serviceWorker' in navigator){
