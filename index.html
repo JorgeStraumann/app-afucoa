@@ -20,24 +20,27 @@
     --ok:#1a237e;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
+  html{height:auto}
   body{
     font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
     background:var(--arena);color:var(--tinta);
-    max-width:520px;margin:0 auto;position:relative;min-height:100%;
-    padding-bottom:calc(120px + env(safe-area-inset-bottom));
+    max-width:520px;margin:0 auto;position:relative;
+    min-height:100vh;
+    padding-bottom:calc(90px + env(safe-area-inset-bottom));
   }
   /* Fondo con el Palacio Legislativo, tenue detrás del contenido.
      Se desplaza junto con la página. El velo blanco encima lo suaviza
      para que el texto siga siendo legible. */
   body::before{
     content:"";position:fixed;inset:0;z-index:0;
+    width:100%;height:100%;
     background:
       linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)),
       url("fondo-palacio.jpg");
     background-size:cover;
     background-position:top center;
     background-repeat:no-repeat;
+    background-attachment:scroll;
     pointer-events:none;
   }
   /* El contenido va por encima del fondo */
