@@ -266,6 +266,24 @@
   .login-afiliarse{margin-bottom:0}
   /* mientras el login está activo, no dejar ver la app detrás */
   body.con-login{overflow:hidden}
+
+  /* pantalla de afiliación desde el login */
+  #afiliacion-pantalla{
+    position:fixed;inset:0;z-index:2000;
+    background:linear-gradient(160deg,#1a237e 0%,#283593 60%,#1a237e 100%);
+    display:flex;align-items:flex-start;justify-content:center;padding:20px;
+    overflow-y:auto;
+  }
+  .afilp-caja{
+    background:#fff;border-radius:20px;max-width:440px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;margin:auto;
+  }
+  .btn-volver-login{
+    width:100%;background:none;border:none;color:var(--tinta-suave);
+    font-family:inherit;font-size:15px;font-weight:600;padding:14px;
+    cursor:pointer;margin-top:10px;
+  }
+  .btn-volver-login:active{opacity:.6}
   .contacto-item{
     display:flex;align-items:center;gap:16px;
     background:#fff;border:1px solid var(--linea);border-radius:14px;
@@ -501,6 +519,51 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="4"/><path d="M3 21c0-4 3-6 6-6s6 2 6 6"/><path d="M19 8v6M22 11h-6"/></svg>
       <span>Quiero afiliarme a AFUCOA</span>
     </button>
+  </div>
+</div>
+
+<!-- ======== AFILIACIÓN DESDE EL LOGIN (sin entrar a la app) ======== -->
+<div id="afiliacion-pantalla" style="display:none">
+  <div class="afilp-caja">
+    <div class="afil-hero">
+      <div class="afil-hero-tit">Formulario de afiliación</div>
+      <div class="afil-hero-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
+    </div>
+    <div class="afil-cuerpo">
+      <p class="propuestas-intro">Completá tus datos para solicitar la afiliación a AFUCOA. Todos los campos son obligatorios.</p>
+      <div class="campo">
+        <label>Fecha</label>
+        <input type="text" id="afl-fecha" placeholder="Ej: 5 de junio de 2026">
+      </div>
+      <div class="campo">
+        <label>Nombre</label>
+        <input type="text" id="afl-nombre" placeholder="Ej: Juan">
+      </div>
+      <div class="campo">
+        <label>Apellido</label>
+        <input type="text" id="afl-apellido" placeholder="Ej: Pérez">
+      </div>
+      <div class="campo">
+        <label>Ficha N.º</label>
+        <input type="text" id="afl-ficha" inputmode="numeric" placeholder="Ej: 12345">
+      </div>
+      <div class="campo">
+        <label>Cédula de identidad N.º</label>
+        <input type="text" id="afl-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8">
+      </div>
+      <div class="campo">
+        <label>E-mail</label>
+        <input type="email" id="afl-mail" placeholder="Ej: juan@correo.com">
+      </div>
+      <div class="campo">
+        <label>Celular</label>
+        <input type="tel" id="afl-celular" placeholder="Ej: 099 123 456">
+      </div>
+      <p class="afil-declara">Al enviar, solicito la afiliación a la Asociación de Funcionarios de la Comisión Administrativa.</p>
+      <button class="btn" id="btn-afl" onclick="enviarAfiliacionLogin()">Enviar solicitud de afiliación</button>
+      <button class="btn-volver-login" onclick="volverAlLogin()">Volver al ingreso</button>
+      <p class="conv-nota-datos">Tus datos se envían a AFUCOA únicamente para gestionar tu afiliación.</p>
+    </div>
   </div>
 </div>
 
@@ -1540,10 +1603,69 @@ async function revisarSesion(){
   // si no hay sesión, la pantalla de login queda visible (es lo que se ve por defecto)
 }
 
-// botón "quiero afiliarme" desde el login: entra y abre el formulario de afiliación
+// botón "quiero afiliarme" desde el login: muestra SOLO el formulario, sin entrar a la app
 window.afiliarseDesdeLogin = function(){
-  abrirApp();
-  abrirDesdeMenu('v-afiliacion');
+  document.getElementById('login-pantalla').style.display = 'none';
+  document.getElementById('afiliacion-pantalla').style.display = 'flex';
+};
+
+// volver del formulario de afiliación a la pantalla de ingreso
+window.volverAlLogin = function(){
+  document.getElementById('afiliacion-pantalla').style.display = 'none';
+  document.getElementById('login-pantalla').style.display = 'flex';
+};
+
+// enviar la afiliación desde la pantalla de login (sin estar dentro de la app)
+window.enviarAfiliacionLogin = function(){
+  const fecha    = document.getElementById('afl-fecha').value.trim();
+  const nombre   = document.getElementById('afl-nombre').value.trim();
+  const apellido = document.getElementById('afl-apellido').value.trim();
+  const ficha    = document.getElementById('afl-ficha').value.trim();
+  const cedula   = document.getElementById('afl-cedula').value.trim();
+  const mail     = document.getElementById('afl-mail').value.trim();
+  const celular  = document.getElementById('afl-celular').value.trim();
+
+  const faltantes = [];
+  if(!fecha)    faltantes.push('Fecha');
+  if(!nombre)   faltantes.push('Nombre');
+  if(!apellido) faltantes.push('Apellido');
+  if(!ficha)    faltantes.push('Ficha N.º');
+  if(!cedula)   faltantes.push('Cédula de identidad');
+  if(!mail)     faltantes.push('E-mail');
+  if(!celular)  faltantes.push('Celular');
+  if(faltantes.length){
+    avisar('Falta completar: ' + faltantes.join(', '), true);
+    return;
+  }
+
+  const cedulaLimpia = cedula.replace(/[^0-9kK]/g,'');
+  const fichaLimpia = parseInt(ficha.replace(/[^0-9]/g,''),10) || 0;
+  const nombreSQL = nombre.replace(/'/g, "''");
+  const apellidoSQL = apellido.replace(/'/g, "''");
+  const mensaje =
+    'SOLICITUD DE AFILIACIÓN A AFUCOA\n\n' +
+    'Fecha: ' + fecha + '\n' +
+    'Nombre: ' + nombre + '\n' +
+    'Apellido: ' + apellido + '\n' +
+    'Ficha N.º: ' + ficha + '\n' +
+    'Cédula de identidad: ' + cedula + '\n' +
+    'E-mail: ' + mail + '\n' +
+    'Celular: ' + celular + '\n\n' +
+    '----------------------------------------\n' +
+    'PARA DAR DE ALTA EN EL PADRÓN (uso interno de la directiva):\n' +
+    'Copiar la línea de abajo en Supabase (SQL Editor) y ejecutar:\n\n' +
+    "select alta_socio(" + fichaLimpia + ", '" + cedulaLimpia + "', '" + nombreSQL + "', '" + apellidoSQL + "');\n" +
+    '----------------------------------------';
+
+  const registro = { tipo:"Afiliación", asunto:"Solicitud de afiliación: "+nombre+' '+apellido,
+                     mensaje, sector:"", nombre: nombre+' '+apellido };
+  enviarAlSindicato(registro);
+
+  ['fecha','nombre','apellido','ficha','cedula','mail','celular'].forEach(campo=>{
+    document.getElementById('afl-'+campo).value='';
+  });
+
+  avisar('¡Solicitud de afiliación enviada! AFUCOA se pondrá en contacto con vos.');
 };
 
 // para no apoyar dos veces la misma propuesta desde el mismo celular
