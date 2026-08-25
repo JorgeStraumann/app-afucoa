@@ -166,6 +166,16 @@
   .anuncio p{font-size:14px;color:var(--tinta-suave);line-height:1.5}
 
   /* ---------- Convenios ---------- */
+  .buscador-conv{
+    display:flex;align-items:center;gap:10px;background:#fff;
+    border:1px solid var(--linea);border-radius:12px;padding:0 14px;margin-bottom:16px;
+    box-shadow:0 2px 8px rgba(26,35,126,.05);
+  }
+  .buscador-conv svg{width:20px;height:20px;color:var(--tinta-suave);flex:none}
+  .buscador-conv input{
+    border:none;outline:none;padding:14px 0;font-size:15px;font-family:inherit;
+    width:100%;background:none;color:var(--tinta);
+  }
   .convenio{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
     margin-bottom:16px;overflow:hidden;
@@ -377,7 +387,6 @@
   .btn-afiliarse svg{width:28px;height:28px;flex:none}
 
   /* sección afiliación */
-  #v-afiliacion{padding:0 0 110px}
   .afil-hero{
     background:var(--verde);color:#fff;padding:30px 22px;text-align:center;
   }
@@ -591,6 +600,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/></svg>
       Contacto y redes
     </button>
+    <button class="menu-item menu-salir" onclick="cerrarSesion()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+      Cerrar sesión
+    </button>
   </div>
 </header>
 
@@ -658,7 +671,12 @@
   <!-- ======== CONVENIOS ======== -->
   <section class="vista" id="v-convenios">
     <div class="titulo-seccion">Convenios abiertos</div>
+    <div class="buscador-conv">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input type="text" id="buscar-convenio" placeholder="Buscar por nombre o rubro..." oninput="filtrarConvenios()">
+    </div>
     <div id="lista-convenios"></div>
+    <p id="sin-resultados-conv" class="propuestas-cargando" style="display:none">No se encontraron convenios con esa búsqueda.</p>
   </section>
 
   <!-- ======== PROPUESTAS ======== -->
@@ -709,50 +727,6 @@
     <div id="lista-contacto"></div>
   </section>
 
-  <!-- ======== AFILIACIÓN ======== -->
-  <section class="vista" id="v-afiliacion">
-    <div class="afil-hero">
-      <div class="afil-hero-tit">Formulario de afiliación</div>
-      <div class="afil-hero-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
-    </div>
-    <div class="afil-cuerpo">
-      <p class="propuestas-intro">Completá tus datos para solicitar la afiliación a AFUCOA. Todos los campos son obligatorios.</p>
-
-      <div class="campo">
-        <label>Fecha</label>
-        <input type="text" id="afil-fecha" placeholder="Ej: 5 de junio de 2026">
-      </div>
-      <div class="campo">
-        <label>Nombre</label>
-        <input type="text" id="afil-nombre" placeholder="Ej: Juan">
-      </div>
-      <div class="campo">
-        <label>Apellido</label>
-        <input type="text" id="afil-apellido" placeholder="Ej: Pérez">
-      </div>
-      <div class="campo">
-        <label>Ficha N.º</label>
-        <input type="text" id="afil-ficha" inputmode="numeric" placeholder="Ej: 12345">
-      </div>
-      <div class="campo">
-        <label>Cédula de identidad N.º</label>
-        <input type="text" id="afil-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8">
-      </div>
-      <div class="campo">
-        <label>E-mail</label>
-        <input type="email" id="afil-mail" placeholder="Ej: juan@correo.com">
-      </div>
-      <div class="campo">
-        <label>Celular</label>
-        <input type="tel" id="afil-celular" placeholder="Ej: 099 123 456">
-      </div>
-
-      <p class="afil-declara">Al enviar, solicito la afiliación a la Asociación de Funcionarios de la Comisión Administrativa.</p>
-
-      <button class="btn" id="btn-afiliacion" onclick="enviarAfiliacion()">Enviar solicitud de afiliación</button>
-      <p class="conv-nota-datos">Tus datos se envían a AFUCOA únicamente para gestionar tu afiliación.</p>
-    </div>
-  </section>
 </main>
 
 <nav>
@@ -1120,6 +1094,26 @@ function contactoHTML(c){
     return `<a class="conv-contacto enlace" href="https://instagram.com/${c.valor}" target="_blank" rel="noopener">📷 @${c.valor}</a>`;
   }
   return `<div class="conv-contacto">${c.valor}</div>`;
+}
+
+// filtra los convenios por nombre o rubro según lo que se escribe en el buscador
+function filtrarConvenios(){
+  // quita tildes y pasa a minúsculas, para que "optica" encuentre "Óptica"
+  const normalizar = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const texto = normalizar(document.getElementById('buscar-convenio').value.trim());
+  const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
+  let visibles = 0;
+  tarjetas.forEach((t, i)=>{
+    const c = CONVENIOS[i];
+    const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
+    if(!texto || contenido.includes(texto)){
+      t.style.display = '';
+      visibles++;
+    }else{
+      t.style.display = 'none';
+    }
+  });
+  document.getElementById('sin-resultados-conv').style.display = visibles===0 ? 'block' : 'none';
 }
 
 function pintarConvenios(){
@@ -1573,7 +1567,7 @@ window.ingresar = async function(){
     localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
     abrirApp();
   }else if(resultado === 'no'){
-    err.textContent = 'Esta cédula no figura como socio activo de AFUCOA. Verificá el número o afiliate abajo.';
+    err.innerHTML = 'Esta cédula no figura como socio activo de AFUCOA.<br>Si sos socio y no podés entrar, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285 para regularizar tu situación. Si aún no sos socio, podés afiliarte abajo.';
   }else{
     err.textContent = 'No se pudo verificar en este momento. Revisá tu conexión e intentá de nuevo.';
   }
@@ -1584,6 +1578,19 @@ function abrirApp(){
   document.getElementById('login-pantalla').style.display = 'none';
   document.body.classList.remove('con-login');
 }
+
+// cerrar sesión: olvida la cédula y vuelve al login
+window.cerrarSesion = function(){
+  localStorage.removeItem('afucoa_socio');
+  document.body.classList.add('con-login');
+  document.getElementById('login-pantalla').style.display = 'flex';
+  document.getElementById('login-cedula').value = '';
+  document.getElementById('login-error').textContent = '';
+  // cerrar el menú si estaba abierto
+  const md = document.getElementById('menu-desplegable');
+  if(md) md.classList.remove('abierto');
+  window.scrollTo(0,0);
+};
 
 // al abrir la app: si ya ingresó antes en este celular, entra directo
 async function revisarSesion(){
@@ -1907,73 +1914,6 @@ window.irAlInicio = function(){
   const md = document.getElementById('menu-desplegable');
   if(md) md.classList.remove('abierto');
   window.scrollTo(0,0);
-};
-
-// enviar el formulario de afiliación al mail general de AFUCOA
-window.enviarAfiliacion = function(){
-  const fecha    = document.getElementById('afil-fecha').value.trim();
-  const nombre   = document.getElementById('afil-nombre').value.trim();
-  const apellido = document.getElementById('afil-apellido').value.trim();
-  const ficha    = document.getElementById('afil-ficha').value.trim();
-  const cedula   = document.getElementById('afil-cedula').value.trim();
-  const mail     = document.getElementById('afil-mail').value.trim();
-  const celular  = document.getElementById('afil-celular').value.trim();
-
-  // validar uno por uno para avisar exactamente cuál falta
-  const faltantes = [];
-  if(!fecha)    faltantes.push('Fecha');
-  if(!nombre)   faltantes.push('Nombre');
-  if(!apellido) faltantes.push('Apellido');
-  if(!ficha)    faltantes.push('Ficha N.º');
-  if(!cedula)   faltantes.push('Cédula de identidad');
-  if(!mail)     faltantes.push('E-mail');
-  if(!celular)  faltantes.push('Celular');
-
-  if(faltantes.length){
-    avisar('Falta completar: ' + faltantes.join(', '), true);
-    return;
-  }
-
-  // armar el mensaje completo
-  const cedulaLimpia = cedula.replace(/[^0-9kK]/g,'');
-  const fichaLimpia = parseInt(ficha.replace(/[^0-9]/g,''),10) || 0;
-  // escapar comillas simples en los textos para el comando SQL
-  const nombreSQL = nombre.replace(/'/g, "''");
-  const apellidoSQL = apellido.replace(/'/g, "''");
-  const mensaje =
-    'SOLICITUD DE AFILIACIÓN A AFUCOA\n\n' +
-    'Fecha: ' + fecha + '\n' +
-    'Nombre: ' + nombre + '\n' +
-    'Apellido: ' + apellido + '\n' +
-    'Ficha N.º: ' + ficha + '\n' +
-    'Cédula de identidad: ' + cedula + '\n' +
-    'E-mail: ' + mail + '\n' +
-    'Celular: ' + celular + '\n\n' +
-    '----------------------------------------\n' +
-    'PARA DAR DE ALTA EN EL PADRÓN (uso interno de la directiva):\n' +
-    'Copiar la línea de abajo en Supabase (SQL Editor) y ejecutar:\n\n' +
-    "select alta_socio(" + fichaLimpia + ", '" + cedulaLimpia + "', '" + nombreSQL + "', '" + apellidoSQL + "');\n" +
-    '----------------------------------------';
-
-  // tipo "Afiliación" -> el puente lo manda al mail general (afucoa@gmail.com)
-  const registro = { tipo:"Afiliación", asunto:"Solicitud de afiliación: "+nombre+' '+apellido,
-                     mensaje, sector:"", nombre: nombre+' '+apellido };
-
-  // guardar en Mis envíos
-  const lista = leerEnvios();
-  lista.unshift({ tipo:"Afiliación", asunto:"Solicitud de afiliación", mensaje, area:"",
-    fecha:new Date().toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) });
-  guardarEnvios(lista);
-
-  // enviar
-  enviarAlSindicato(registro);
-
-  // limpiar
-  ['fecha','nombre','apellido','ficha','cedula','mail','celular'].forEach(campo=>{
-    document.getElementById('afil-'+campo).value='';
-  });
-
-  avisar('¡Solicitud de afiliación enviada! AFUCOA se pondrá en contacto con vos.');
 };
 
 // compartir la app con otras personas
