@@ -277,6 +277,47 @@
   /* mientras el login está activo, no dejar ver la app detrás */
   body.con-login{overflow:hidden}
 
+  /* ---------- Trámites ---------- */
+  .tramite{
+    background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(26,35,126,.06);
+  }
+  .tramite-tit{font-size:16px;color:var(--verde);margin-bottom:12px}
+  .tramite-pasos{margin:0;padding-left:20px}
+  .tramite-pasos li{font-size:14px;color:var(--tinta);line-height:1.5;margin-bottom:8px}
+
+  /* ---------- Documentos ---------- */
+  .documento{
+    background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;
+    box-shadow:0 2px 10px rgba(26,35,126,.06);text-decoration:none;color:inherit;transition:.15s;
+  }
+  .documento:hover{border-color:var(--verde)}
+  .documento-ico{
+    flex:none;width:44px;height:44px;border-radius:10px;background:var(--arena-2);
+    display:grid;place-items:center;color:var(--verde);
+  }
+  .documento-ico svg{width:24px;height:24px}
+  .documento-txt{flex:1;min-width:0}
+  .documento-txt h3{font-size:15px;margin-bottom:3px}
+  .documento-desc{font-size:12px;color:var(--tinta-suave);line-height:1.4}
+
+  /* ---------- Preguntas frecuentes (acordeón) ---------- */
+  .faq-item{
+    background:#fff;border:1px solid var(--linea);border-radius:12px;
+    margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(26,35,126,.05);
+  }
+  .faq-preg{
+    width:100%;background:none;border:none;font-family:inherit;text-align:left;
+    padding:16px;font-size:15px;font-weight:600;color:var(--tinta);cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .faq-chevron{width:20px;height:20px;flex:none;color:var(--tinta-suave);transition:transform .2s}
+  .faq-item.abierta .faq-chevron{transform:rotate(180deg)}
+  .faq-resp{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .faq-item.abierta .faq-resp{max-height:500px}
+  .faq-resp p{padding:0 16px 16px;font-size:14px;color:var(--tinta-suave);line-height:1.55;margin:0}
+
   /* pantalla de afiliación desde el login */
   #afiliacion-pantalla{
     position:fixed;inset:0;z-index:2000;
@@ -600,6 +641,18 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/></svg>
       Contacto y redes
     </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-tramites')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Trámites
+    </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-documentos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>
+      Documentos
+    </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-faq')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      Preguntas frecuentes
+    </button>
     <button class="menu-item menu-salir" onclick="cerrarSesion()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
       Cerrar sesión
@@ -725,6 +778,27 @@
     <div class="titulo-seccion">Contacto y redes</div>
     <p class="propuestas-intro">Comunicate con AFUCOA o seguinos en nuestras redes. Tocá cualquier opción para abrirla.</p>
     <div id="lista-contacto"></div>
+  </section>
+
+  <!-- ======== TRÁMITES ======== -->
+  <section class="vista" id="v-tramites">
+    <div class="titulo-seccion">Trámites</div>
+    <p class="propuestas-intro">Guías paso a paso para hacer tus gestiones en AFUCOA.</p>
+    <div id="lista-tramites"></div>
+  </section>
+
+  <!-- ======== DOCUMENTOS ======== -->
+  <section class="vista" id="v-documentos">
+    <div class="titulo-seccion">Documentos</div>
+    <p class="propuestas-intro">Documentos importantes de AFUCOA para consultar o descargar.</p>
+    <div id="lista-documentos"></div>
+  </section>
+
+  <!-- ======== PREGUNTAS FRECUENTES ======== -->
+  <section class="vista" id="v-faq">
+    <div class="titulo-seccion">Preguntas frecuentes</div>
+    <p class="propuestas-intro">Las dudas más comunes, respondidas. Tocá una pregunta para ver la respuesta.</p>
+    <div id="lista-faq"></div>
   </section>
 
 </main>
@@ -1043,6 +1117,58 @@ const CONTACTOS_AFUCOA = [
   { tipo:"instagram", etiqueta:"Instagram",             valor:"afucoa", muestra:"@afucoa" },
   { tipo:"facebook",  etiqueta:"Facebook (página)",     valor:"https://www.facebook.com/share/1NCRnEU2e8/?mibextid=wwXIfr", muestra:"Comunicación Afucoa" },
   { tipo:"facebook",  etiqueta:"Facebook (grupo)",      valor:"https://www.facebook.com/share/1CCyhAfFBU/?mibextid=wwXIfr", muestra:"Socios de Afucoa" },
+];
+
+/* ===== TRÁMITES =====
+   Cada trámite tiene un título y unos pasos. Para agregar uno, copiá un
+   bloque y cambiá el texto. Los pasos van entre comillas, separados por coma. */
+
+const TRAMITES = [
+  {
+    titulo: "Cómo afiliarte a AFUCOA",
+    pasos: [
+      "Ingresá a la pantalla de inicio de la app.",
+      "Tocá el botón \"Quiero afiliarme a AFUCOA\".",
+      "Completá el formulario con tus datos.",
+      "Enviá la solicitud. AFUCOA se pondrá en contacto con vos."
+    ]
+  },
+  {
+    titulo: "Cómo solicitar un convenio",
+    pasos: [
+      "Entrá a la sección Convenios.",
+      "Elegí el convenio que te interesa y tocá \"Solicitar convenio\".",
+      "Completá tus datos y marcá la autorización.",
+      "Enviá la solicitud. Recibirás la respuesta por los medios de contacto."
+    ]
+  },
+];
+
+/* ===== DOCUMENTOS =====
+   Para agregar un documento: subí el PDF a GitHub (por ejemplo en una carpeta
+   "documentos") y poné acá su título y la ruta al archivo.
+   Si es un enlace externo, poné la dirección completa en "archivo". */
+
+const DOCUMENTOS = [
+  {
+    titulo: "Estatuto de AFUCOA",
+    descripcion: "Documento con los estatutos de la asociación.",
+    archivo: "documentos/estatuto.pdf"
+  },
+];
+
+/* ===== PREGUNTAS FRECUENTES =====
+   Cada una tiene una pregunta y su respuesta. Para agregar, copiá un bloque. */
+
+const FAQ = [
+  {
+    pregunta: "¿Quién puede usar esta aplicación?",
+    respuesta: "La aplicación es exclusiva para socios de AFUCOA. Se ingresa con la cédula de identidad. Si todavía no sos socio, podés afiliarte desde la pantalla de inicio."
+  },
+  {
+    pregunta: "¿Cómo accedo a los convenios?",
+    respuesta: "Entrá a la sección Convenios, elegí el que te interesa y tocá \"Solicitar convenio\". Completá tus datos y AFUCOA gestionará tu solicitud con la empresa."
+  },
 ];
 
 /* ▲▲▲  FIN DE LA ZONA EDITABLE  ▲▲▲
@@ -1902,6 +2028,66 @@ function pintarContacto(){
   cont.innerHTML = CONTACTOS_AFUCOA.map(enlace).join('');
 }
 
+// ----- Trámites -----
+function pintarTramites(){
+  const cont = document.getElementById('lista-tramites');
+  if(!TRAMITES || TRAMITES.length === 0){
+    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay trámites publicados.</p>`;
+    return;
+  }
+  cont.innerHTML = TRAMITES.map(t=>`
+    <article class="tramite">
+      <h3 class="tramite-tit">${t.titulo}</h3>
+      <ol class="tramite-pasos">
+        ${(t.pasos||[]).map(p=>`<li>${p}</li>`).join('')}
+      </ol>
+    </article>`).join('');
+}
+
+// ----- Documentos -----
+function pintarDocumentos(){
+  const cont = document.getElementById('lista-documentos');
+  if(!DOCUMENTOS || DOCUMENTOS.length === 0){
+    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay documentos publicados.</p>`;
+    return;
+  }
+  cont.innerHTML = DOCUMENTOS.map(d=>`
+    <a class="documento" href="${d.archivo}" target="_blank" rel="noopener">
+      <div class="documento-ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+      </div>
+      <div class="documento-txt">
+        <h3>${d.titulo}</h3>
+        ${d.descripcion ? `<div class="documento-desc">${d.descripcion}</div>` : ``}
+      </div>
+      <div class="contacto-flecha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+    </a>`).join('');
+}
+
+// ----- Preguntas frecuentes (acordeón) -----
+function pintarFaq(){
+  const cont = document.getElementById('lista-faq');
+  if(!FAQ || FAQ.length === 0){
+    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay preguntas publicadas.</p>`;
+    return;
+  }
+  cont.innerHTML = FAQ.map((f,i)=>`
+    <div class="faq-item" id="faq-${i}">
+      <button class="faq-preg" onclick="toggleFaq(${i})">
+        <span>${f.pregunta}</span>
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="faq-resp"><p>${f.respuesta}</p></div>
+    </div>`).join('');
+}
+
+// abrir/cerrar una pregunta del acordeón
+window.toggleFaq = function(i){
+  document.getElementById('faq-'+i).classList.toggle('abierta');
+};
+
 // tocar el logo lleva a la pantalla principal (Novedades)
 window.irAlInicio = function(){
   document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
@@ -1953,6 +2139,9 @@ window.abrirDesdeMenu = function(idVista){
   menuDesplegable.classList.remove('abierto');
   if(idVista === 'v-directiva') pintarDirectiva();
   if(idVista === 'v-contacto') pintarContacto();
+  if(idVista === 'v-tramites') pintarTramites();
+  if(idVista === 'v-documentos') pintarDocumentos();
+  if(idVista === 'v-faq') pintarFaq();
   window.scrollTo(0,0);
 };
 
