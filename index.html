@@ -31,7 +31,7 @@
      Se desplaza junto con la página. El velo blanco encima lo suaviza
      para que el texto siga siendo legible. */
   body::before{
-    content:"";position:absolute;inset:0;z-index:0;
+    content:"";position:fixed;inset:0;z-index:0;
     background:
       linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)),
       url("fondo-palacio.jpg");
@@ -49,6 +49,11 @@
     padding:calc(env(safe-area-inset-top) + 18px) 20px 16px;
     position:sticky;top:0;z-index:20;
     box-shadow:0 2px 10px rgba(0,0,0,.15);
+    /* evita el parpadeo/movimiento raro al scrollear en el celular */
+    will-change:transform;
+    transform:translateZ(0);
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
   }
   .marca{display:flex;align-items:center;gap:12px}
   .marca-inicio{display:flex;align-items:center;gap:12px;cursor:pointer;flex:1}
@@ -1125,15 +1130,6 @@ const CONTACTOS_AFUCOA = [
 
 const TRAMITES = [
   {
-    titulo: "Cómo afiliarte a AFUCOA",
-    pasos: [
-      "Ingresá a la pantalla de inicio de la app.",
-      "Tocá el botón \"Quiero afiliarme a AFUCOA\".",
-      "Completá el formulario con tus datos.",
-      "Enviá la solicitud. AFUCOA se pondrá en contacto con vos."
-    ]
-  },
-  {
     titulo: "Cómo solicitar un convenio",
     pasos: [
       "Entrá a la sección Convenios.",
@@ -1163,7 +1159,7 @@ const DOCUMENTOS = [
 const FAQ = [
   {
     pregunta: "¿Quién puede usar esta aplicación?",
-    respuesta: "La aplicación es exclusiva para socios de AFUCOA. Se ingresa con la cédula de identidad. Si todavía no sos socio, podés afiliarte desde la pantalla de inicio."
+    respuesta: "La aplicación es exclusiva para socios de AFUCOA. Se ingresa con la cédula de identidad."
   },
   {
     pregunta: "¿Cómo accedo a los convenios?",
