@@ -616,8 +616,12 @@
         <input type="text" id="afil-fecha" placeholder="Ej: 5 de junio de 2026">
       </div>
       <div class="campo">
-        <label>Quien suscribe (nombre completo)</label>
-        <input type="text" id="afil-nombre" placeholder="Ej: Juan Pérez">
+        <label>Nombre</label>
+        <input type="text" id="afil-nombre" placeholder="Ej: Juan">
+      </div>
+      <div class="campo">
+        <label>Apellido</label>
+        <input type="text" id="afil-apellido" placeholder="Ej: Pérez">
       </div>
       <div class="campo">
         <label>Ficha N.º</label>
@@ -1664,21 +1668,23 @@ window.irAlInicio = function(){
 
 // enviar el formulario de afiliación al mail general de AFUCOA
 window.enviarAfiliacion = function(){
-  const fecha   = document.getElementById('afil-fecha').value.trim();
-  const nombre  = document.getElementById('afil-nombre').value.trim();
-  const ficha   = document.getElementById('afil-ficha').value.trim();
-  const cedula  = document.getElementById('afil-cedula').value.trim();
-  const mail    = document.getElementById('afil-mail').value.trim();
-  const celular = document.getElementById('afil-celular').value.trim();
+  const fecha    = document.getElementById('afil-fecha').value.trim();
+  const nombre   = document.getElementById('afil-nombre').value.trim();
+  const apellido = document.getElementById('afil-apellido').value.trim();
+  const ficha    = document.getElementById('afil-ficha').value.trim();
+  const cedula   = document.getElementById('afil-cedula').value.trim();
+  const mail     = document.getElementById('afil-mail').value.trim();
+  const celular  = document.getElementById('afil-celular').value.trim();
 
   // validar uno por uno para avisar exactamente cuál falta
   const faltantes = [];
-  if(!fecha)   faltantes.push('Fecha');
-  if(!nombre)  faltantes.push('Nombre completo');
-  if(!ficha)   faltantes.push('Ficha N.º');
-  if(!cedula)  faltantes.push('Cédula de identidad');
-  if(!mail)    faltantes.push('E-mail');
-  if(!celular) faltantes.push('Celular');
+  if(!fecha)    faltantes.push('Fecha');
+  if(!nombre)   faltantes.push('Nombre');
+  if(!apellido) faltantes.push('Apellido');
+  if(!ficha)    faltantes.push('Ficha N.º');
+  if(!cedula)   faltantes.push('Cédula de identidad');
+  if(!mail)     faltantes.push('E-mail');
+  if(!celular)  faltantes.push('Celular');
 
   if(faltantes.length){
     avisar('Falta completar: ' + faltantes.join(', '), true);
@@ -1686,18 +1692,29 @@ window.enviarAfiliacion = function(){
   }
 
   // armar el mensaje completo
+  const cedulaLimpia = cedula.replace(/[^0-9kK]/g,'');
+  const fichaLimpia = parseInt(ficha.replace(/[^0-9]/g,''),10) || 0;
+  // escapar comillas simples en los textos para el comando SQL
+  const nombreSQL = nombre.replace(/'/g, "''");
+  const apellidoSQL = apellido.replace(/'/g, "''");
   const mensaje =
     'SOLICITUD DE AFILIACIÓN A AFUCOA\n\n' +
     'Fecha: ' + fecha + '\n' +
-    'Nombre completo: ' + nombre + '\n' +
+    'Nombre: ' + nombre + '\n' +
+    'Apellido: ' + apellido + '\n' +
     'Ficha N.º: ' + ficha + '\n' +
     'Cédula de identidad: ' + cedula + '\n' +
     'E-mail: ' + mail + '\n' +
-    'Celular: ' + celular;
+    'Celular: ' + celular + '\n\n' +
+    '----------------------------------------\n' +
+    'PARA DAR DE ALTA EN EL PADRÓN (uso interno de la directiva):\n' +
+    'Copiar la línea de abajo en Supabase (SQL Editor) y ejecutar:\n\n' +
+    "select alta_socio(" + fichaLimpia + ", '" + cedulaLimpia + "', '" + nombreSQL + "', '" + apellidoSQL + "');\n" +
+    '----------------------------------------';
 
   // tipo "Afiliación" -> el puente lo manda al mail general (afucoa@gmail.com)
-  const registro = { tipo:"Afiliación", asunto:"Solicitud de afiliación: "+nombre,
-                     mensaje, sector:"", nombre };
+  const registro = { tipo:"Afiliación", asunto:"Solicitud de afiliación: "+nombre+' '+apellido,
+                     mensaje, sector:"", nombre: nombre+' '+apellido };
 
   // guardar en Mis envíos
   const lista = leerEnvios();
@@ -1709,7 +1726,7 @@ window.enviarAfiliacion = function(){
   enviarAlSindicato(registro);
 
   // limpiar
-  ['fecha','nombre','ficha','cedula','mail','celular'].forEach(campo=>{
+  ['fecha','nombre','apellido','ficha','cedula','mail','celular'].forEach(campo=>{
     document.getElementById('afil-'+campo).value='';
   });
 
