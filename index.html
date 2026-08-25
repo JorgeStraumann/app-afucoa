@@ -405,6 +405,17 @@
   .adjuntar svg{width:20px;height:20px;flex:none}
   .adjuntar.con-archivo{border-style:solid;border-color:var(--verde);color:var(--verde);font-weight:600}
 
+  .saludo-socio{
+    background:linear-gradient(135deg, var(--dorado), #5c74ff);
+    color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:16px;
+    box-shadow:0 6px 18px rgba(61,90,254,.25);
+  }
+  .saludo-nombre{font-size:20px;font-weight:700;margin-bottom:6px}
+  .saludo-estado{font-size:13px;display:flex;align-items:center;gap:8px;opacity:.95}
+  .saludo-punto{
+    width:9px;height:9px;border-radius:50%;background:#4ade80;flex:none;
+    box-shadow:0 0 0 3px rgba(74,222,128,.3);
+  }
   .intro{
     background:var(--verde);color:#fff;border-radius:14px;padding:18px;margin-bottom:18px;
   }  .intro h2{font-size:17px;margin-bottom:6px}
@@ -669,6 +680,7 @@
 <main>
   <!-- ======== INICIO / ANUNCIOS ======== -->
   <section class="vista activa" id="v-inicio">
+    <div id="saludo-socio" class="saludo-socio" style="display:none"></div>
     <div class="intro">
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
@@ -1668,6 +1680,42 @@ async function verificarCedula(cedula){
 }
 
 // intento de ingreso al tocar "Ingresar"
+// trae nombre y ficha del socio a partir de la cédula (o null si no se pudo)
+async function traerDatosSocio(cedula){
+  const doc = String(cedula).replace(/[^0-9kK]/g,'');
+  if(!doc) return null;
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/datos_socio`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ doc: doc })
+    });
+    if(!resp.ok) return null;
+    const data = await resp.json();
+    return (Array.isArray(data) && data.length) ? data[0] : null;
+  }catch(e){ return null; }
+}
+
+// pone la primera letra de cada palabra en mayúscula (JORGE CARRARA -> Jorge Carrara)
+function formatearNombre(texto){
+  return (texto||'').toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+}
+
+// muestra el saludo personalizado en Novedades
+function mostrarSaludo(datos){
+  const cont = document.getElementById('saludo-socio');
+  if(!cont) return;
+  if(datos && datos.primer_nombre){
+    const nombre = formatearNombre(datos.primer_nombre + ' ' + (datos.primer_apellido||''));
+    cont.innerHTML = `
+      <div class="saludo-nombre">Hola, ${nombre}</div>
+      <div class="saludo-estado"><span class="saludo-punto"></span>Afiliación activa${datos.numero ? ' · Ficha N.º ' + datos.numero : ''}</div>`;
+    cont.style.display = 'block';
+  }else{
+    cont.style.display = 'none';
+  }
+}
+
 window.ingresar = async function(){
   const cedula = document.getElementById('login-cedula').value.trim();
   const err = document.getElementById('login-error');
@@ -1689,6 +1737,9 @@ window.ingresar = async function(){
     // guardar la cédula para recordarla en este celular
     localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
     abrirApp();
+    // traer los datos y mostrar el saludo personalizado
+    const datos = await traerDatosSocio(cedula);
+    mostrarSaludo(datos);
   }else if(resultado === 'no'){
     err.innerHTML = 'Esta cédula no figura como socio activo de AFUCOA.<br>Si sos socio y no podés entrar, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285 para regularizar tu situación. Si aún no sos socio, podés afiliarte abajo.';
   }else{
@@ -1709,6 +1760,9 @@ window.cerrarSesion = function(){
   document.getElementById('login-pantalla').style.display = 'flex';
   document.getElementById('login-cedula').value = '';
   document.getElementById('login-error').textContent = '';
+  // ocultar el saludo personalizado
+  const s = document.getElementById('saludo-socio');
+  if(s){ s.style.display = 'none'; s.innerHTML = ''; }
   // cerrar el menú si estaba abierto
   const md = document.getElementById('menu-desplegable');
   if(md) md.classList.remove('abierto');
@@ -1721,7 +1775,12 @@ async function revisarSesion(){
   if(guardada){
     // re-verificar por si le dieron de baja desde que entró la última vez
     const r = await verificarCedula(guardada);
-    if(r === 'si'){ abrirApp(); return; }
+    if(r === 'si'){
+      abrirApp();
+      const datos = await traerDatosSocio(guardada);
+      mostrarSaludo(datos);
+      return;
+    }
     if(r === 'no'){ localStorage.removeItem('afucoa_socio'); } // ya no es socio
     // si es 'error' (sin conexión), lo dejamos entrar igual para no bloquearlo
     if(r === 'error'){ abrirApp(); return; }
