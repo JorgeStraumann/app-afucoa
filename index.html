@@ -19,7 +19,7 @@
     --dorado:#3d5afe;     /* acento azul brillante */
     --rojo:#c62828;
     --linea:#d9ddf0;
-    --ok:#1a237e;
+    --ok:#2e9e5b;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html{height:auto;overflow-x:hidden}
@@ -593,7 +593,7 @@
   .toast{
     position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--ok);color:#fff;padding:13px 20px;border-radius:12px;
-    font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:50;
+    font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:3000;
     box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:90%;text-align:center;
   }
   .toast.ver{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -1850,11 +1850,14 @@ function pintarMisEnvios(){
 let tToast;
 function avisar(texto, error){
   const t = document.getElementById('toast');
-  t.textContent = texto;
+  const icono = error
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:18px;height:18px;flex:none"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16.5v.5"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="width:18px;height:18px;flex:none"><path d="M20 6L9 17l-5-5"/></svg>';
+  t.innerHTML = '<span style="display:inline-flex;align-items:center;gap:9px;justify-content:center">' + icono + '<span>' + texto + '</span></span>';
   t.style.background = error ? 'var(--rojo)' : 'var(--ok)';
   t.classList.add('ver');
   clearTimeout(tToast);
-  tToast = setTimeout(()=>t.classList.remove('ver'), 2600);
+  tToast = setTimeout(()=>t.classList.remove('ver'), error ? 3200 : 2800);
 }
 
 /* ============================================================
@@ -2068,7 +2071,7 @@ window.enviarAfiliacionLogin = function(){
     document.getElementById('afl-'+campo).value='';
   });
 
-  avisar('¡Solicitud de afiliación enviada! AFUCOA se pondrá en contacto con vos.');
+  avisar('¡Solicitud de afiliación enviada con éxito!');
 };
 
 // para no apoyar dos veces la misma propuesta desde el mismo celular
