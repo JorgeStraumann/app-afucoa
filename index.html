@@ -2517,17 +2517,38 @@ window.adminLista = async function(filtro, boton){
       </tr>`;
     }).join('');
     cont.innerHTML = `
-      <div class="lista-total">${listaDatosActual.length} socio(s)</div>
+      <div class="buscador-conv" style="margin-bottom:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="text" id="buscar-padron" placeholder="Buscar por nombre o número..." oninput="filtrarPadron()">
+      </div>
+      <div class="lista-total" id="lista-total">${listaDatosActual.length} socio(s)</div>
       <div class="lista-scroll">
         <table class="lista-tabla">
           <thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
-          <tbody>${filas}</tbody>
+          <tbody id="lista-tbody">${filas}</tbody>
         </table>
-      </div>`;
+      </div>
+      <p id="padron-sin-resultados" class="admin-nohay" style="display:none">No se encontraron socios con esa búsqueda.</p>`;
   }catch(e){
     cont.innerHTML = '<p class="admin-nohay">No se pudo cargar la lista. Intentá de nuevo.</p>';
   }
 };
+
+// filtra la lista del padrón por nombre o número (sin volver a consultar Supabase)
+function filtrarPadron(){
+  const normalizar = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const texto = normalizar(document.getElementById('buscar-padron').value.trim());
+  const filas = document.querySelectorAll('#lista-tbody tr');
+  let visibles = 0;
+  filas.forEach((tr, i)=>{
+    const s = listaDatosActual[i];
+    const contenido = normalizar((s.primer_nombre||'') + ' ' + (s.primer_apellido||'') + ' ' + s.numero + ' ' + (s.documento||''));
+    if(!texto || contenido.includes(texto)){ tr.style.display = ''; visibles++; }
+    else{ tr.style.display = 'none'; }
+  });
+  document.getElementById('lista-total').textContent = visibles + ' socio(s)';
+  document.getElementById('padron-sin-resultados').style.display = visibles===0 ? 'block' : 'none';
+}
 
 // arma el título según el filtro
 function tituloLista(){
