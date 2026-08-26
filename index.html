@@ -534,6 +534,10 @@
   }
   .saludo-nombre{font-size:20px;font-weight:700;margin-bottom:6px}
   .saludo-estado{font-size:13px;display:flex;align-items:center;gap:8px;opacity:.95}
+  .saludo-bienvenida{
+    font-size:13px;line-height:1.5;margin-top:12px;padding-top:12px;
+    border-top:1px solid rgba(255,255,255,.25);opacity:.92;
+  }
   .saludo-punto{
     width:9px;height:9px;border-radius:50%;background:#4ade80;flex:none;
     box-shadow:0 0 0 3px rgba(74,222,128,.3);
@@ -544,15 +548,15 @@
   .intro p{font-size:13px;opacity:.85;line-height:1.5}
 
   .btn-compartir{
-    width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
-    background:#fff;border:1.5px solid var(--verde);color:var(--verde);
-    font-family:inherit;font-size:15px;font-weight:600;
-    padding:14px;border-radius:12px;cursor:pointer;margin-bottom:18px;transition:.15s;
+    width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:none;border:1px solid var(--linea);color:var(--tinta-suave);
+    font-family:inherit;font-size:13px;font-weight:600;
+    padding:11px;border-radius:10px;cursor:pointer;margin-bottom:18px;transition:.15s;
   }
   .btn-compartir:hover{background:var(--verde);color:#fff}
   .btn-compartir:hover svg{stroke:#fff}
   .btn-compartir:active{transform:scale(.98)}
-  .btn-compartir svg{width:20px;height:20px;flex:none}
+  .btn-compartir svg{width:17px;height:17px;flex:none}
 
   .btn-afiliarse{
     width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
@@ -828,13 +832,13 @@
   <!-- ======== INICIO / ANUNCIOS ======== -->
   <section class="vista activa" id="v-inicio">
     <div id="saludo-socio" class="saludo-socio" style="display:none"></div>
-    <div class="intro">
+    <div class="intro" id="intro-generico">
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
     <button class="btn-compartir" onclick="compartirApp()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
-      Compartir la app con un compañero
+      Compartir la app
     </button>
     <div class="titulo-seccion">Novedades</div>
     <div id="lista-anuncios"></div>
@@ -1943,15 +1947,19 @@ function formatearNombre(texto){
 // muestra el saludo personalizado en Novedades
 function mostrarSaludo(datos){
   const cont = document.getElementById('saludo-socio');
+  const intro = document.getElementById('intro-generico');
   if(!cont) return;
   if(datos && datos.primer_nombre){
     const nombre = formatearNombre(datos.primer_nombre + ' ' + (datos.primer_apellido||''));
     cont.innerHTML = `
       <div class="saludo-nombre">Hola, ${nombre}</div>
-      <div class="saludo-estado"><span class="saludo-punto"></span>Afiliación activa${datos.numero ? ' · Ficha N.º ' + datos.numero : ''}</div>`;
+      <div class="saludo-estado"><span class="saludo-punto"></span>Afiliación activa${datos.numero ? ' · Ficha N.º ' + datos.numero : ''}</div>
+      <div class="saludo-bienvenida">Acá vas a encontrar las novedades del sindicato y podés hacer llegar tu voz: sugerencias, propuestas y planteos.</div>`;
     cont.style.display = 'block';
+    if(intro) intro.style.display = 'none';  // no repetir la bienvenida genérica
   }else{
     cont.style.display = 'none';
+    if(intro) intro.style.display = 'block';  // sin datos, mostrar la genérica
   }
 }
 
