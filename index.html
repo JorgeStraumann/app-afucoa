@@ -496,6 +496,15 @@
   .admin-estado.inactivo{background:#fdeaea;color:#c0392b}
   .admin-buscando,.admin-nohay{font-size:14px;color:var(--tinta-suave);text-align:center;margin:0}
   .admin-aviso{font-size:14px;color:var(--tinta-suave);text-align:center;margin:8px 0 0;font-style:italic}
+  .admin-confirmar{margin-top:10px;padding:14px;background:#fdeaea;border:1px solid #f0b4b4;border-radius:10px}
+  .admin-confirmar-txt{font-size:14px;color:#c0392b;text-align:center;margin:0 0 12px;font-weight:600}
+  .admin-confirmar-btns{display:flex;gap:8px}
+  .btn-conf-si,.btn-conf-no{
+    flex:1;padding:11px 6px;border-radius:9px;font-family:inherit;font-size:14px;
+    font-weight:600;cursor:pointer;border:none;
+  }
+  .btn-conf-si{background:#c0392b;color:#fff}
+  .btn-conf-no{background:#fff;color:var(--tinta);border:1px solid var(--linea)}
 
   .saludo-socio{
     background:linear-gradient(135deg, var(--dorado), #5c74ff);
@@ -2701,7 +2710,7 @@ window.adminBuscar = async function(tipo){
     let boton = '';
     if(tipo==='baja'){
       boton = s.activo
-        ? `<button class="btn" onclick="adminConfirmar('baja', ${s.numero})">Dar de baja a este socio</button>`
+        ? `<button class="btn" onclick="pedirConfirmacionBaja(${s.numero}, this)">Dar de baja a este socio</button>`
         : `<p class="admin-aviso">Este socio ya está inactivo.</p>`;
     }else{
       boton = !s.activo
@@ -2719,6 +2728,30 @@ window.adminBuscar = async function(tipo){
 };
 
 // CONFIRMAR la baja o reactivación (después de buscar y ver los datos)
+// pide confirmación antes de dar de baja (reemplaza el botón por Sí/Cancelar)
+window.pedirConfirmacionBaja = function(numero, boton){
+  const cont = boton.parentElement;
+  boton.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'admin-confirmar';
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">¿Confirmás dar de baja a este socio?</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="adminConfirmar('baja', ${numero})">Sí, dar de baja</button>
+      <button class="btn-conf-no" onclick="cancelarConfirmacion(this)">Cancelar</button>
+    </div>`;
+  cont.appendChild(div);
+};
+
+// cancela la confirmación y vuelve a mostrar el botón
+window.cancelarConfirmacion = function(boton){
+  const div = boton.closest('.admin-confirmar');
+  const cont = div.parentElement;
+  div.remove();
+  const btnBaja = cont.querySelector('.btn');
+  if(btnBaja) btnBaja.style.display = '';
+};
+
 window.adminConfirmar = async function(tipo, numero){
   const funcion = (tipo==='baja') ? 'admin_baja_socio' : 'admin_reactivar_socio';
   const contFicha = (tipo==='baja') ? 'adm-baja-ficha' : 'adm-react-ficha';
