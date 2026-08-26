@@ -459,6 +459,27 @@
   .hist-accion{font-size:13px;font-weight:700;color:var(--verde)}
   .hist-fecha{font-size:11px;color:var(--tinta-suave)}
   .hist-socio{font-size:14px;color:var(--tinta)}
+  /* solicitudes de afiliación */
+  .solicitud{
+    background:#fff;border:1px solid var(--linea);border-left:4px solid var(--dorado);
+    border-radius:12px;padding:16px;margin-bottom:14px;
+  }
+  .solicitud-nombre{font-size:17px;font-weight:700;color:var(--verde);margin-bottom:8px}
+  .solicitud-datos{font-size:13px;color:var(--tinta);line-height:1.7;margin-bottom:8px}
+  .solicitud-fecha{font-size:12px;color:var(--tinta-suave);margin-bottom:12px}
+  .solicitud-alta{margin-bottom:12px}
+  .solicitud-alta label{display:block;font-size:12px;font-weight:600;color:var(--tinta-suave);margin-bottom:5px}
+  .solicitud-alta input{
+    width:100%;padding:11px 12px;border:1px solid var(--linea);border-radius:9px;
+    font-size:15px;font-family:inherit;box-sizing:border-box;
+  }
+  .solicitud-btns{display:flex;gap:8px}
+  .btn-sol-aprobar,.btn-sol-descartar{
+    flex:1;padding:11px 6px;border-radius:9px;font-family:inherit;font-size:13px;
+    font-weight:600;cursor:pointer;border:none;
+  }
+  .btn-sol-aprobar{background:#2e9e5b;color:#fff}
+  .btn-sol-descartar{background:#fff;color:var(--rojo);border:1px solid #f0b4b4}
   /* lista del padrón */
   .lista-filtros{display:flex;gap:6px;margin-bottom:12px}
   .lista-filtro{
@@ -961,6 +982,7 @@
         <button class="admin-tab activo" onclick="adminTab('alta', this)">Alta</button>
         <button class="admin-tab" onclick="adminTab('baja', this)">Baja</button>
         <button class="admin-tab" onclick="adminTab('reactivar', this)">Reactivar</button>
+        <button class="admin-tab" onclick="adminTab('solicitudes', this)">Solicitudes</button>
         <button class="admin-tab" onclick="adminTab('lista', this)">Lista</button>
         <button class="admin-tab" onclick="adminTab('historial', this)">Historial</button>
       </div>
@@ -989,6 +1011,12 @@
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
         <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
         <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
+      </div>
+
+      <!-- SOLICITUDES -->
+      <div class="admin-panel" id="admin-panel-solicitudes" style="display:none">
+        <p class="propuestas-intro">Solicitudes de afiliación pendientes. Revisá los datos y aprobá (dar de alta) o descartá cada una.</p>
+        <div id="admin-solicitudes-cont"></div>
       </div>
 
       <!-- LISTA -->
@@ -2488,12 +2516,103 @@ window.adminTab = function(cual, boton){
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
+  document.getElementById('admin-panel-solicitudes').style.display = (cual==='solicitudes') ? 'block' : 'none';
   document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   if(cual==='historial') cargarHistorial();
   if(cual==='lista') adminLista('activos', null);
+  if(cual==='solicitudes') cargarSolicitudes();
+};
+
+// trae y muestra las solicitudes de afiliación pendientes
+async function cargarSolicitudes(){
+  const cont = document.getElementById('admin-solicitudes-cont');
+  cont.innerHTML = '<p class="admin-buscando">Cargando solicitudes...</p>';
+  try{
+    const r = await llamarAdmin('admin_ver_solicitudes', { clave: claveAdmin });
+    if(!Array.isArray(r) || r.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay solicitudes pendientes.</p>';
+      return;
+    }
+    cont.innerHTML = r.map(s=>{
+      const nombre = formatearNombre((s.nombre||'') + ' ' + (s.apellido||''));
+      const f = new Date(s.fecha_solicitud);
+      const fecha = f.toLocaleDateString('es-UY') + ' ' + f.toLocaleTimeString('es-UY', {hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="solicitud" id="solicitud-${s.id}">
+          <div class="solicitud-nombre">${nombre}</div>
+          <div class="solicitud-datos">
+            Cédula: ${s.documento||'—'}<br>
+            Ficha declarada: ${s.ficha||'—'}<br>
+            Email: ${s.email||'—'}<br>
+            Celular: ${s.celular||'—'}
+          </div>
+          <div class="solicitud-fecha">Solicitó el ${fecha}</div>
+          <div class="solicitud-alta">
+            <label>Número de socio / Ficha a asignar</label>
+            <input type="text" id="sol-ficha-${s.id}" inputmode="numeric" value="${s.ficha||''}" placeholder="Ej: 350">
+          </div>
+          <div class="solicitud-btns">
+            <button class="btn-sol-aprobar" onclick="aprobarSolicitud(${s.id}, '${(s.documento||'').replace(/'/g,'')}', '${(s.nombre||'').replace(/'/g,'')}', '${(s.apellido||'').replace(/'/g,'')}')">Aprobar y dar de alta</button>
+            <button class="btn-sol-descartar" onclick="descartarSolicitud(${s.id})">Descartar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar las solicitudes. Intentá de nuevo.</p>';
+  }
+}
+
+// aprobar una solicitud: da de alta al socio y saca la solicitud de pendientes
+window.aprobarSolicitud = async function(id, documento, nombre, apellido){
+  const ficha = document.getElementById('sol-ficha-'+id).value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!ficha){ mostrarResultadoAdmin('Asigná un número de socio antes de aprobar.', false); return; }
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    // 1) dar de alta al socio
+    const r = await llamarAdmin('admin_alta_socio', {
+      clave: claveAdmin, p_numero: parseInt(ficha,10),
+      p_documento: documento, p_nombre: nombre, p_apellido: apellido
+    });
+    const ok = String(r).indexOf('OK') === 0;
+    if(ok){
+      // 2) marcar la solicitud como aprobada (la descartamos de pendientes)
+      await llamarAdmin('admin_descartar_solicitud', { clave: claveAdmin, p_id: id });
+      const el = document.getElementById('solicitud-'+id);
+      if(el) el.remove();
+      mostrarResultadoAdmin(r, true);
+      if(document.querySelectorAll('.solicitud').length === 0){
+        document.getElementById('admin-solicitudes-cont').innerHTML = '<p class="admin-nohay">No hay solicitudes pendientes.</p>';
+      }
+    }else{
+      mostrarResultadoAdmin(r, false);  // ej: ya existe ese número
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false);
+  }
+};
+
+// descartar una solicitud sin darla de alta
+window.descartarSolicitud = async function(id){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_descartar_solicitud', { clave: claveAdmin, p_id: id });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Solicitud descartada.' : r, ok);
+    if(ok){
+      const el = document.getElementById('solicitud-'+id);
+      if(el) el.remove();
+      if(document.querySelectorAll('.solicitud').length === 0){
+        document.getElementById('admin-solicitudes-cont').innerHTML = '<p class="admin-nohay">No hay solicitudes pendientes.</p>';
+      }
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false);
+  }
 };
 
 // guarda el filtro y los datos actuales de la lista (para las descargas)
