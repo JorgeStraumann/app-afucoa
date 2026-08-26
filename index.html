@@ -432,11 +432,23 @@
   .admin-candado svg{width:32px;height:32px}
   .admin-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--arena-2);padding:5px;border-radius:12px}
   .admin-tab{
-    flex:1;background:none;border:none;font-family:inherit;font-size:13px;font-weight:600;
-    padding:10px 4px;border-radius:9px;color:var(--tinta-suave);cursor:pointer;transition:.15s;
+    flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;
+    padding:10px 2px;border-radius:9px;color:var(--tinta-suave);cursor:pointer;transition:.15s;
   }
   .admin-tab.activo{background:#fff;color:var(--verde);box-shadow:0 1px 4px rgba(26,35,126,.12)}
   .admin-panel{margin-bottom:8px}
+  /* historial */
+  .hist-item{
+    background:#fff;border:1px solid var(--linea);border-left:4px solid var(--tinta-suave);
+    border-radius:10px;padding:12px 14px;margin-bottom:10px;
+  }
+  .hist-alta{border-left-color:#1e7d34}
+  .hist-baja{border-left-color:#c0392b}
+  .hist-reactivar{border-left-color:var(--dorado)}
+  .hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .hist-accion{font-size:13px;font-weight:700;color:var(--verde)}
+  .hist-fecha{font-size:11px;color:var(--tinta-suave)}
+  .hist-socio{font-size:14px;color:var(--tinta)}
   .admin-resultado{
     margin-top:16px;padding:14px;border-radius:10px;font-size:14px;line-height:1.5;
     text-align:center;display:none;
@@ -904,9 +916,10 @@
     <!-- Contenido del panel (oculto hasta ingresar la clave) -->
     <div id="admin-contenido" style="display:none">
       <div class="admin-tabs">
-        <button class="admin-tab activo" onclick="adminTab('alta', this)">Dar de alta</button>
-        <button class="admin-tab" onclick="adminTab('baja', this)">Dar de baja</button>
+        <button class="admin-tab activo" onclick="adminTab('alta', this)">Alta</button>
+        <button class="admin-tab" onclick="adminTab('baja', this)">Baja</button>
         <button class="admin-tab" onclick="adminTab('reactivar', this)">Reactivar</button>
+        <button class="admin-tab" onclick="adminTab('historial', this)">Historial</button>
       </div>
 
       <!-- ALTA -->
@@ -933,6 +946,12 @@
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
         <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
         <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="admin-panel" id="admin-panel-historial" style="display:none">
+        <p class="propuestas-intro">Últimos movimientos realizados en el padrón.</p>
+        <div id="admin-historial-lista"></div>
       </div>
 
       <p class="admin-resultado" id="admin-resultado"></p>
@@ -2391,16 +2410,47 @@ window.entrarPanelAdmin = async function(){
   }
 };
 
-// cambiar entre pestañas (alta / baja / reactivar)
+// cambiar entre pestañas (alta / baja / reactivar / historial)
 window.adminTab = function(cual, boton){
   document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('activo'));
   boton.classList.add('activo');
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
+  document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
+  if(cual==='historial') cargarHistorial();
 };
+
+// trae y muestra el historial de movimientos
+async function cargarHistorial(){
+  const cont = document.getElementById('admin-historial-lista');
+  cont.innerHTML = '<p class="admin-buscando">Cargando historial...</p>';
+  try{
+    const r = await llamarAdmin('admin_ver_historial', { clave: claveAdmin });
+    if(!Array.isArray(r) || r.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">Todavía no hay movimientos registrados.</p>';
+      return;
+    }
+    const etiqueta = { alta:'Alta', baja:'Baja', reactivar:'Reactivación' };
+    cont.innerHTML = r.map(m=>{
+      const f = new Date(m.fecha);
+      const fecha = f.toLocaleDateString('es-UY') + ' ' + f.toLocaleTimeString('es-UY', {hour:'2-digit', minute:'2-digit'});
+      const nombre = formatearNombre(m.detalle || '');
+      return `
+        <div class="hist-item hist-${m.accion}">
+          <div class="hist-top">
+            <span class="hist-accion">${etiqueta[m.accion] || m.accion}</span>
+            <span class="hist-fecha">${fecha}</span>
+          </div>
+          <div class="hist-socio">${nombre} · Ficha N.º ${m.numero_socio}</div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudo cargar el historial. Intentá de nuevo.</p>';
+  }
+}
 
 // llamada genérica a una función protegida de Supabase
 async function llamarAdmin(funcion, params){
