@@ -422,6 +422,28 @@
   .adjuntar svg{width:20px;height:20px;flex:none}
   .adjuntar.con-archivo{border-style:solid;border-color:var(--verde);color:var(--verde);font-weight:600}
 
+  /* ---------- Panel de gestión (admin) ---------- */
+  .menu-admin{border-top:1px solid var(--linea);color:var(--verde)}
+  .menu-admin svg{stroke:var(--verde)}
+  .admin-candado{
+    width:64px;height:64px;margin:10px auto 4px;border-radius:50%;
+    background:var(--arena-2);display:grid;place-items:center;color:var(--verde);
+  }
+  .admin-candado svg{width:32px;height:32px}
+  .admin-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--arena-2);padding:5px;border-radius:12px}
+  .admin-tab{
+    flex:1;background:none;border:none;font-family:inherit;font-size:13px;font-weight:600;
+    padding:10px 4px;border-radius:9px;color:var(--tinta-suave);cursor:pointer;transition:.15s;
+  }
+  .admin-tab.activo{background:#fff;color:var(--verde);box-shadow:0 1px 4px rgba(26,35,126,.12)}
+  .admin-panel{margin-bottom:8px}
+  .admin-resultado{
+    margin-top:16px;padding:14px;border-radius:10px;font-size:14px;line-height:1.5;
+    text-align:center;display:none;
+  }
+  .admin-resultado.ok{display:block;background:#e6f4ea;color:#1e7d34;border:1px solid #a3d9b1}
+  .admin-resultado.mal{display:block;background:#fdeaea;color:#c0392b;border:1px solid #f0b4b4}
+
   .saludo-socio{
     background:linear-gradient(135deg, var(--dorado), #5c74ff);
     color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:16px;
@@ -703,6 +725,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
       Preguntas frecuentes
     </button>
+    <button class="menu-item menu-admin" onclick="abrirPanelAdmin()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l8 4v6c0 4-3 7-8 10-5-3-8-6-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      Panel de gestión
+    </button>
     <button class="menu-item menu-salir" onclick="cerrarSesion()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
       Cerrar sesión
@@ -845,11 +871,58 @@
     <div id="lista-documentos"></div>
   </section>
 
-  <!-- ======== PREGUNTAS FRECUENTES ======== -->
-  <section class="vista" id="v-faq">
-    <div class="titulo-seccion">Preguntas frecuentes</div>
-    <p class="propuestas-intro">Las dudas más comunes, respondidas. Tocá una pregunta para ver la respuesta.</p>
-    <div id="lista-faq"></div>
+  <!-- ======== PANEL DE GESTIÓN (solo administrador) ======== -->
+  <section class="vista" id="v-admin">
+    <div class="titulo-seccion">Panel de gestión</div>
+
+    <!-- Bloqueo con clave -->
+    <div id="admin-bloqueo">
+      <div class="admin-candado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      </div>
+      <p class="propuestas-intro" style="text-align:center">Esta sección es exclusiva para la administración. Ingresá la clave para continuar.</p>
+      <div class="campo">
+        <label>Clave de administrador</label>
+        <input type="password" id="admin-clave" placeholder="••••••••" autocomplete="off">
+      </div>
+      <button class="btn" onclick="entrarPanelAdmin()">Ingresar al panel</button>
+      <p class="login-error" id="admin-error"></p>
+    </div>
+
+    <!-- Contenido del panel (oculto hasta ingresar la clave) -->
+    <div id="admin-contenido" style="display:none">
+      <div class="admin-tabs">
+        <button class="admin-tab activo" onclick="adminTab('alta', this)">Dar de alta</button>
+        <button class="admin-tab" onclick="adminTab('baja', this)">Dar de baja</button>
+        <button class="admin-tab" onclick="adminTab('reactivar', this)">Reactivar</button>
+      </div>
+
+      <!-- ALTA -->
+      <div class="admin-panel" id="admin-panel-alta">
+        <p class="propuestas-intro">Cargá los datos del nuevo socio para agregarlo al padrón.</p>
+        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-alta-numero" inputmode="numeric" placeholder="Ej: 350"></div>
+        <div class="campo"><label>Cédula de identidad</label><input type="text" id="adm-alta-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8"></div>
+        <div class="campo"><label>Nombre</label><input type="text" id="adm-alta-nombre" placeholder="Ej: Juan"></div>
+        <div class="campo"><label>Apellido</label><input type="text" id="adm-alta-apellido" placeholder="Ej: Pérez"></div>
+        <button class="btn" onclick="adminAlta()">Dar de alta</button>
+      </div>
+
+      <!-- BAJA -->
+      <div class="admin-panel" id="admin-panel-baja" style="display:none">
+        <p class="propuestas-intro">Ingresá el número de socio para darlo de baja. No se borra: queda inactivo y se puede reactivar.</p>
+        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-baja-numero" inputmode="numeric" placeholder="Ej: 350"></div>
+        <button class="btn" onclick="adminBaja()">Dar de baja</button>
+      </div>
+
+      <!-- REACTIVAR -->
+      <div class="admin-panel" id="admin-panel-reactivar" style="display:none">
+        <p class="propuestas-intro">Ingresá el número de socio para reactivarlo (volver a activo).</p>
+        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
+        <button class="btn" onclick="adminReactivar()">Reactivar socio</button>
+      </div>
+
+      <p class="admin-resultado" id="admin-resultado"></p>
+    </div>
   </section>
 
 </main>
@@ -1799,6 +1872,7 @@ function abrirApp(){
 // cerrar sesión: olvida la cédula y vuelve al login
 window.cerrarSesion = function(){
   localStorage.removeItem('afucoa_socio');
+  claveAdmin = "";  // olvidar la clave de administrador por seguridad
   document.body.classList.add('con-login');
   document.getElementById('login-pantalla').style.display = 'flex';
   document.getElementById('login-cedula').value = '';
@@ -2242,6 +2316,142 @@ window.abrirDesdeMenu = function(idVista){
   if(idVista === 'v-documentos') pintarDocumentos();
   if(idVista === 'v-faq') pintarFaq();
   irArriba();
+};
+
+/* ============================================================
+   Panel de gestión (administrador)
+   ============================================================ */
+let claveAdmin = "";  // se guarda temporalmente solo mientras el panel está abierto
+
+// abrir el panel desde el menú: siempre arranca bloqueado pidiendo la clave
+window.abrirPanelAdmin = function(){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.getElementById('v-admin').classList.add('activa');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+  menuDesplegable.classList.remove('abierto');
+  resetearPanelAdmin();
+  irArriba();
+};
+
+// vuelve el panel al estado bloqueado (pide clave, oculta contenido)
+function resetearPanelAdmin(){
+  claveAdmin = "";
+  document.getElementById('admin-bloqueo').style.display = 'block';
+  document.getElementById('admin-contenido').style.display = 'none';
+  document.getElementById('admin-clave').value = '';
+  document.getElementById('admin-error').textContent = '';
+  const res = document.getElementById('admin-resultado');
+  if(res){ res.textContent = ''; res.className = 'admin-resultado'; }
+}
+
+// ingresar la clave: la guardamos y mostramos el contenido.
+// La validación REAL la hace Supabase en cada acción; acá hacemos una prueba
+// rápida para no mostrar el panel si la clave es obviamente incorrecta.
+window.entrarPanelAdmin = async function(){
+  const clave = document.getElementById('admin-clave').value;
+  const err = document.getElementById('admin-error');
+  err.textContent = '';
+  if(!clave){ err.textContent = 'Ingresá la clave.'; return; }
+  claveAdmin = clave;
+  document.getElementById('admin-bloqueo').style.display = 'none';
+  document.getElementById('admin-contenido').style.display = 'block';
+};
+
+// cambiar entre pestañas (alta / baja / reactivar)
+window.adminTab = function(cual, boton){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('activo'));
+  boton.classList.add('activo');
+  document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
+  document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
+  document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
+  const res = document.getElementById('admin-resultado');
+  res.textContent = ''; res.className = 'admin-resultado';
+};
+
+// llamada genérica a una función protegida de Supabase
+async function llamarAdmin(funcion, params){
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${funcion}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify(params)
+  });
+  if(!resp.ok) throw new Error('conexión');
+  return await resp.json();
+}
+
+// muestra el resultado con color según si fue OK o error
+function mostrarResultadoAdmin(texto, ok){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = texto;
+  res.className = 'admin-resultado ' + (ok ? 'ok' : 'mal');
+  // si la clave era incorrecta, volver a pedirla
+  if(texto.indexOf('clave incorrecta') !== -1){
+    setTimeout(()=>{ resetearPanelAdmin(); document.getElementById('admin-error').textContent = 'La clave es incorrecta. Ingresala de nuevo.'; }, 1500);
+  }
+}
+
+// ALTA
+window.adminAlta = async function(){
+  const numero = document.getElementById('adm-alta-numero').value.trim();
+  const cedula = document.getElementById('adm-alta-cedula').value.trim();
+  const nombre = document.getElementById('adm-alta-nombre').value.trim();
+  const apellido = document.getElementById('adm-alta-apellido').value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!numero || !cedula || !nombre || !apellido){
+    mostrarResultadoAdmin('Completá todos los campos.', false); return;
+  }
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_alta_socio', {
+      clave: claveAdmin,
+      p_numero: parseInt(numero, 10),
+      p_documento: cedula,
+      p_nombre: nombre,
+      p_apellido: apellido
+    });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok){
+      document.getElementById('adm-alta-numero').value = '';
+      document.getElementById('adm-alta-cedula').value = '';
+      document.getElementById('adm-alta-nombre').value = '';
+      document.getElementById('adm-alta-apellido').value = '';
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
+  }
+};
+
+// BAJA
+window.adminBaja = async function(){
+  const numero = document.getElementById('adm-baja-numero').value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_baja_socio', { clave: claveAdmin, p_numero: parseInt(numero, 10) });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok) document.getElementById('adm-baja-numero').value = '';
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
+  }
+};
+
+// REACTIVAR
+window.adminReactivar = async function(){
+  const numero = document.getElementById('adm-react-numero').value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_reactivar_socio', { clave: claveAdmin, p_numero: parseInt(numero, 10) });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok) document.getElementById('adm-react-numero').value = '';
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
+  }
 };
 
 /* Arranque */
