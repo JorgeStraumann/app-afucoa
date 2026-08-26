@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a237e">
 <title>AFUCOA</title>
 <link rel="manifest" href="manifest.json">
@@ -1196,8 +1198,18 @@ botonesNav.forEach(b=>b.addEventListener('click',()=>{
   b.classList.add('activo');
   if(b.dataset.vista==='v-mis') pintarMisEnvios();
   if(b.dataset.vista==='v-propuestas') cargarPropuestas();
-  window.scrollTo(0,0);
+  irArriba();
 }));
+
+// vuelve el scroll al inicio de forma confiable en el celular
+function irArriba(){
+  // varios métodos combinados para que funcione en todos los navegadores móviles
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  // por si el navegador tarda un instante en aplicar el cambio de vista
+  requestAnimationFrame(()=>{ window.scrollTo(0,0); document.documentElement.scrollTop = 0; });
+}
 
 /* ============================================================
    Pintar anuncios y convenios
@@ -2155,7 +2167,7 @@ window.irAlInicio = function(){
   // cerrar el menú si estaba abierto
   const md = document.getElementById('menu-desplegable');
   if(md) md.classList.remove('abierto');
-  window.scrollTo(0,0);
+  irArriba();
 };
 
 // compartir la app con otras personas
@@ -2198,7 +2210,7 @@ window.abrirDesdeMenu = function(idVista){
   if(idVista === 'v-tramites') pintarTramites();
   if(idVista === 'v-documentos') pintarDocumentos();
   if(idVista === 'v-faq') pintarFaq();
-  window.scrollTo(0,0);
+  irArriba();
 };
 
 /* Arranque */
