@@ -2344,17 +2344,37 @@ function resetearPanelAdmin(){
   if(res){ res.textContent = ''; res.className = 'admin-resultado'; }
 }
 
-// ingresar la clave: la guardamos y mostramos el contenido.
-// La validación REAL la hace Supabase en cada acción; acá hacemos una prueba
-// rápida para no mostrar el panel si la clave es obviamente incorrecta.
+// ingresar la clave: la verificamos contra Supabase antes de mostrar el panel.
 window.entrarPanelAdmin = async function(){
   const clave = document.getElementById('admin-clave').value;
   const err = document.getElementById('admin-error');
+  const btn = document.querySelector('#admin-bloqueo .btn');
   err.textContent = '';
   if(!clave){ err.textContent = 'Ingresá la clave.'; return; }
-  claveAdmin = clave;
-  document.getElementById('admin-bloqueo').style.display = 'none';
-  document.getElementById('admin-contenido').style.display = 'block';
+  err.textContent = 'Verificando...';
+  if(btn) btn.disabled = true;
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_verificar_clave`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ clave: clave })
+    });
+    if(!resp.ok) throw new Error('conexión');
+    const valida = await resp.json();
+    if(valida === true){
+      claveAdmin = clave;
+      err.textContent = '';
+      document.getElementById('admin-bloqueo').style.display = 'none';
+      document.getElementById('admin-contenido').style.display = 'block';
+    }else{
+      err.textContent = 'Clave incorrecta.';
+      document.getElementById('admin-clave').value = '';
+    }
+  }catch(e){
+    err.textContent = 'No se pudo verificar. Revisá tu conexión e intentá de nuevo.';
+  }finally{
+    if(btn) btn.disabled = false;
+  }
 };
 
 // cambiar entre pestañas (alta / baja / reactivar)
