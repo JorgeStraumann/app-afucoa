@@ -2054,6 +2054,16 @@ window.enviarAfiliacionLogin = function(){
                      mensaje, sector:"", nombre: nombre+' '+apellido };
   enviarAlSindicato(registro);
 
+  // además del mail, guardar la solicitud en la app (para verla en el panel)
+  fetch(`${SUPABASE_URL}/rest/v1/rpc/crear_solicitud_afiliacion`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      p_nombre: nombre, p_apellido: apellido, p_documento: cedula,
+      p_ficha: ficha, p_email: mail, p_celular: celular
+    })
+  }).catch(()=>{}); // si falla el guardado, el mail igual se envió (no bloquea al usuario)
+
   ['fecha','nombre','apellido','ficha','cedula','mail','celular'].forEach(campo=>{
     document.getElementById('afl-'+campo).value='';
   });
