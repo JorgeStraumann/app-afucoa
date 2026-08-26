@@ -459,6 +459,25 @@
   .hist-accion{font-size:13px;font-weight:700;color:var(--verde)}
   .hist-fecha{font-size:11px;color:var(--tinta-suave)}
   .hist-socio{font-size:14px;color:var(--tinta)}
+  /* lista del padrón */
+  .lista-filtros{display:flex;gap:6px;margin-bottom:12px}
+  .lista-filtro{
+    flex:1;background:var(--arena-2);border:1px solid var(--linea);border-radius:9px;
+    font-family:inherit;font-size:13px;font-weight:600;padding:9px 4px;
+    color:var(--tinta-suave);cursor:pointer;transition:.15s;
+  }
+  .lista-filtro.activo{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .lista-acciones{display:flex;gap:8px;margin-bottom:14px}
+  .lista-btn{flex:1;font-size:13px;padding:11px 6px}
+  .lista-total{font-size:13px;color:var(--tinta-suave);margin-bottom:8px;font-weight:600}
+  .lista-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--linea);border-radius:10px}
+  .lista-tabla{width:100%;border-collapse:collapse;font-size:12px}
+  .lista-tabla th{
+    background:var(--verde);color:#fff;padding:8px 6px;text-align:left;
+    position:sticky;top:0;font-size:11px;
+  }
+  .lista-tabla td{padding:7px 6px;border-bottom:1px solid var(--linea)}
+  .lista-tabla tr:last-child td{border-bottom:none}
   .admin-resultado{
     margin-top:16px;padding:14px;border-radius:10px;font-size:14px;line-height:1.5;
     text-align:center;display:none;
@@ -933,6 +952,7 @@
         <button class="admin-tab activo" onclick="adminTab('alta', this)">Alta</button>
         <button class="admin-tab" onclick="adminTab('baja', this)">Baja</button>
         <button class="admin-tab" onclick="adminTab('reactivar', this)">Reactivar</button>
+        <button class="admin-tab" onclick="adminTab('lista', this)">Lista</button>
         <button class="admin-tab" onclick="adminTab('historial', this)">Historial</button>
       </div>
 
@@ -960,6 +980,21 @@
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
         <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
         <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
+      </div>
+
+      <!-- LISTA -->
+      <div class="admin-panel" id="admin-panel-lista" style="display:none">
+        <p class="propuestas-intro">Lista del padrón, actualizada al momento. Elegí qué socios ver y descargala para imprimir o compartir.</p>
+        <div class="lista-filtros">
+          <button class="lista-filtro activo" onclick="adminLista('activos', this)">Activos</button>
+          <button class="lista-filtro" onclick="adminLista('inactivos', this)">Inactivos</button>
+          <button class="lista-filtro" onclick="adminLista('todos', this)">Todos</button>
+        </div>
+        <div class="lista-acciones">
+          <button class="btn dorado lista-btn" onclick="descargarListaWord()">Descargar Word</button>
+          <button class="btn dorado lista-btn" onclick="descargarListaPDF()">Descargar PDF / Imprimir</button>
+        </div>
+        <div id="admin-lista-cont"></div>
       </div>
 
       <!-- HISTORIAL -->
@@ -2431,11 +2466,131 @@ window.adminTab = function(cual, boton){
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
+  document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   if(cual==='historial') cargarHistorial();
+  if(cual==='lista') adminLista('activos', null);
 };
+
+// guarda el filtro y los datos actuales de la lista (para las descargas)
+let listaFiltroActual = 'activos';
+let listaDatosActual = [];
+
+// trae y muestra la lista según el filtro elegido
+window.adminLista = async function(filtro, boton){
+  listaFiltroActual = filtro;
+  if(boton){
+    document.querySelectorAll('.lista-filtro').forEach(f=>f.classList.remove('activo'));
+    boton.classList.add('activo');
+  }else{
+    // si viene sin botón (al abrir la pestaña), marcar "Activos"
+    document.querySelectorAll('.lista-filtro').forEach((f,i)=>f.classList.toggle('activo', i===0));
+  }
+  const cont = document.getElementById('admin-lista-cont');
+  cont.innerHTML = '<p class="admin-buscando">Cargando lista...</p>';
+  try{
+    const r = await llamarAdmin('admin_listar_socios', { clave: claveAdmin, filtro: filtro });
+    listaDatosActual = Array.isArray(r) ? r : [];
+    if(listaDatosActual.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay socios para mostrar con este filtro.</p>';
+      return;
+    }
+    const filas = listaDatosActual.map(s=>{
+      const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
+      const estado = s.activo ? 'Activo' : 'Inactivo';
+      return `<tr>
+        <td>${s.numero}</td>
+        <td>${nombre}</td>
+        <td>${s.documento||''}</td>
+        <td>${estado}</td>
+      </tr>`;
+    }).join('');
+    cont.innerHTML = `
+      <div class="lista-total">${listaDatosActual.length} socio(s)</div>
+      <div class="lista-scroll">
+        <table class="lista-tabla">
+          <thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>`;
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudo cargar la lista. Intentá de nuevo.</p>';
+  }
+};
+
+// arma el título según el filtro
+function tituloLista(){
+  const hoy = new Date().toLocaleDateString('es-UY');
+  const cual = listaFiltroActual === 'activos' ? 'socios activos'
+             : listaFiltroActual === 'inactivos' ? 'socios inactivos' : 'todos los socios';
+  return 'Padrón de ' + cual + ' — AFUCOA (' + hoy + ')';
+}
+
+// DESCARGAR en Word
+window.descargarListaWord = function(){
+  if(listaDatosActual.length === 0){ mostrarResultadoAdmin('No hay datos para descargar.', false); return; }
+  const titulo = tituloLista();
+  const filas = listaDatosActual.map(s=>{
+    const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
+    const estado = s.activo ? 'Activo' : 'Inactivo';
+    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td></tr>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    body{font-family:Calibri,Arial,sans-serif}
+    h2{color:#1a237e}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #999;padding:6px 10px;text-align:left;font-size:12px}
+    th{background:#1a237e;color:#fff}
+  </style></head><body>
+    <h2>${titulo}</h2>
+    <p>Total: ${listaDatosActual.length} socio(s)</p>
+    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+    <tbody>${filas}</tbody></table>
+  </body></html>`;
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const nombreArch = 'Padron-AFUCOA-' + listaFiltroActual + '.doc';
+  descargarArchivo(blob, nombreArch);
+};
+
+// DESCARGAR en PDF (usa la impresión del navegador -> Guardar como PDF)
+window.descargarListaPDF = function(){
+  if(listaDatosActual.length === 0){ mostrarResultadoAdmin('No hay datos para descargar.', false); return; }
+  const titulo = tituloLista();
+  const filas = listaDatosActual.map(s=>{
+    const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
+    const estado = s.activo ? 'Activo' : 'Inactivo';
+    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td></tr>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titulo}</title><style>
+    body{font-family:Arial,sans-serif;padding:20px}
+    h2{color:#1a237e}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #999;padding:6px 10px;text-align:left;font-size:12px}
+    th{background:#1a237e;color:#fff}
+    @media print{ button{display:none} }
+  </style></head><body>
+    <h2>${titulo}</h2>
+    <p>Total: ${listaDatosActual.length} socio(s)</p>
+    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+    <tbody>${filas}</tbody></table>
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+  const ventana = window.open('', '_blank');
+  if(ventana){ ventana.document.write(html); ventana.document.close(); }
+  else{ mostrarResultadoAdmin('Permití las ventanas emergentes para descargar el PDF.', false); }
+};
+
+// helper para descargar un blob como archivo
+function descargarArchivo(blob, nombre){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
 
 // trae y muestra el historial de movimientos
 async function cargarHistorial(){
