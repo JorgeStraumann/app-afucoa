@@ -592,10 +592,25 @@
     padding:13px 14px;margin-bottom:10px;
     box-shadow:0 2px 8px rgba(26,35,126,.06);
   }
-  .enviado .meta{display:flex;justify-content:space-between;margin-bottom:5px}
-  .enviado .tipo{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--verde)}
+  .enviado .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .enviado .tipo{
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+  }
   .enviado time{font-size:11px;color:var(--tinta-suave)}
-  .enviado p{font-size:14px;line-height:1.45}
+  .enviado p{font-size:14px;line-height:1.45;white-space:pre-line}
+  .envio-vermas{
+    background:none;border:none;color:var(--dorado);font-family:inherit;
+    font-size:13px;font-weight:600;cursor:pointer;padding:6px 0 0;
+  }
+  /* filtros de Mis envíos */
+  .mis-filtros{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .mis-filtro{
+    background:var(--arena-2);border:1px solid var(--linea);border-radius:20px;
+    font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;
+    color:var(--tinta-suave);cursor:pointer;transition:.15s;
+  }
+  .mis-filtro.activo{background:var(--verde);color:#fff;border-color:var(--verde)}
 
   /* ---------- Barra inferior ---------- */
   nav{
@@ -933,6 +948,7 @@
   <!-- ======== MIS ENVÍOS ======== -->
   <section class="vista" id="v-mis">
     <div class="titulo-seccion">Mis envíos</div>
+    <div id="mis-filtros" class="mis-filtros"></div>
     <div id="lista-mis"></div>
     <p class="nota-prototipo">Tus envíos se guardan en este celular para que los tengas a mano. La copia le llega al sindicato.</p>
   </section>
@@ -1859,23 +1875,80 @@ async function verificarSocio(ficha, documento){
   }
 }
 
+// datos visuales por tipo de envío (color e ícono)
+const TIPOS_ENVIO = {
+  'Convenio':      { color:'#3d5afe', ico:'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11' },
+  'Sugerencia':    { color:'#2e9e5b', ico:'M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2zM9 21h6' },
+  'Propuesta':     { color:'#f57c00', ico:'M14 9V5a3 3 0 0 0-6 0v4M5 9h14l1 12H4z' },
+  'Reestructura':  { color:'#8e24aa', ico:'M3 3v18h18M7 15l3-3 3 3 5-6' },
+};
+function datosTipo(tipo){
+  return TIPOS_ENVIO[tipo] || { color:'#5a6472', ico:'M4 4h16v16H4z' };
+}
+
+let filtroEnvios = 'Todos';
+
 function pintarMisEnvios(){
   const lista = leerEnvios();
   const cont = document.getElementById('lista-mis');
+  const filtrosCont = document.getElementById('mis-filtros');
+
   if(lista.length===0){
+    filtrosCont.innerHTML = '';
     cont.innerHTML = `<div class="vacio">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg>
       <div>Todavía no enviaste nada.<br>Usá la sección <b>Enviar</b> para hacer llegar tu voz.</div>
     </div>`;
     return;
   }
-  cont.innerHTML = lista.map(e=>`
-    <div class="enviado">
-      <div class="meta"><span class="tipo">${e.tipo}</span><time>${e.fecha}</time></div>
-      <b>${e.asunto}</b>
-      <p>${e.mensaje}</p>
-    </div>`).join('');
+
+  // armar botones de filtro con los tipos que existan en el historial
+  const tipos = ['Todos', ...new Set(lista.map(e=>e.tipo))];
+  filtrosCont.innerHTML = tipos.map(t=>
+    `<button class="mis-filtro ${t===filtroEnvios?'activo':''}" onclick="filtrarEnvios('${t}', this)">${t==='Todos'?'Todos':t+'s'}</button>`
+  ).join('');
+
+  const visibles = (filtroEnvios==='Todos') ? lista : lista.filter(e=>e.tipo===filtroEnvios);
+
+  cont.innerHTML = visibles.map((e, idx)=>{
+    const d = datosTipo(e.tipo);
+    const msj = e.mensaje || '';
+    const largo = msj.length > 140;
+    const resumen = largo ? msj.slice(0,140) + '…' : msj;
+    return `
+    <div class="enviado" style="border-left:4px solid ${d.color}">
+      <div class="meta">
+        <span class="tipo" style="background:${d.color}1a;color:${d.color}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="${d.ico}"/></svg>
+          ${e.tipo}
+        </span>
+        <time>${e.fecha||''}</time>
+      </div>
+      <b>${e.asunto||''}</b>
+      <p class="envio-msj" id="envio-msj-${idx}" data-largo="${largo}">${largo ? resumen : msj}</p>
+      ${largo ? `<button class="envio-vermas" onclick="toggleEnvio(${idx}, this)" data-full="${encodeURIComponent(msj)}" data-resumen="${encodeURIComponent(resumen)}">Ver más</button>` : ''}
+    </div>`;
+  }).join('');
 }
+
+// filtrar el historial por tipo
+window.filtrarEnvios = function(tipo, boton){
+  filtroEnvios = tipo;
+  pintarMisEnvios();
+};
+
+// expandir/contraer el mensaje de un envío largo
+window.toggleEnvio = function(idx, boton){
+  const p = document.getElementById('envio-msj-'+idx);
+  const abierto = boton.textContent === 'Ver menos';
+  if(abierto){
+    p.textContent = decodeURIComponent(boton.dataset.resumen);
+    boton.textContent = 'Ver más';
+  }else{
+    p.textContent = decodeURIComponent(boton.dataset.full);
+    boton.textContent = 'Ver menos';
+  }
+};
 
 /* ============================================================
    Aviso emergente
