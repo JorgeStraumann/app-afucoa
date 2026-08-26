@@ -443,6 +443,18 @@
   }
   .admin-resultado.ok{display:block;background:#e6f4ea;color:#1e7d34;border:1px solid #a3d9b1}
   .admin-resultado.mal{display:block;background:#fdeaea;color:#c0392b;border:1px solid #f0b4b4}
+  .admin-ficha{
+    background:var(--arena-2);border:1px solid var(--linea);border-radius:12px;
+    padding:16px;margin-top:14px;
+  }
+  .admin-ficha-nombre{font-size:17px;font-weight:700;color:var(--verde);margin-bottom:4px}
+  .admin-ficha-dato{font-size:13px;color:var(--tinta-suave);margin-bottom:8px}
+  .admin-ficha-estado{font-size:14px;margin-bottom:14px}
+  .admin-estado{font-weight:700;padding:2px 10px;border-radius:20px;font-size:12px}
+  .admin-estado.activo{background:#e6f4ea;color:#1e7d34}
+  .admin-estado.inactivo{background:#fdeaea;color:#c0392b}
+  .admin-buscando,.admin-nohay{font-size:14px;color:var(--tinta-suave);text-align:center;margin:0}
+  .admin-aviso{font-size:14px;color:var(--tinta-suave);text-align:center;margin:8px 0 0;font-style:italic}
 
   .saludo-socio{
     background:linear-gradient(135deg, var(--dorado), #5c74ff);
@@ -909,16 +921,18 @@
 
       <!-- BAJA -->
       <div class="admin-panel" id="admin-panel-baja" style="display:none">
-        <p class="propuestas-intro">Ingresá el número de socio para darlo de baja. No se borra: queda inactivo y se puede reactivar.</p>
+        <p class="propuestas-intro">Buscá el socio por su número para ver sus datos antes de darlo de baja. No se borra: queda inactivo y se puede reactivar.</p>
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-baja-numero" inputmode="numeric" placeholder="Ej: 350"></div>
-        <button class="btn" onclick="adminBaja()">Dar de baja</button>
+        <button class="btn dorado" onclick="adminBuscar('baja')">Buscar socio</button>
+        <div class="admin-ficha" id="adm-baja-ficha" style="display:none"></div>
       </div>
 
       <!-- REACTIVAR -->
       <div class="admin-panel" id="admin-panel-reactivar" style="display:none">
-        <p class="propuestas-intro">Ingresá el número de socio para reactivarlo (volver a activo).</p>
+        <p class="propuestas-intro">Buscá el socio por su número para ver sus datos antes de reactivarlo.</p>
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
-        <button class="btn" onclick="adminReactivar()">Reactivar socio</button>
+        <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
+        <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
       </div>
 
       <p class="admin-resultado" id="admin-resultado"></p>
@@ -2442,33 +2456,65 @@ window.adminAlta = async function(){
   }
 };
 
-// BAJA
-window.adminBaja = async function(){
-  const numero = document.getElementById('adm-baja-numero').value.trim();
+// BUSCAR socio (para baja o reactivar): muestra sus datos y el botón de acción
+window.adminBuscar = async function(tipo){
+  const campoNum = (tipo==='baja') ? 'adm-baja-numero' : 'adm-react-numero';
+  const contFicha = (tipo==='baja') ? 'adm-baja-ficha' : 'adm-react-ficha';
+  const numero = document.getElementById(campoNum).value.trim();
+  const ficha = document.getElementById(contFicha);
   const res = document.getElementById('admin-resultado');
+  res.textContent = ''; res.className = 'admin-resultado';
+  ficha.style.display = 'none'; ficha.innerHTML = '';
   if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
-  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  ficha.style.display = 'block';
+  ficha.innerHTML = '<p class="admin-buscando">Buscando...</p>';
   try{
-    const r = await llamarAdmin('admin_baja_socio', { clave: claveAdmin, p_numero: parseInt(numero, 10) });
-    const ok = String(r).indexOf('OK') === 0;
-    mostrarResultadoAdmin(r, ok);
-    if(ok) document.getElementById('adm-baja-numero').value = '';
+    const r = await llamarAdmin('admin_buscar_socio', { clave: claveAdmin, p_numero: parseInt(numero,10) });
+    if(!Array.isArray(r) || r.length === 0){
+      ficha.innerHTML = '<p class="admin-nohay">No se encontró ningún socio con el número ' + numero + '.</p>';
+      return;
+    }
+    const s = r[0];
+    const nombre = formatearNombre((s.primer_nombre||'') + ' ' + (s.primer_apellido||''));
+    const estadoTxt = s.activo
+      ? '<span class="admin-estado activo">Activo</span>'
+      : '<span class="admin-estado inactivo">Inactivo</span>';
+    let boton = '';
+    if(tipo==='baja'){
+      boton = s.activo
+        ? `<button class="btn" onclick="adminConfirmar('baja', ${s.numero})">Dar de baja a este socio</button>`
+        : `<p class="admin-aviso">Este socio ya está inactivo.</p>`;
+    }else{
+      boton = !s.activo
+        ? `<button class="btn" onclick="adminConfirmar('reactivar', ${s.numero})">Reactivar a este socio</button>`
+        : `<p class="admin-aviso">Este socio ya está activo.</p>`;
+    }
+    ficha.innerHTML = `
+      <div class="admin-ficha-nombre">${nombre}</div>
+      <div class="admin-ficha-dato">Ficha N.º ${s.numero} · Cédula ${s.documento}</div>
+      <div class="admin-ficha-estado">Estado: ${estadoTxt}</div>
+      ${boton}`;
   }catch(e){
-    mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
+    ficha.innerHTML = '<p class="admin-nohay">No se pudo conectar. Intentá de nuevo.</p>';
   }
 };
 
-// REACTIVAR
-window.adminReactivar = async function(){
-  const numero = document.getElementById('adm-react-numero').value.trim();
+// CONFIRMAR la baja o reactivación (después de buscar y ver los datos)
+window.adminConfirmar = async function(tipo, numero){
+  const funcion = (tipo==='baja') ? 'admin_baja_socio' : 'admin_reactivar_socio';
+  const contFicha = (tipo==='baja') ? 'adm-baja-ficha' : 'adm-react-ficha';
+  const campoNum = (tipo==='baja') ? 'adm-baja-numero' : 'adm-react-numero';
   const res = document.getElementById('admin-resultado');
-  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
   res.textContent = 'Procesando...'; res.className = 'admin-resultado';
   try{
-    const r = await llamarAdmin('admin_reactivar_socio', { clave: claveAdmin, p_numero: parseInt(numero, 10) });
+    const r = await llamarAdmin(funcion, { clave: claveAdmin, p_numero: numero });
     const ok = String(r).indexOf('OK') === 0;
     mostrarResultadoAdmin(r, ok);
-    if(ok) document.getElementById('adm-react-numero').value = '';
+    if(ok){
+      document.getElementById(contFicha).style.display = 'none';
+      document.getElementById(contFicha).innerHTML = '';
+      document.getElementById(campoNum).value = '';
+    }
   }catch(e){
     mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
   }
