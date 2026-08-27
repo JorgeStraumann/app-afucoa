@@ -2146,9 +2146,16 @@ function pintarMisEnvios(){
   }
 
   // armar botones de filtro con los tipos que existan en el historial
+  // pluralización correcta en español (Afiliación -> Afiliaciones, no Afiliacións)
+  const pluralizar = t => {
+    if(t === 'Todos') return 'Todos';
+    if(/[aeiou]$/i.test(t)) return t + 's';         // Convenio -> Convenios
+    if(/ción$/i.test(t)) return t.slice(0,-4) + 'ciones'; // Afiliación -> Afiliaciones
+    return t + 'es';                                 // Reclamo consonante -> +es
+  };
   const tipos = ['Todos', ...new Set(lista.map(e=>e.tipo))];
   filtrosCont.innerHTML = tipos.map(t=>
-    `<button class="mis-filtro ${t===filtroEnvios?'activo':''}" onclick="filtrarEnvios('${t}', this)">${t==='Todos'?'Todos':t+'s'}</button>`
+    `<button class="mis-filtro ${t===filtroEnvios?'activo':''}" onclick="filtrarEnvios('${t}', this)">${pluralizar(t)}</button>`
   ).join('');
 
   const visibles = (filtroEnvios==='Todos') ? lista : lista.filter(e=>e.tipo===filtroEnvios);
