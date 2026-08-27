@@ -173,17 +173,30 @@
   .anuncio p{font-size:14px;color:var(--tinta-suave);line-height:1.5}
 
   /* ---------- Convenios ---------- */
-  .conv-categorias{
-    display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;margin-bottom:4px;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  .conv-indice{margin-bottom:16px}
+  .conv-indice-btn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border:1px solid var(--linea);border-radius:12px;
+    padding:14px 16px;font-family:inherit;font-size:15px;font-weight:600;
+    color:var(--verde);cursor:pointer;box-shadow:0 2px 8px rgba(26,35,126,.05);
   }
-  .conv-categorias::-webkit-scrollbar{display:none}
-  .conv-cat{
-    flex:none;background:var(--arena-2);border:1px solid var(--linea);border-radius:20px;
-    font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;
-    color:var(--tinta-suave);cursor:pointer;transition:.15s;white-space:nowrap;
+  .conv-indice-btn svg{width:20px;height:20px;flex:none;transition:transform .2s}
+  .conv-indice-lista{
+    background:#fff;border:1px solid var(--linea);border-top:none;
+    border-radius:0 0 12px 12px;margin-top:-4px;max-height:340px;overflow-y:auto;
+    box-shadow:0 6px 16px rgba(26,35,126,.1);
   }
-  .conv-cat.activo{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .conv-indice-grupo{
+    font-size:12px;font-weight:700;color:var(--dorado);text-transform:uppercase;
+    letter-spacing:.5px;padding:12px 16px 6px;background:var(--arena-2);
+  }
+  .conv-indice-item{
+    display:block;width:100%;text-align:left;background:none;border:none;
+    padding:12px 16px;font-family:inherit;font-size:14.5px;color:var(--tinta);
+    cursor:pointer;border-bottom:1px solid var(--linea);
+  }
+  .conv-indice-item:hover{background:var(--arena-2);color:var(--verde)}
+  .conv-indice-item:last-child{border-bottom:none}
   .buscador-conv{
     display:flex;align-items:center;gap:10px;background:#fff;
     border:1px solid var(--linea);border-radius:12px;padding:0 14px;margin-bottom:16px;
@@ -967,7 +980,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
       <input type="text" id="buscar-convenio" placeholder="Buscar por nombre o rubro..." oninput="filtrarConvenios()">
     </div>
-    <div id="conv-categorias" class="conv-categorias"></div>
+    <div class="conv-indice">
+      <button class="conv-indice-btn" id="conv-indice-btn" onclick="toggleIndiceConvenios()">
+        <span id="conv-indice-label">Ver lista de convenios</span>
+        <svg id="conv-indice-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div id="conv-indice-lista" class="conv-indice-lista" style="display:none"></div>
+    </div>
     <div id="lista-convenios"></div>
     <p id="sin-resultados-conv" class="propuestas-cargando" style="display:none">No se encontraron convenios con esa búsqueda.</p>
   </section>
@@ -1648,30 +1667,71 @@ function contactoHTML(c){
 }
 
 // filtra los convenios por nombre o rubro según lo que se escribe en el buscador
-let categoriaConvenio = 'Todos';  // categoría seleccionada
-
 // saca la categoría principal de un rubro (lo que va antes del "·")
 function categoriaDeRubro(rubro){
   if(!rubro) return 'Otros';
   return rubro.split('·')[0].trim();
 }
 
-// genera los botones de categoría a partir de los rubros reales de los convenios
+// genera el índice desplegable: nombres agrupados por rubro
 function pintarCategorias(){
-  const cont = document.getElementById('conv-categorias');
+  const cont = document.getElementById('conv-indice-lista');
   if(!cont) return;
-  const cats = ['Todos', ...new Set(CONVENIOS.map(c => categoriaDeRubro(c.rubro)))];
-  cont.innerHTML = cats.map(cat =>
-    `<button class="conv-cat ${cat===categoriaConvenio?'activo':''}" onclick="filtrarPorCategoria('${cat.replace(/'/g,"\\'")}', this)">${cat}</button>`
-  ).join('');
+  // agrupar convenios por categoría
+  const grupos = {};
+  CONVENIOS.forEach((c, i)=>{
+    const cat = categoriaDeRubro(c.rubro);
+    if(!grupos[cat]) grupos[cat] = [];
+    grupos[cat].push({ nombre: c.titulo, indice: i });
+  });
+  // armar el HTML agrupado
+  let html = '';
+  Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'es')).forEach(cat=>{
+    html += `<div class="conv-indice-grupo">${cat}</div>`;
+    grupos[cat].sort((x,y)=>x.nombre.localeCompare(y.nombre,'es')).forEach(item=>{
+      html += `<button class="conv-indice-item" onclick="abrirConvenioDesdeIndice(${item.indice})">${item.nombre}</button>`;
+    });
+  });
+  cont.innerHTML = html;
 }
 
-// al tocar una categoría
-window.filtrarPorCategoria = function(cat, boton){
-  categoriaConvenio = cat;
-  document.querySelectorAll('.conv-cat').forEach(b=>b.classList.remove('activo'));
-  if(boton) boton.classList.add('activo');
-  filtrarConvenios();
+// abrir/cerrar el índice (o volver a todos si se está viendo un convenio solo)
+window.toggleIndiceConvenios = function(){
+  const btn = document.getElementById('conv-indice-btn');
+  if(btn.getAttribute('data-modo') === 'abierto'){
+    verTodosConvenios();
+    return;
+  }
+  const lista = document.getElementById('conv-indice-lista');
+  const flecha = document.getElementById('conv-indice-flecha');
+  const abierto = lista.style.display !== 'none';
+  lista.style.display = abierto ? 'none' : 'block';
+  flecha.style.transform = abierto ? '' : 'rotate(180deg)';
+};
+
+// al tocar un nombre del índice: mostrar solo ese convenio
+window.abrirConvenioDesdeIndice = function(indice){
+  const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
+  tarjetas.forEach((t, i)=>{ t.style.display = (i===indice) ? '' : 'none'; });
+  document.getElementById('sin-resultados-conv').style.display = 'none';
+  // cerrar el índice
+  document.getElementById('conv-indice-lista').style.display = 'none';
+  document.getElementById('conv-indice-flecha').style.transform = '';
+  // mostrar el nombre del convenio abierto + botón para volver
+  document.getElementById('conv-indice-label').textContent = 'Volver a la lista completa';
+  document.getElementById('conv-indice-btn').setAttribute('data-modo', 'abierto');
+  // limpiar el buscador
+  const buscador = document.getElementById('buscar-convenio');
+  if(buscador) buscador.value = '';
+};
+
+// volver a mostrar todos los convenios
+window.verTodosConvenios = function(){
+  document.querySelectorAll('#lista-convenios .convenio').forEach(t=>{ t.style.display = ''; });
+  document.getElementById('conv-indice-label').textContent = 'Ver lista de convenios';
+  document.getElementById('conv-indice-lista').style.display = 'none';
+  document.getElementById('conv-indice-flecha').style.transform = '';
+  document.getElementById('conv-indice-btn').setAttribute('data-modo', 'cerrado');
 };
 
 function filtrarConvenios(){
@@ -1683,9 +1743,7 @@ function filtrarConvenios(){
   tarjetas.forEach((t, i)=>{
     const c = CONVENIOS[i];
     const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
-    const coincideTexto = !texto || contenido.includes(texto);
-    const coincideCategoria = categoriaConvenio==='Todos' || categoriaDeRubro(c.rubro)===categoriaConvenio;
-    if(coincideTexto && coincideCategoria){
+    if(!texto || contenido.includes(texto)){
       t.style.display = '';
       visibles++;
     }else{
