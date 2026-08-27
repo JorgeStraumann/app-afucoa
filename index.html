@@ -1166,7 +1166,7 @@ const ANUNCIOS = [
                     Los mail, web e instagram quedan clickeables solos.
 */
 
-const CONVENIOS = [
+let CONVENIOS = [
 
   // ===== HOTEL DEL LAGO (sin imagen propia) =====
   {
@@ -3128,7 +3128,42 @@ window.adminConfirmar = async function(tipo, numero){
 /* Arranque */
 document.body.classList.add('con-login');
 pintarAnuncios();
-pintarConvenios();
+// convierte un convenio de Supabase (texto plano) al formato que usa la app
+function convenioDesdeBase(c){
+  const lineas = t => (t||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const contactos = lineas(c.contactos).map(l=>{
+    const idx = l.indexOf('|');
+    if(idx === -1) return { tipo:'texto', valor:l };
+    return { tipo: l.slice(0,idx), valor: l.slice(idx+1) };
+  });
+  return {
+    titulo: c.titulo || '',
+    rubro: c.rubro || '',
+    imagenes: lineas(c.imagenes),
+    beneficios: lineas(c.beneficios),
+    requisitos: c.requisitos || '',
+    contactos: contactos
+  };
+}
+
+// trae los convenios de Supabase; si falla, deja los del código como respaldo
+async function cargarConvenios(){
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/listar_convenios`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({})
+    });
+    if(resp.ok){
+      const data = await resp.json();
+      if(Array.isArray(data) && data.length){
+        CONVENIOS = data.map(convenioDesdeBase);
+      }
+    }
+  }catch(e){ /* sin conexión: se usan los del código */ }
+  pintarConvenios();
+}
+cargarConvenios();
 revisarSesion();
 
 /* Registrar el service worker (para poder instalarla como app) */
