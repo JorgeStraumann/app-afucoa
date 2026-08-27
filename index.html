@@ -442,6 +442,18 @@
   .admin-candado svg{width:32px;height:32px}
   .admin-selector{margin-bottom:18px}
   .admin-selector label{display:block;font-size:12px;font-weight:600;color:var(--tinta-suave);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+  .stats-grupo{font-size:12px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin:18px 0 10px}
+  .stats-grupo:first-child{margin-top:0}
+  .stats-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .stat-card{
+    flex:1;min-width:90px;background:#fff;border:1px solid var(--linea);border-radius:12px;
+    padding:16px 12px;text-align:center;box-shadow:0 2px 8px rgba(26,35,126,.05);
+  }
+  .stat-card.verde{border-top:3px solid #2e9e5b}
+  .stat-card.rojo{border-top:3px solid #c0392b}
+  .stat-card.dorado{border-top:3px solid var(--dorado);background:#f4f6ff}
+  .stat-num{font-size:30px;font-weight:800;color:var(--verde);line-height:1}
+  .stat-lbl{font-size:12px;color:var(--tinta-suave);margin-top:6px;font-weight:600}
   .admin-select-wrap{position:relative}
   .admin-select-wrap select{
     width:100%;appearance:none;-webkit-appearance:none;
@@ -1036,6 +1048,7 @@
         <label for="admin-menu">¿Qué querés hacer?</label>
         <div class="admin-select-wrap">
           <select id="admin-menu" onchange="adminTabSelect(this.value)">
+            <option value="estadisticas">Resumen / Estadísticas</option>
             <option value="alta">Dar de alta un socio</option>
             <option value="baja">Dar de baja un socio</option>
             <option value="reactivar">Reactivar un socio</option>
@@ -1049,8 +1062,14 @@
         </div>
       </div>
 
+      <!-- ESTADÍSTICAS -->
+      <div class="admin-panel" id="admin-panel-estadisticas" style="display:none">
+        <p class="propuestas-intro">Resumen del estado actual del sindicato.</p>
+        <div id="admin-stats-cont"><p class="admin-buscando">Cargando...</p></div>
+      </div>
+
       <!-- ALTA -->
-      <div class="admin-panel" id="admin-panel-alta">
+      <div class="admin-panel" id="admin-panel-alta" style="display:none">
         <p class="propuestas-intro">Cargá los datos del nuevo socio para agregarlo al padrón.</p>
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-alta-numero" inputmode="numeric" placeholder="Ej: 350"></div>
         <div class="campo"><label>Cédula de identidad</label><input type="text" id="adm-alta-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8"></div>
@@ -2695,6 +2714,9 @@ window.entrarPanelAdmin = async function(){
       err.textContent = '';
       document.getElementById('admin-bloqueo').style.display = 'none';
       document.getElementById('admin-contenido').style.display = 'block';
+      // arrancar mostrando el resumen/estadísticas
+      document.getElementById('admin-menu').value = 'estadisticas';
+      adminTabSelect('estadisticas');
     }else{
       err.textContent = 'Clave incorrecta.';
       document.getElementById('admin-clave').value = '';
@@ -2709,6 +2731,7 @@ window.entrarPanelAdmin = async function(){
 // cambiar entre pestañas (alta / baja / reactivar / historial)
 // cambiar de sección desde el menú desplegable
 window.adminTabSelect = function(cual){
+  document.getElementById('admin-panel-estadisticas').style.display = (cual==='estadisticas') ? 'block' : 'none';
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
@@ -2724,7 +2747,41 @@ window.adminTabSelect = function(cual){
   if(cual==='solicitudes') cargarSolicitudes();
   if(cual==='novedades') cargarNovedadesPanel();
   if(cual==='convenios') cargarConveniosPanel();
+  if(cual==='estadisticas') cargarEstadisticas();
 };
+
+// trae y muestra las estadísticas del sindicato
+async function cargarEstadisticas(){
+  const cont = document.getElementById('admin-stats-cont');
+  cont.innerHTML = '<p class="admin-buscando">Cargando...</p>';
+  try{
+    const r = await llamarAdmin('admin_estadisticas', { clave: claveAdmin });
+    const d = Array.isArray(r) ? r[0] : r;
+    if(!d){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar las estadísticas.</p>'; return; }
+    cont.innerHTML = `
+      <div class="stats-grupo">Socios</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num">${d.socios_total}</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card verde"><div class="stat-num">${d.socios_activos}</div><div class="stat-lbl">Activos</div></div>
+        <div class="stat-card rojo"><div class="stat-num">${d.socios_inactivos}</div><div class="stat-lbl">Inactivos</div></div>
+      </div>
+      <div class="stats-grupo">Afiliaciones</div>
+      <div class="stats-grid">
+        <div class="stat-card ${d.solicitudes_pendientes>0?'dorado':''}"><div class="stat-num">${d.solicitudes_pendientes}</div><div class="stat-lbl">Solicitudes pendientes</div></div>
+      </div>
+      <div class="stats-grupo">Convenios</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num">${d.convenios_total}</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-card verde"><div class="stat-num">${d.convenios_activos}</div><div class="stat-lbl">Activos</div></div>
+      </div>
+      <div class="stats-grupo">Novedades</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num">${d.novedades_total}</div><div class="stat-lbl">Publicadas</div></div>
+      </div>`;
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar las estadísticas. Intentá de nuevo.</p>';
+  }
+}
 
 // leer los campos del formulario de convenio
 function leerFormConvenio(){
