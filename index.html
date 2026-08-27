@@ -453,6 +453,14 @@
     position:absolute;right:16px;top:50%;transform:translateY(-50%);
     width:20px;height:20px;color:var(--verde);pointer-events:none;
   }
+  /* novedades en el panel */
+  .nov-lista-tit{font-size:13px;font-weight:700;color:var(--verde);margin:22px 0 12px;text-transform:uppercase;letter-spacing:.5px}
+  .nov-item{background:#fff;border:1px solid var(--linea);border-left:4px solid var(--dorado);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .nov-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .nov-item-etiq{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dorado);background:#eef1ff;padding:2px 9px;border-radius:20px}
+  .nov-item-fecha{font-size:11px;color:var(--tinta-suave)}
+  .nov-item-tit{font-size:15px;font-weight:600;color:var(--tinta);margin-bottom:10px}
+  .nov-item-borrar{background:#fff;color:var(--rojo);border:1px solid #f0b4b4;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer}
   .admin-panel{margin-bottom:8px}
   /* historial */
   .hist-item{
@@ -1015,6 +1023,7 @@
             <option value="reactivar">Reactivar un socio</option>
             <option value="solicitudes">Solicitudes de afiliación</option>
             <option value="lista">Lista del padrón</option>
+            <option value="novedades">Publicar novedades</option>
             <option value="historial">Historial de movimientos</option>
           </select>
           <svg class="admin-select-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -1066,6 +1075,17 @@
           <button class="btn dorado lista-btn" onclick="descargarListaPDF()">Descargar PDF / Imprimir</button>
         </div>
         <div id="admin-lista-cont"></div>
+      </div>
+
+      <!-- NOVEDADES (publicar) -->
+      <div class="admin-panel" id="admin-panel-novedades" style="display:none">
+        <p class="propuestas-intro">Publicá una novedad para que la vean todos los socios en la pantalla de inicio.</p>
+        <div class="campo"><label>Etiqueta (opcional)</label><input type="text" id="nov-etiqueta" placeholder="Ej: Importante, Asamblea, Aviso"></div>
+        <div class="campo"><label>Título</label><input type="text" id="nov-titulo" placeholder="Título de la novedad"></div>
+        <div class="campo"><label>Texto</label><textarea id="nov-cuerpo" rows="4" placeholder="Escribí el contenido de la novedad..."></textarea></div>
+        <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
+        <div class="nov-lista-tit">Novedades publicadas</div>
+        <div id="admin-novedades-lista"></div>
       </div>
 
       <!-- HISTORIAL -->
@@ -1471,16 +1491,42 @@ function irArriba(){
 /* ============================================================
    Pintar anuncios y convenios
    ============================================================ */
-function pintarAnuncios(){
-  document.getElementById('lista-anuncios').innerHTML = ANUNCIOS.map(a=>`
-    <article class="anuncio ${a.urgente?'urgente':''}">
+// pinta un conjunto de anuncios (recibe la lista ya lista)
+function renderAnuncios(lista){
+  const cont = document.getElementById('lista-anuncios');
+  if(!lista || lista.length === 0){
+    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay novedades publicadas.</p>`;
+    return;
+  }
+  cont.innerHTML = lista.map(a=>{
+    const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) : '';
+    return `
+    <article class="anuncio">
       <div class="meta">
-        ${a.etiqueta ? `<span class="etiqueta ${a.urgente?'urgente':''}">${a.etiqueta}</span>` : ``}
-        ${a.fecha ? `<time>${a.fecha}</time>` : ``}
+        ${a.etiqueta ? `<span class="etiqueta">${a.etiqueta}</span>` : ``}
+        ${fecha ? `<time>${fecha}</time>` : ``}
       </div>
       <h3>${a.titulo}</h3>
-      <p>${a.texto}</p>
-    </article>`).join('');
+      ${a.cuerpo ? `<p>${a.cuerpo}</p>` : ``}
+    </article>`;
+  }).join('');
+}
+
+async function pintarAnuncios(){
+  // intenta traer las novedades de Supabase; si falla, usa las del código como respaldo
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/listar_novedades`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({})
+    });
+    if(resp.ok){
+      const data = await resp.json();
+      if(Array.isArray(data)){ renderAnuncios(data); return; }
+    }
+  }catch(e){ /* sin conexión: usar respaldo */ }
+  // respaldo: los anuncios del código
+  renderAnuncios(ANUNCIOS.map(a=>({ etiqueta:a.etiqueta, titulo:a.titulo, cuerpo:a.texto, fecha:a.fecha })));
 }
 // arma un dato de contacto, clickeable según su tipo
 function contactoHTML(c){
@@ -2612,12 +2658,72 @@ window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
   document.getElementById('admin-panel-solicitudes').style.display = (cual==='solicitudes') ? 'block' : 'none';
   document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
+  document.getElementById('admin-panel-novedades').style.display = (cual==='novedades') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   if(cual==='historial') cargarHistorial();
   if(cual==='lista') adminLista('activos', null);
   if(cual==='solicitudes') cargarSolicitudes();
+  if(cual==='novedades') cargarNovedadesPanel();
+};
+
+// publicar una nueva novedad
+window.publicarNovedad = async function(){
+  const etiqueta = document.getElementById('nov-etiqueta').value.trim();
+  const titulo = document.getElementById('nov-titulo').value.trim();
+  const cuerpo = document.getElementById('nov-cuerpo').value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!titulo){ mostrarResultadoAdmin('El título es obligatorio.', false); return; }
+  res.textContent = 'Publicando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_crear_novedad', { clave: claveAdmin, p_etiqueta: etiqueta, p_titulo: titulo, p_cuerpo: cuerpo });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok){
+      document.getElementById('nov-etiqueta').value = '';
+      document.getElementById('nov-titulo').value = '';
+      document.getElementById('nov-cuerpo').value = '';
+      cargarNovedadesPanel();
+    }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
+// listar las novedades en el panel (con botón de borrar)
+async function cargarNovedadesPanel(){
+  const cont = document.getElementById('admin-novedades-lista');
+  cont.innerHTML = '<p class="admin-buscando">Cargando...</p>';
+  try{
+    const r = await llamarAdmin('admin_listar_novedades', { clave: claveAdmin });
+    if(!Array.isArray(r) || r.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay novedades publicadas.</p>';
+      return;
+    }
+    cont.innerHTML = r.map(n=>{
+      const fecha = new Date(n.fecha).toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'});
+      return `
+        <div class="nov-item">
+          <div class="nov-item-top">
+            ${n.etiqueta ? `<span class="nov-item-etiq">${n.etiqueta}</span>` : '<span></span>'}
+            <span class="nov-item-fecha">${fecha}</span>
+          </div>
+          <div class="nov-item-tit">${n.titulo}</div>
+          <button class="nov-item-borrar" onclick="borrarNovedad(${n.id})">Eliminar</button>
+        </div>`;
+    }).join('');
+  }catch(e){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar. Intentá de nuevo.</p>'; }
+}
+
+// borrar una novedad
+window.borrarNovedad = async function(id){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Eliminando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_borrar_novedad', { clave: claveAdmin, p_id: id });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Novedad eliminada.' : r, ok);
+    if(ok) cargarNovedadesPanel();
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
 
 // trae y muestra las solicitudes de afiliación pendientes
