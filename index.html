@@ -1055,6 +1055,7 @@
             <option value="solicitudes">Solicitudes de afiliación</option>
             <option value="lista">Lista del padrón</option>
             <option value="novedades">Publicar novedades</option>
+            <option value="propuestas">Gestionar propuestas</option>
             <option value="convenios">Gestionar convenios</option>
             <option value="historial">Historial de movimientos</option>
           </select>
@@ -1128,6 +1129,17 @@
         <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
         <div class="nov-lista-tit">Novedades publicadas</div>
         <div id="admin-novedades-lista"></div>
+      </div>
+
+      <!-- PROPUESTAS (gestionar) -->
+      <div class="admin-panel" id="admin-panel-propuestas" style="display:none">
+        <p class="propuestas-intro">Creá, aprobá o eliminá propuestas. Las aprobadas se muestran a los socios para que las apoyen.</p>
+        <div class="campo"><label>Título de la propuesta</label><input type="text" id="padm-prop-titulo" placeholder="Ej: Mejorar los estacionamientos"></div>
+        <div class="campo"><label>Descripción</label><textarea id="padm-prop-descripcion" rows="3" placeholder="Explicá la propuesta..."></textarea></div>
+        <div class="campo"><label>Autor (opcional)</label><input type="text" id="padm-prop-autor" placeholder="Ej: Comisión Directiva"></div>
+        <button class="btn" onclick="crearPropuesta()">Publicar propuesta</button>
+        <div class="nov-lista-tit">Propuestas cargadas</div>
+        <div id="admin-propuestas-lista"></div>
       </div>
 
       <!-- CONVENIOS (gestionar) -->
@@ -2739,6 +2751,7 @@ window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
   document.getElementById('admin-panel-novedades').style.display = (cual==='novedades') ? 'block' : 'none';
   document.getElementById('admin-panel-convenios').style.display = (cual==='convenios') ? 'block' : 'none';
+  document.getElementById('admin-panel-propuestas').style.display = (cual==='propuestas') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
@@ -2748,6 +2761,105 @@ window.adminTabSelect = function(cual){
   if(cual==='novedades') cargarNovedadesPanel();
   if(cual==='convenios') cargarConveniosPanel();
   if(cual==='estadisticas') cargarEstadisticas();
+  if(cual==='propuestas') cargarPropuestasPanel();
+};
+
+// crear una propuesta desde el panel
+window.crearPropuesta = async function(){
+  const titulo = document.getElementById('padm-prop-titulo').value.trim();
+  const descripcion = document.getElementById('padm-prop-descripcion').value.trim();
+  const autor = document.getElementById('padm-prop-autor').value.trim();
+  const res = document.getElementById('admin-resultado');
+  if(!titulo){ mostrarResultadoAdmin('El título es obligatorio.', false); return; }
+  res.textContent = 'Publicando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_crear_propuesta', { clave: claveAdmin, p_titulo: titulo, p_descripcion: descripcion, p_autor: autor });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok){
+      document.getElementById('padm-prop-titulo').value = '';
+      document.getElementById('padm-prop-descripcion').value = '';
+      document.getElementById('padm-prop-autor').value = '';
+      cargarPropuestasPanel();
+    }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
+// listar las propuestas en el panel
+async function cargarPropuestasPanel(){
+  const cont = document.getElementById('admin-propuestas-lista');
+  cont.innerHTML = '<p class="admin-buscando">Cargando...</p>';
+  try{
+    const r = await llamarAdmin('admin_listar_propuestas', { clave: claveAdmin });
+    if(!Array.isArray(r) || r.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay propuestas cargadas.</p>';
+      return;
+    }
+    cont.innerHTML = r.map(p=>{
+      const estado = p.aprobada
+        ? '<span class="admin-estado activo">Visible</span>'
+        : '<span class="admin-estado inactivo">Oculta</span>';
+      const btnAprobar = p.aprobada
+        ? `<button class="conv-adm-toggle" onclick="aprobarPropuesta(${p.id}, false)">Ocultar</button>`
+        : `<button class="conv-adm-toggle" onclick="aprobarPropuesta(${p.id}, true)">Aprobar</button>`;
+      return `
+        <div class="nov-item" style="border-left-color:${p.aprobada?'#2e9e5b':'#f57c00'}">
+          <div class="nov-item-top">
+            ${estado}
+            <span class="nov-item-fecha">${p.apoyos} apoyo(s)</span>
+          </div>
+          <div class="nov-item-tit">${p.titulo}</div>
+          <div class="conv-adm-acciones">
+            ${btnAprobar}
+            <button class="conv-adm-borrar" onclick="pedirBorrarPropuesta(${p.id}, '${(p.titulo||'').replace(/'/g,'')}', this)">Borrar</button>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(e){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar. Intentá de nuevo.</p>'; }
+}
+
+// aprobar u ocultar una propuesta
+window.aprobarPropuesta = async function(id, aprobar){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_aprobar_propuesta', { clave: claveAdmin, p_id: id, p_aprobar: aprobar });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? (aprobar?'Propuesta aprobada (ahora es visible).':'Propuesta ocultada.') : r, ok);
+    if(ok) cargarPropuestasPanel();
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
+// pedir confirmación antes de borrar una propuesta
+window.pedirBorrarPropuesta = function(id, titulo, boton){
+  const cont = boton.closest('.nov-item');
+  const acciones = boton.closest('.conv-adm-acciones');
+  acciones.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'admin-confirmar';
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">¿Borrar "${titulo}" para siempre? Esta acción no se puede deshacer.</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="confirmarBorrarPropuesta(${id})">Sí, borrar</button>
+      <button class="btn-conf-no" onclick="cancelarBorrarPropuesta(this)">Cancelar</button>
+    </div>`;
+  cont.appendChild(div);
+};
+window.cancelarBorrarPropuesta = function(boton){
+  const cont = boton.closest('.nov-item');
+  boton.closest('.admin-confirmar').remove();
+  const acciones = cont.querySelector('.conv-adm-acciones');
+  if(acciones) acciones.style.display = 'flex';
+};
+window.confirmarBorrarPropuesta = async function(id){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Borrando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_borrar_propuesta', { clave: claveAdmin, p_id: id });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Propuesta eliminada.' : r, ok);
+    if(ok) cargarPropuestasPanel();
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
 
 // trae y muestra las estadísticas del sindicato
