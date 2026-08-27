@@ -461,12 +461,13 @@
   .nov-item-fecha{font-size:11px;color:var(--tinta-suave)}
   .nov-item-tit{font-size:15px;font-weight:600;color:var(--tinta);margin-bottom:10px}
   .nov-item-borrar{background:#fff;color:var(--rojo);border:1px solid #f0b4b4;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer}
-  .conv-adm-acciones{display:flex;gap:8px}
-  .conv-adm-editar,.conv-adm-toggle{
+  .conv-adm-acciones{display:flex;gap:6px}
+  .conv-adm-editar,.conv-adm-toggle,.conv-adm-borrar{
     flex:1;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;
-    padding:9px 6px;cursor:pointer;border:1px solid var(--linea);background:#fff;color:var(--verde);
+    padding:9px 4px;cursor:pointer;border:1px solid var(--linea);background:#fff;color:var(--verde);
   }
   .conv-adm-toggle{color:var(--tinta-suave)}
+  .conv-adm-borrar{color:var(--rojo);border-color:#f0b4b4}
   .admin-panel{margin-bottom:8px}
   /* historial */
   .hist-item{
@@ -2786,11 +2787,44 @@ async function cargarConveniosPanel(){
           <div class="conv-adm-acciones">
             <button class="conv-adm-editar" onclick="editarConvenio(JSON.parse(decodeURIComponent('${cjson}')))">Editar</button>
             <button class="conv-adm-toggle" onclick="toggleConvenio(${c.id})">${c.activo?'Pausar':'Activar'}</button>
+            <button class="conv-adm-borrar" onclick="pedirBorrarConvenio(${c.id}, '${(c.titulo||'').replace(/'/g,'')}', this)">Borrar</button>
           </div>
         </div>`;
     }).join('');
   }catch(e){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar. Intentá de nuevo.</p>'; }
 }
+
+// pide confirmación antes de borrar un convenio (acción irreversible)
+window.pedirBorrarConvenio = function(id, titulo, boton){
+  const cont = boton.closest('.nov-item');
+  const acciones = boton.closest('.conv-adm-acciones');
+  acciones.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'admin-confirmar';
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">¿Borrar "${titulo}" para siempre? Esta acción no se puede deshacer.</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="confirmarBorrarConvenio(${id})">Sí, borrar</button>
+      <button class="btn-conf-no" onclick="cancelarBorrarConvenio(this)">Cancelar</button>
+    </div>`;
+  cont.appendChild(div);
+};
+window.cancelarBorrarConvenio = function(boton){
+  const cont = boton.closest('.nov-item');
+  boton.closest('.admin-confirmar').remove();
+  const acciones = cont.querySelector('.conv-adm-acciones');
+  if(acciones) acciones.style.display = 'flex';
+};
+window.confirmarBorrarConvenio = async function(id){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Borrando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_borrar_convenio', { clave: claveAdmin, p_id: id });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Convenio eliminado.' : r, ok);
+    if(ok){ cargarConveniosPanel(); cargarConvenios(); }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
 
 // publicar una nueva novedad
 window.publicarNovedad = async function(){
