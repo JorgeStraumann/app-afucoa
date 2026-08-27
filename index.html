@@ -461,6 +461,12 @@
   .nov-item-fecha{font-size:11px;color:var(--tinta-suave)}
   .nov-item-tit{font-size:15px;font-weight:600;color:var(--tinta);margin-bottom:10px}
   .nov-item-borrar{background:#fff;color:var(--rojo);border:1px solid #f0b4b4;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer}
+  .conv-adm-acciones{display:flex;gap:8px}
+  .conv-adm-editar,.conv-adm-toggle{
+    flex:1;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;
+    padding:9px 6px;cursor:pointer;border:1px solid var(--linea);background:#fff;color:var(--verde);
+  }
+  .conv-adm-toggle{color:var(--tinta-suave)}
   .admin-panel{margin-bottom:8px}
   /* historial */
   .hist-item{
@@ -1024,6 +1030,7 @@
             <option value="solicitudes">Solicitudes de afiliación</option>
             <option value="lista">Lista del padrón</option>
             <option value="novedades">Publicar novedades</option>
+            <option value="convenios">Gestionar convenios</option>
             <option value="historial">Historial de movimientos</option>
           </select>
           <svg class="admin-select-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
@@ -1086,6 +1093,25 @@
         <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
         <div class="nov-lista-tit">Novedades publicadas</div>
         <div id="admin-novedades-lista"></div>
+      </div>
+
+      <!-- CONVENIOS (gestionar) -->
+      <div class="admin-panel" id="admin-panel-convenios" style="display:none">
+        <p class="propuestas-intro">Creá, editá o pausá convenios. Las imágenes se suben aparte a GitHub; acá poné el nombre del archivo (uno por renglón).</p>
+        <div class="campo"><label>Título</label><input type="text" id="conv-adm-titulo" placeholder="Ej: Óptica Ariel"></div>
+        <div class="campo"><label>Rubro</label><input type="text" id="conv-adm-rubro" placeholder="Ej: Óptica"></div>
+        <div class="campo"><label>Imágenes (una por renglón, opcional)</label><textarea id="conv-adm-imagenes" rows="2" placeholder="convenios/ariel-1.jpg"></textarea></div>
+        <div class="campo"><label>Beneficios (uno por renglón)</label><textarea id="conv-adm-beneficios" rows="4" placeholder="15% de descuento en todo.&#10;20% en lentes de contacto."></textarea></div>
+        <div class="campo"><label>Condiciones / requisitos (opcional)</label><textarea id="conv-adm-requisitos" rows="2" placeholder="Para socios y familiares directos."></textarea></div>
+        <div class="campo"><label>Contactos (uno por renglón)</label>
+          <textarea id="conv-adm-contactos" rows="4" placeholder="texto|Contacto: Juan Pérez&#10;tel|2901 9376&#10;mail|contacto@correo.com&#10;web|sitio.com&#10;instagram|usuario"></textarea>
+          <p class="conv-nota-datos">Formato: <b>tipo|valor</b>. Tipos: texto, tel, mail, web, instagram.</p>
+        </div>
+        <input type="hidden" id="conv-adm-id" value="">
+        <button class="btn" id="conv-adm-guardar" onclick="guardarConvenio()">Crear convenio</button>
+        <button class="btn-conf-no" id="conv-adm-cancelar" onclick="cancelarEdicionConvenio()" style="display:none;width:100%;margin-top:8px;padding:12px">Cancelar edición</button>
+        <div class="nov-lista-tit">Convenios cargados</div>
+        <div id="admin-convenios-lista"></div>
       </div>
 
       <!-- HISTORIAL -->
@@ -2659,6 +2685,7 @@ window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-solicitudes').style.display = (cual==='solicitudes') ? 'block' : 'none';
   document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
   document.getElementById('admin-panel-novedades').style.display = (cual==='novedades') ? 'block' : 'none';
+  document.getElementById('admin-panel-convenios').style.display = (cual==='convenios') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
@@ -2666,7 +2693,104 @@ window.adminTabSelect = function(cual){
   if(cual==='lista') adminLista('activos', null);
   if(cual==='solicitudes') cargarSolicitudes();
   if(cual==='novedades') cargarNovedadesPanel();
+  if(cual==='convenios') cargarConveniosPanel();
 };
+
+// leer los campos del formulario de convenio
+function leerFormConvenio(){
+  return {
+    titulo: document.getElementById('conv-adm-titulo').value.trim(),
+    rubro: document.getElementById('conv-adm-rubro').value.trim(),
+    imagenes: document.getElementById('conv-adm-imagenes').value.trim(),
+    beneficios: document.getElementById('conv-adm-beneficios').value.trim(),
+    requisitos: document.getElementById('conv-adm-requisitos').value.trim(),
+    contactos: document.getElementById('conv-adm-contactos').value.trim(),
+  };
+}
+function limpiarFormConvenio(){
+  ['titulo','rubro','imagenes','beneficios','requisitos','contactos','id'].forEach(c=>{
+    document.getElementById('conv-adm-'+c).value = '';
+  });
+  document.getElementById('conv-adm-guardar').textContent = 'Crear convenio';
+  document.getElementById('conv-adm-cancelar').style.display = 'none';
+}
+
+// crear un convenio nuevo, o guardar la edición si hay un id cargado
+window.guardarConvenio = async function(){
+  const f = leerFormConvenio();
+  const id = document.getElementById('conv-adm-id').value;
+  const res = document.getElementById('admin-resultado');
+  if(!f.titulo){ mostrarResultadoAdmin('El título es obligatorio.', false); return; }
+  res.textContent = 'Guardando...'; res.className = 'admin-resultado';
+  try{
+    let r;
+    if(id){
+      r = await llamarAdmin('admin_editar_convenio', { clave: claveAdmin, p_id: parseInt(id,10),
+        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos });
+    }else{
+      r = await llamarAdmin('admin_crear_convenio', { clave: claveAdmin,
+        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos });
+    }
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok){ limpiarFormConvenio(); cargarConveniosPanel(); cargarConvenios(); }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
+// cargar un convenio en el formulario para editarlo
+window.editarConvenio = function(c){
+  document.getElementById('conv-adm-id').value = c.id;
+  document.getElementById('conv-adm-titulo').value = c.titulo||'';
+  document.getElementById('conv-adm-rubro').value = c.rubro||'';
+  document.getElementById('conv-adm-imagenes').value = c.imagenes||'';
+  document.getElementById('conv-adm-beneficios').value = c.beneficios||'';
+  document.getElementById('conv-adm-requisitos').value = c.requisitos||'';
+  document.getElementById('conv-adm-contactos').value = c.contactos||'';
+  document.getElementById('conv-adm-guardar').textContent = 'Guardar cambios';
+  document.getElementById('conv-adm-cancelar').style.display = 'block';
+  document.getElementById('v-admin').scrollIntoView({behavior:'smooth'});
+};
+window.cancelarEdicionConvenio = function(){ limpiarFormConvenio(); };
+
+// activar/desactivar un convenio
+window.toggleConvenio = async function(id){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Procesando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_toggle_convenio', { clave: claveAdmin, p_id: id });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? (String(r).indexOf('activado')!==-1 && String(r).indexOf('desactivado')===-1 ? 'Convenio activado.' : 'Convenio desactivado.') : r, ok);
+    if(ok){ cargarConveniosPanel(); cargarConvenios(); }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
+// listar los convenios en el panel
+async function cargarConveniosPanel(){
+  const cont = document.getElementById('admin-convenios-lista');
+  cont.innerHTML = '<p class="admin-buscando">Cargando...</p>';
+  try{
+    const r = await llamarAdmin('admin_listar_convenios', { clave: claveAdmin });
+    if(!Array.isArray(r) || r.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay convenios cargados.</p>';
+      return;
+    }
+    cont.innerHTML = r.map(c=>{
+      const cjson = encodeURIComponent(JSON.stringify(c));
+      return `
+        <div class="nov-item" style="border-left-color:${c.activo?'#2e9e5b':'#c0392b'}">
+          <div class="nov-item-top">
+            <span class="nov-item-etiq">${c.rubro||'—'}</span>
+            <span class="admin-estado ${c.activo?'activo':'inactivo'}">${c.activo?'Activo':'Pausado'}</span>
+          </div>
+          <div class="nov-item-tit">${c.titulo}</div>
+          <div class="conv-adm-acciones">
+            <button class="conv-adm-editar" onclick="editarConvenio(JSON.parse(decodeURIComponent('${cjson}')))">Editar</button>
+            <button class="conv-adm-toggle" onclick="toggleConvenio(${c.id})">${c.activo?'Pausar':'Activar'}</button>
+          </div>
+        </div>`;
+    }).join('');
+  }catch(e){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar. Intentá de nuevo.</p>'; }
+}
 
 // publicar una nueva novedad
 window.publicarNovedad = async function(){
