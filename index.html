@@ -297,6 +297,10 @@
   .login-caja .campo{text-align:left;margin-bottom:16px}
   .login-caja .btn{width:100%}
   .login-error{font-size:13px;color:var(--rojo);line-height:1.4;margin-top:12px;min-height:1px}
+  .login-volver-cedula{
+    background:none;border:none;color:var(--tinta-suave);font-family:inherit;
+    font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;text-decoration:underline;
+  }
   .login-separador{
     display:flex;align-items:center;text-align:center;color:var(--tinta-suave);
     font-size:13px;margin:24px 0 16px;
@@ -786,12 +790,21 @@
     <h1 class="login-titulo">AFUCOA</h1>
     <p class="login-sub">Asociación de Funcionarios de la Comisión Administrativa</p>
     <div class="login-linea"></div>
-    <p class="login-mensaje">Esta aplicación es exclusiva para socios de AFUCOA. Ingresá tu cédula de identidad para acceder.</p>
+    <p class="login-mensaje" id="login-mensaje">Esta aplicación es exclusiva para socios de AFUCOA. Ingresá tu cédula de identidad para acceder.</p>
     <div class="campo">
       <label>Cédula de identidad</label>
       <input type="text" id="login-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8" autocomplete="off">
     </div>
-    <button class="btn dorado" id="login-btn" onclick="ingresar()">Ingresar</button>
+    <div class="campo" id="login-campo-clave" style="display:none">
+      <label id="login-clave-label">Tu clave de acceso</label>
+      <input type="password" id="login-clave" placeholder="••••••••" autocomplete="off">
+    </div>
+    <div class="campo" id="login-campo-clave2" style="display:none">
+      <label>Repetí tu clave</label>
+      <input type="password" id="login-clave2" placeholder="••••••••" autocomplete="off">
+    </div>
+    <button class="btn dorado" id="login-btn" onclick="ingresar()">Continuar</button>
+    <button class="login-volver-cedula" id="login-volver-cedula" onclick="volverACedula()" style="display:none">Usar otra cédula</button>
     <p class="login-error" id="login-error"></p>
     <div class="login-separador"><span>¿Todavía no sos socio?</span></div>
     <button class="btn-afiliarse login-afiliarse" onclick="afiliarseDesdeLogin()">
@@ -2286,35 +2299,138 @@ function mostrarSaludo(datos){
   }
 }
 
+// paso actual del login: 'cedula' (pidiendo cédula) o 'clave' (pidiendo/creando clave)
+let pasoLogin = 'cedula';
+let modoClave = '';  // 'crear' (primera vez) o 'ingresar' (ya tiene clave)
+let cedulaEnProceso = '';
+
 window.ingresar = async function(){
-  const cedula = document.getElementById('login-cedula').value.trim();
   const err = document.getElementById('login-error');
   const btn = document.getElementById('login-btn');
   err.textContent = '';
 
-  if(!cedula){
-    err.textContent = 'Escribí tu cédula para ingresar.';
+  // ===== PASO 1: verificar cédula y decidir si crear o ingresar clave =====
+  if(pasoLogin === 'cedula'){
+    const cedula = document.getElementById('login-cedula').value.trim();
+    if(!cedula){ err.textContent = 'Escribí tu cédula para continuar.'; return; }
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    const resultado = await verificarCedula(cedula);
+    if(resultado === 'no'){
+      btn.disabled = false; btn.textContent = 'Continuar';
+      err.innerHTML = 'Esta cédula no figura como socio activo de AFUCOA.<br>Si sos socio y no podés entrar, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285. Si aún no sos socio, podés afiliarte abajo.';
+      return;
+    }
+    if(resultado !== 'si'){
+      btn.disabled = false; btn.textContent = 'Continuar';
+      err.textContent = 'No se pudo verificar en este momento. Revisá tu conexión e intentá de nuevo.';
+      return;
+    }
+    // es socio: ver si ya tiene clave
+    cedulaEnProceso = cedula;
+    let tieneClave = false;
+    try{
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/socio_tiene_clave`, {
+        method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_documento: cedula })
+      });
+      tieneClave = await resp.json();
+    }catch(e){
+      btn.disabled = false; btn.textContent = 'Continuar';
+      err.textContent = 'No se pudo verificar en este momento. Intentá de nuevo.';
+      return;
+    }
+    btn.disabled = false;
+    // pasar al paso de clave
+    pasoLogin = 'clave';
+    document.getElementById('login-cedula').disabled = true;
+    document.getElementById('login-campo-clave').style.display = 'block';
+    document.getElementById('login-volver-cedula').style.display = 'block';
+    document.getElementById('login-mensaje').style.display = 'none';
+    if(tieneClave){
+      modoClave = 'ingresar';
+      document.getElementById('login-clave-label').textContent = 'Ingresá tu clave de acceso';
+      document.getElementById('login-campo-clave2').style.display = 'none';
+      btn.textContent = 'Ingresar';
+    }else{
+      modoClave = 'crear';
+      document.getElementById('login-clave-label').textContent = 'Creá tu clave de acceso (mínimo 4 caracteres)';
+      document.getElementById('login-campo-clave2').style.display = 'block';
+      btn.textContent = 'Crear clave e ingresar';
+      err.innerHTML = '<span style="color:var(--tinta-suave)">Es tu primera vez. Creá una clave personal para proteger tu ingreso. Anotala en un lugar seguro.</span>';
+    }
+    document.getElementById('login-clave').focus();
     return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Verificando...';
-  const resultado = await verificarCedula(cedula);
-  btn.disabled = false;
-  btn.textContent = 'Ingresar';
+  // ===== PASO 2: crear o verificar la clave =====
+  const clave = document.getElementById('login-clave').value;
+  if(!clave){ err.textContent = 'Ingresá tu clave.'; return; }
 
-  if(resultado === 'si'){
-    // guardar la cédula para recordarla en este celular
-    localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
-    abrirApp();
-    // traer los datos y mostrar el saludo personalizado
-    const datos = await traerDatosSocio(cedula);
-    mostrarSaludo(datos);
-  }else if(resultado === 'no'){
-    err.innerHTML = 'Esta cédula no figura como socio activo de AFUCOA.<br>Si sos socio y no podés entrar, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285 para regularizar tu situación. Si aún no sos socio, podés afiliarte abajo.';
+  if(modoClave === 'crear'){
+    const clave2 = document.getElementById('login-clave2').value;
+    if(clave.length < 4){ err.textContent = 'La clave debe tener al menos 4 caracteres.'; return; }
+    if(clave !== clave2){ err.textContent = 'Las dos claves no coinciden. Repetila igual.'; return; }
+    btn.disabled = true; btn.textContent = 'Creando...';
+    try{
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/crear_clave_socio`, {
+        method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave })
+      });
+      const r = await resp.json();
+      if(String(r).indexOf('OK') === 0){
+        entrarComoSocio(cedulaEnProceso);
+      }else{
+        btn.disabled = false; btn.textContent = 'Crear clave e ingresar';
+        err.textContent = String(r).replace('ERROR: ','');
+      }
+    }catch(e){
+      btn.disabled = false; btn.textContent = 'Crear clave e ingresar';
+      err.textContent = 'No se pudo crear la clave. Intentá de nuevo.';
+    }
   }else{
-    err.textContent = 'No se pudo verificar en este momento. Revisá tu conexión e intentá de nuevo.';
+    // verificar clave existente
+    btn.disabled = true; btn.textContent = 'Ingresando...';
+    try{
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_clave_socio`, {
+        method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave })
+      });
+      const ok = await resp.json();
+      if(ok === true){
+        entrarComoSocio(cedulaEnProceso);
+      }else{
+        btn.disabled = false; btn.textContent = 'Ingresar';
+        err.textContent = 'Clave incorrecta. Si la olvidaste, escribinos a afucoa@gmail.com o WhatsApp 098 469 285 para restablecerla.';
+        document.getElementById('login-clave').value = '';
+      }
+    }catch(e){
+      btn.disabled = false; btn.textContent = 'Ingresar';
+      err.textContent = 'No se pudo verificar. Intentá de nuevo.';
+    }
   }
+};
+
+// entra a la app como socio (guarda sesión y muestra saludo)
+async function entrarComoSocio(cedula){
+  localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
+  abrirApp();
+  const datos = await traerDatosSocio(cedula);
+  mostrarSaludo(datos);
+}
+
+// volver a pedir la cédula (botón "Usar otra cédula")
+window.volverACedula = function(){
+  pasoLogin = 'cedula'; modoClave = ''; cedulaEnProceso = '';
+  document.getElementById('login-cedula').disabled = false;
+  document.getElementById('login-cedula').value = '';
+  document.getElementById('login-clave').value = '';
+  document.getElementById('login-clave2').value = '';
+  document.getElementById('login-campo-clave').style.display = 'none';
+  document.getElementById('login-campo-clave2').style.display = 'none';
+  document.getElementById('login-volver-cedula').style.display = 'none';
+  document.getElementById('login-mensaje').style.display = 'block';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-btn').textContent = 'Continuar';
 };
 
 // oculta el login y muestra la app
@@ -2329,6 +2445,7 @@ window.cerrarSesion = function(){
   claveAdmin = "";  // olvidar la clave de administrador por seguridad
   document.body.classList.add('con-login');
   document.getElementById('login-pantalla').style.display = 'flex';
+  if(typeof volverACedula === 'function') volverACedula();  // resetear a pedir cédula
   document.getElementById('login-cedula').value = '';
   document.getElementById('login-error').textContent = '';
   // ocultar el saludo personalizado
