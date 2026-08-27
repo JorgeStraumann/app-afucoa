@@ -606,7 +606,10 @@
     background:var(--arena-2);border-radius:10px;padding:14px;margin:8px 0 18px;
   }
 
-  .vacio{text-align:center;color:var(--tinta-suave);padding:40px 20px;font-size:14px}
+  .vacio{text-align:center;color:var(--tinta-suave);padding:44px 24px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .vacio svg{color:var(--dorado);opacity:.5}
+  .vacio-titulo{font-size:16px;font-weight:600;color:var(--tinta)}
+  .vacio-texto{font-size:13.5px;line-height:1.5;max-width:280px}
   .vacio svg{opacity:.4;margin-bottom:12px}
 
   .enviado{
@@ -1518,11 +1521,28 @@ function irArriba(){
 /* ============================================================
    Pintar anuncios y convenios
    ============================================================ */
+// genera un mensaje de sección vacía prolijo, con ícono
+function estadoVacio(icono, titulo, texto){
+  const iconos = {
+    novedades: '<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+    propuestas: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    tramites: '<path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"/>',
+    documentos: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    faq: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>',
+    envios: '<path d="m4 12 16-8-6 16-3-7-7-1Z"/>'
+  };
+  return `<div class="vacio">
+    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">${iconos[icono]||iconos.novedades}</svg>
+    <div class="vacio-titulo">${titulo}</div>
+    <div class="vacio-texto">${texto}</div>
+  </div>`;
+}
+
 // pinta un conjunto de anuncios (recibe la lista ya lista)
 function renderAnuncios(lista){
   const cont = document.getElementById('lista-anuncios');
   if(!lista || lista.length === 0){
-    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay novedades publicadas.</p>`;
+    cont.innerHTML = estadoVacio('novedades', 'Todavía no hay novedades', 'Acá van a aparecer los comunicados y anuncios del sindicato. ¡Volvé pronto!');
     return;
   }
   cont.innerHTML = lista.map(a=>{
@@ -1981,10 +2001,7 @@ function pintarMisEnvios(){
 
   if(lista.length===0){
     filtrosCont.innerHTML = '';
-    cont.innerHTML = `<div class="vacio">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg>
-      <div>Todavía no enviaste nada.<br>Usá la sección <b>Enviar</b> para hacer llegar tu voz.</div>
-    </div>`;
+    cont.innerHTML = estadoVacio('envios', 'Todavía no enviaste nada', 'Usá la sección Enviar para hacer llegar tu voz: sugerencias, propuestas y planteos. Acá vas a ver el historial.');
     return;
   }
 
@@ -2294,7 +2311,7 @@ async function cargarPropuestas(){
     );
     const datos = await resp.json();
     if(!Array.isArray(datos) || datos.length === 0){
-      cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay propuestas publicadas. ¡Sé el primero en proponer un tema!</p>`;
+      cont.innerHTML = estadoVacio('propuestas', 'Todavía no hay propuestas', 'Las propuestas de los compañeros aparecerán acá para que puedas apoyarlas. ¡Animate a proponer un tema desde Enviar!');
       return;
     }
     const yaApoyadas = propuestasApoyadas();
@@ -2505,7 +2522,7 @@ function pintarContacto(){
 function pintarTramites(){
   const cont = document.getElementById('lista-tramites');
   if(!TRAMITES || TRAMITES.length === 0){
-    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay trámites publicados.</p>`;
+    cont.innerHTML = estadoVacio('tramites', 'Todavía no hay trámites', 'Acá vas a encontrar los trámites y gestiones disponibles para los socios.');
     return;
   }
   cont.innerHTML = TRAMITES.map(t=>`
@@ -2521,7 +2538,7 @@ function pintarTramites(){
 function pintarDocumentos(){
   const cont = document.getElementById('lista-documentos');
   if(!DOCUMENTOS || DOCUMENTOS.length === 0){
-    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay documentos publicados.</p>`;
+    cont.innerHTML = estadoVacio('documentos', 'Todavía no hay documentos', 'Los documentos y formularios del sindicato aparecerán en esta sección.');
     return;
   }
   cont.innerHTML = DOCUMENTOS.map(d=>`
@@ -2543,7 +2560,7 @@ function pintarDocumentos(){
 function pintarFaq(){
   const cont = document.getElementById('lista-faq');
   if(!FAQ || FAQ.length === 0){
-    cont.innerHTML = `<p class="propuestas-cargando">Todavía no hay preguntas publicadas.</p>`;
+    cont.innerHTML = estadoVacio('faq', 'Todavía no hay preguntas', 'Acá vamos a responder las dudas más comunes de los socios.');
     return;
   }
   cont.innerHTML = FAQ.map((f,i)=>`
