@@ -510,7 +510,15 @@
     color:var(--tinta-suave);cursor:pointer;transition:.15s;
   }
   .lista-filtro.activo{background:var(--verde);color:#fff;border-color:var(--verde)}
-  .lista-acciones{display:flex;gap:8px;margin-bottom:14px}
+  .lista-acciones{display:flex;gap:8px;margin-bottom:8px}
+  .btn-respaldo{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:none;border:1px dashed var(--linea);border-radius:10px;
+    color:var(--tinta-suave);font-family:inherit;font-size:13px;font-weight:600;
+    padding:11px;cursor:pointer;margin-bottom:14px;transition:.15s;
+  }
+  .btn-respaldo:hover{border-color:var(--verde);color:var(--verde)}
+  .btn-respaldo svg{width:16px;height:16px;flex:none}
   .lista-btn{flex:1;font-size:13px;padding:11px 6px}
   .lista-total{font-size:13px;color:var(--tinta-suave);margin-bottom:8px;font-weight:600}
   .lista-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--linea);border-radius:10px}
@@ -1085,6 +1093,10 @@
           <button class="btn dorado lista-btn" onclick="descargarListaWord()">Descargar Word</button>
           <button class="btn dorado lista-btn" onclick="descargarListaPDF()">Descargar PDF / Imprimir</button>
         </div>
+        <button class="btn-respaldo" onclick="descargarRespaldo()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          Descargar respaldo completo (CSV)
+        </button>
         <div id="admin-lista-cont"></div>
       </div>
 
@@ -3117,6 +3129,28 @@ window.descargarListaPDF = function(){
   const ventana = window.open('', '_blank');
   if(ventana){ ventana.document.write(html); ventana.document.close(); }
   else{ mostrarResultadoAdmin('Permití las ventanas emergentes para descargar el PDF.', false); }
+};
+
+// descarga un respaldo COMPLETO del padrón en CSV (todos los socios, para guardar)
+window.descargarRespaldo = async function(){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Generando respaldo...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_listar_socios', { clave: claveAdmin, filtro: 'todos' });
+    if(!Array.isArray(r) || r.length === 0){
+      mostrarResultadoAdmin('No hay socios para respaldar.', false); return;
+    }
+    const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+    const cabecera = ['numero','documento','primer_nombre','primer_apellido','activo'].map(esc).join(',');
+    const filas = r.map(s => [s.numero, s.documento, s.primer_nombre, s.primer_apellido, s.activo ? 'activo':'inactivo'].map(esc).join(','));
+    const csv = '\ufeff' + cabecera + '\r\n' + filas.join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const hoy = new Date().toISOString().slice(0,10);
+    descargarArchivo(blob, 'respaldo-padron-AFUCOA-' + hoy + '.csv');
+    mostrarResultadoAdmin('Respaldo generado: ' + r.length + ' socios.', true);
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo generar el respaldo. Intentá de nuevo.', false);
+  }
 };
 
 // helper para descargar un blob como archivo
