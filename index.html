@@ -173,6 +173,17 @@
   .anuncio p{font-size:14px;color:var(--tinta-suave);line-height:1.5}
 
   /* ---------- Convenios ---------- */
+  .conv-categorias{
+    display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;margin-bottom:4px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .conv-categorias::-webkit-scrollbar{display:none}
+  .conv-cat{
+    flex:none;background:var(--arena-2);border:1px solid var(--linea);border-radius:20px;
+    font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;
+    color:var(--tinta-suave);cursor:pointer;transition:.15s;white-space:nowrap;
+  }
+  .conv-cat.activo{background:var(--verde);color:#fff;border-color:var(--verde)}
   .buscador-conv{
     display:flex;align-items:center;gap:10px;background:#fff;
     border:1px solid var(--linea);border-radius:12px;padding:0 14px;margin-bottom:16px;
@@ -912,7 +923,6 @@
       <label>¿Qué querés enviar?</label>
       <div class="seg" id="tipo-envio">
         <button class="sel" data-tipo="Sugerencia">Sugerencia</button>
-        <button data-tipo="Propuesta">Propuesta</button>
         <button data-tipo="Reestructura">Reestructura</button>
         <button data-tipo="Reclamo">Reclamo</button>
       </div>
@@ -957,6 +967,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
       <input type="text" id="buscar-convenio" placeholder="Buscar por nombre o rubro..." oninput="filtrarConvenios()">
     </div>
+    <div id="conv-categorias" class="conv-categorias"></div>
     <div id="lista-convenios"></div>
     <p id="sin-resultados-conv" class="propuestas-cargando" style="display:none">No se encontraron convenios con esa búsqueda.</p>
   </section>
@@ -1637,6 +1648,32 @@ function contactoHTML(c){
 }
 
 // filtra los convenios por nombre o rubro según lo que se escribe en el buscador
+let categoriaConvenio = 'Todos';  // categoría seleccionada
+
+// saca la categoría principal de un rubro (lo que va antes del "·")
+function categoriaDeRubro(rubro){
+  if(!rubro) return 'Otros';
+  return rubro.split('·')[0].trim();
+}
+
+// genera los botones de categoría a partir de los rubros reales de los convenios
+function pintarCategorias(){
+  const cont = document.getElementById('conv-categorias');
+  if(!cont) return;
+  const cats = ['Todos', ...new Set(CONVENIOS.map(c => categoriaDeRubro(c.rubro)))];
+  cont.innerHTML = cats.map(cat =>
+    `<button class="conv-cat ${cat===categoriaConvenio?'activo':''}" onclick="filtrarPorCategoria('${cat.replace(/'/g,"\\'")}', this)">${cat}</button>`
+  ).join('');
+}
+
+// al tocar una categoría
+window.filtrarPorCategoria = function(cat, boton){
+  categoriaConvenio = cat;
+  document.querySelectorAll('.conv-cat').forEach(b=>b.classList.remove('activo'));
+  if(boton) boton.classList.add('activo');
+  filtrarConvenios();
+};
+
 function filtrarConvenios(){
   // quita tildes y pasa a minúsculas, para que "optica" encuentre "Óptica"
   const normalizar = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -1646,7 +1683,9 @@ function filtrarConvenios(){
   tarjetas.forEach((t, i)=>{
     const c = CONVENIOS[i];
     const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
-    if(!texto || contenido.includes(texto)){
+    const coincideTexto = !texto || contenido.includes(texto);
+    const coincideCategoria = categoriaConvenio==='Todos' || categoriaDeRubro(c.rubro)===categoriaConvenio;
+    if(coincideTexto && coincideCategoria){
       t.style.display = '';
       visibles++;
     }else{
@@ -3540,6 +3579,7 @@ async function cargarConvenios(){
     }
   }catch(e){ /* sin conexión: se usan los del código */ }
   pintarConvenios();
+  pintarCategorias();
 }
 cargarConvenios();
 revisarSesion();
