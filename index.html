@@ -440,12 +440,19 @@
     background:var(--arena-2);display:grid;place-items:center;color:var(--verde);
   }
   .admin-candado svg{width:32px;height:32px}
-  .admin-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--arena-2);padding:5px;border-radius:12px}
-  .admin-tab{
-    flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;
-    padding:10px 2px;border-radius:9px;color:var(--tinta-suave);cursor:pointer;transition:.15s;
+  .admin-selector{margin-bottom:18px}
+  .admin-selector label{display:block;font-size:12px;font-weight:600;color:var(--tinta-suave);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+  .admin-select-wrap{position:relative}
+  .admin-select-wrap select{
+    width:100%;appearance:none;-webkit-appearance:none;
+    background:#fff;border:1px solid var(--linea);border-radius:11px;
+    padding:14px 44px 14px 16px;font-family:inherit;font-size:15px;font-weight:600;
+    color:var(--verde);cursor:pointer;box-shadow:0 2px 8px rgba(26,35,126,.06);
   }
-  .admin-tab.activo{background:#fff;color:var(--verde);box-shadow:0 1px 4px rgba(26,35,126,.12)}
+  .admin-select-flecha{
+    position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    width:20px;height:20px;color:var(--verde);pointer-events:none;
+  }
   .admin-panel{margin-bottom:8px}
   /* historial */
   .hist-item{
@@ -999,13 +1006,19 @@
 
     <!-- Contenido del panel (oculto hasta ingresar la clave) -->
     <div id="admin-contenido" style="display:none">
-      <div class="admin-tabs">
-        <button class="admin-tab activo" onclick="adminTab('alta', this)">Alta</button>
-        <button class="admin-tab" onclick="adminTab('baja', this)">Baja</button>
-        <button class="admin-tab" onclick="adminTab('reactivar', this)">Reactivar</button>
-        <button class="admin-tab" onclick="adminTab('solicitudes', this)">Solicitudes</button>
-        <button class="admin-tab" onclick="adminTab('lista', this)">Lista</button>
-        <button class="admin-tab" onclick="adminTab('historial', this)">Historial</button>
+      <div class="admin-selector">
+        <label for="admin-menu">¿Qué querés hacer?</label>
+        <div class="admin-select-wrap">
+          <select id="admin-menu" onchange="adminTabSelect(this.value)">
+            <option value="alta">Dar de alta un socio</option>
+            <option value="baja">Dar de baja un socio</option>
+            <option value="reactivar">Reactivar un socio</option>
+            <option value="solicitudes">Solicitudes de afiliación</option>
+            <option value="lista">Lista del padrón</option>
+            <option value="historial">Historial de movimientos</option>
+          </select>
+          <svg class="admin-select-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
       </div>
 
       <!-- ALTA -->
@@ -2592,9 +2605,8 @@ window.entrarPanelAdmin = async function(){
 };
 
 // cambiar entre pestañas (alta / baja / reactivar / historial)
-window.adminTab = function(cual, boton){
-  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('activo'));
-  boton.classList.add('activo');
+// cambiar de sección desde el menú desplegable
+window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
