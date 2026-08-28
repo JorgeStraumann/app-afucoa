@@ -1467,6 +1467,10 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase para notificaciones push -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+
 <script>
 /* ==================================================================
    ▼▼▼  ZONA EDITABLE — ANUNCIOS Y CONVENIOS  ▼▼▼
@@ -2932,6 +2936,8 @@ window.volverACedula = function(){
 function abrirApp(){
   document.getElementById('login-pantalla').style.display = 'none';
   document.body.classList.remove('con-login');
+  // pedir permiso de notificaciones un momento después de entrar (sin abrumar)
+  setTimeout(()=>{ if(typeof activarNotificaciones === 'function') activarNotificaciones(); }, 3000);
 }
 
 // cerrar sesión: olvida la cédula y vuelve al login
@@ -4423,7 +4429,55 @@ async function cargarConvenios(){
 cargarConvenios();
 revisarSesion();
 
-/* la pantalla de bienvenida se cierra al tocar "Acceder" */
+/* ============================================================
+   Notificaciones push (Firebase Cloud Messaging)
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDqEWyShhf_PXHcgC3pd08PItgPyTpLNFA",
+  authDomain: "afucoa-app.firebaseapp.com",
+  projectId: "afucoa-app",
+  storageBucket: "afucoa-app.firebasestorage.app",
+  messagingSenderId: "142637438305",
+  appId: "1:142637438305:web:577e2cf4c151dcf97f6120"
+};
+const VAPID_KEY = "BEKOJgmVuh08M-w1RkS_d0IZkRke2giKlB73ovatkbWTlwBgDcb0yGQ6veUtngrZAv6tvaMbJEM_osW4GmpLkeQ";
+
+// pide permiso de notificaciones y guarda el token del celular
+async function activarNotificaciones(){
+  // solo si el navegador lo soporta
+  if(!('Notification' in window) || typeof firebase === 'undefined' || !firebase.messaging){
+    return;
+  }
+  try{
+    // pedir permiso al usuario
+    const permiso = await Notification.requestPermission();
+    if(permiso !== 'granted') return;  // dijo que no, o no respondió
+
+    if(!firebase.apps || !firebase.apps.length){
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    const messaging = firebase.messaging();
+    // registrar el service worker de notificaciones
+    const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    // obtener el token de este celular
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if(!token) return;
+
+    // guardar el token en Supabase, asociado al socio
+    const cedula = localStorage.getItem('afucoa_socio') || '';
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/guardar_token_push`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_token: token, p_documento: cedula })
+    });
+
+    // si llega una notificación con la app abierta, mostrar un aviso suave
+    messaging.onMessage((payload)=>{
+      const t = (payload.notification && payload.notification.title) || 'AFUCOA';
+      const b = (payload.notification && payload.notification.body) || '';
+      avisar(t + (b ? ': ' + b : ''));
+    });
+  }catch(e){ /* si algo falla, la app sigue funcionando normal */ }
+}
 window.cerrarSplash = function(){
   const sp = document.getElementById('splash');
   if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 500); }
