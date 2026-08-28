@@ -465,7 +465,7 @@
   /* pantalla de afiliación desde el login */
   #afiliacion-pantalla{
     position:fixed;inset:0;z-index:2000;
-    background:linear-gradient(160deg,#1a237e 0%,#283593 60%,#1a237e 100%);
+    background:linear-gradient(rgba(20,26,70,.72),rgba(20,26,70,.82)), url('vestibulo-honor.jpg') center / cover no-repeat;
     display:flex;align-items:flex-start;justify-content:center;padding:20px;
     overflow-y:auto;
   }
@@ -1076,7 +1076,7 @@
     <div id="saludo-socio" class="saludo-socio" style="display:none"></div>
     <div class="intro" id="intro-generico">
       <h2>Bienvenido/a</h2>
-      <p>Acá vas a encontrar las novedades del sindicato, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
+      <p>Acá vas a encontrar las novedades de la Asociación, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
     <button class="btn-compartir" onclick="compartirApp()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
@@ -1132,7 +1132,7 @@
       <input id="archivo" type="file" style="display:none">
     </div>
 
-    <button class="btn" id="btn-enviar">Enviar al sindicato</button>
+    <button class="btn" id="btn-enviar">Enviar a la Asociación</button>
   </section>
 
   <!-- ======== CONVENIOS ======== -->
@@ -1156,7 +1156,7 @@
   <!-- ======== PROPUESTAS ======== -->
   <section class="vista" id="v-propuestas">
     <div class="titulo-seccion">Propuestas de los afiliados</div>
-    <p class="propuestas-intro">Proponé un tema para que el sindicato lo trate, y apoyá las propuestas de otros afiliados. Las más apoyadas ganan fuerza.</p>
+    <p class="propuestas-intro">Proponé un tema para que la Asociación lo trate, y apoyá las propuestas de otros afiliados. Las más apoyadas ganan fuerza.</p>
 
     <button class="btn" id="btn-nueva-propuesta">+ Proponer un tema</button>
 
@@ -1187,7 +1187,7 @@
     <div class="titulo-seccion">Mis envíos</div>
     <div id="mis-filtros" class="mis-filtros"></div>
     <div id="lista-mis"></div>
-    <p class="nota-prototipo">Tus envíos se guardan en este celular para que los tengas a mano. La copia le llega al sindicato.</p>
+    <p class="nota-prototipo">Tus envíos se guardan en este celular para que los tengas a mano. La copia le llega a la Asociación.</p>
   </section>
 
   <!-- ======== DIRECTIVA ======== -->
@@ -1258,7 +1258,7 @@
 
       <!-- ESTADÍSTICAS -->
       <div class="admin-panel" id="admin-panel-estadisticas" style="display:none">
-        <p class="propuestas-intro">Resumen del estado actual del sindicato.</p>
+        <p class="propuestas-intro">Resumen del estado actual de la Asociación.</p>
         <div id="admin-stats-cont"><p class="admin-buscando">Cargando...</p></div>
       </div>
 
@@ -1789,7 +1789,7 @@ function estadoVacio(icono, titulo, texto){
 function renderAnuncios(lista){
   const cont = document.getElementById('lista-anuncios');
   if(!lista || lista.length === 0){
-    cont.innerHTML = estadoVacio('novedades', 'Todavía no hay novedades', 'Acá van a aparecer los comunicados y anuncios del sindicato. ¡Volvé pronto!');
+    cont.innerHTML = estadoVacio('novedades', 'Todavía no hay novedades', 'Acá van a aparecer los comunicados y anuncios de la Asociación. ¡Volvé pronto!');
     actualizarAvisoNovedades(0);
     return;
   }
@@ -2146,7 +2146,7 @@ window.ampliarImagen = function(src){
 
 /* ============================================================
    Envíos
-   - Se mandan a la planilla del sindicato (Google Sheets)
+   - Se mandan a la planilla de la Asociación (Google Sheets)
    - Y se guardan también en el celular, para "Mis envíos"
    ============================================================ */
 
@@ -2154,7 +2154,7 @@ window.ampliarImagen = function(src){
    planilla. Si algún día cambia la planilla, se cambia solo esta línea. */
 const URL_PUENTE = "https://script.google.com/macros/s/AKfycbw-y6skYyxdNtOwQJYmaQITwASx-s9Qco7wRkZtE1dB7wwx3TNKBVzukQ3q_xxgMm7KJQ/exec";
 
-/* Envía un registro a la planilla del sindicato.
+/* Envía un registro a la planilla de la Asociación.
    Devuelve una promesa; no frena la app si falla la conexión. */
 function enviarAlSindicato(registro){
   return fetch(URL_PUENTE, {
@@ -2266,7 +2266,7 @@ document.getElementById('btn-enviar').addEventListener('click', async ()=>{
 
   enviarAlSindicato(registro).finally(()=>{
     btn.disabled = false;
-    btn.textContent = 'Enviar al sindicato';
+    btn.textContent = 'Enviar a la Asociación';
     // limpiar formulario
     document.getElementById('nombre').value='';
     document.getElementById('asunto').value='';
@@ -2379,7 +2379,7 @@ window.confirmarConvenio = async function(i){
   document.getElementById('form-convenio-'+i).style.display='none';
   if(btnEnviar){ btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar solicitud'; }
 
-  avisar('¡Solicitud enviada! El sindicato se contactará con vos.');
+  avisar('¡Solicitud enviada! La Asociación se contactará con vos.');
 };
 
 // consulta al "portero" de Supabase. Devuelve 'si', 'no' o 'error'.
@@ -2557,7 +2557,7 @@ function mostrarSaludo(datos){
     cont.innerHTML = `
       <div class="saludo-nombre">Hola, ${nombre}</div>
       <div class="saludo-estado"><span class="saludo-punto"></span>Afiliación activa${datos.numero ? ' · Ficha N.º ' + datos.numero : ''}</div>
-      <div class="saludo-bienvenida">Acá vas a encontrar las novedades del sindicato y podés hacer llegar tu voz: sugerencias, propuestas y planteos.</div>`;
+      <div class="saludo-bienvenida">Acá vas a encontrar las novedades de la Asociación y podés hacer llegar tu voz: sugerencias, propuestas y planteos.</div>`;
     cont.style.display = 'block';
     if(intro) intro.style.display = 'none';  // no repetir la bienvenida genérica
   }else{
@@ -3232,7 +3232,7 @@ function pintarTramites(){
 function pintarDocumentos(){
   const cont = document.getElementById('lista-documentos');
   if(!DOCUMENTOS || DOCUMENTOS.length === 0){
-    cont.innerHTML = estadoVacio('documentos', 'Todavía no hay documentos', 'Los documentos y formularios del sindicato aparecerán en esta sección.');
+    cont.innerHTML = estadoVacio('documentos', 'Todavía no hay documentos', 'Los documentos y formularios de la Asociación aparecerán en esta sección.');
     return;
   }
   cont.innerHTML = DOCUMENTOS.map(d=>`
@@ -3290,7 +3290,7 @@ window.irAlInicio = function(){
 // compartir la app con otras personas
 window.compartirApp = async function(){
   const url = window.location.origin + window.location.pathname;
-  const texto = 'App de AFUCOA — novedades, convenios, propuestas y más del sindicato. Entrá acá:';
+  const texto = 'App de AFUCOA — novedades, convenios, propuestas y más de la Asociación. Entrá acá:';
   // compartir nativo del celular (WhatsApp, Telegram, mail, etc.)
   if(navigator.share){
     try{
@@ -3515,7 +3515,7 @@ window.confirmarBorrarPropuesta = async function(id){
   }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
 
-// trae y muestra las estadísticas del sindicato
+// trae y muestra las estadísticas de la Asociación
 async function cargarEstadisticas(){
   const cont = document.getElementById('admin-stats-cont');
   cont.innerHTML = '<p class="admin-buscando">Cargando...</p>';
