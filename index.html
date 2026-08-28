@@ -176,6 +176,8 @@
     box-shadow:0 2px 10px rgba(26,35,126,.07);
   }
   .anuncio::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--verde)}
+  .anuncio-img{width:calc(100% + 32px);margin:-16px -16px 12px;display:block;max-height:220px;object-fit:cover;border-radius:14px 14px 0 0}
+  .campo-nota{font-size:12px;color:var(--tinta-suave);line-height:1.4;margin-top:5px}
   .anuncio.urgente::before{background:var(--rojo)}
   .anuncio .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
   .etiqueta{
@@ -1250,6 +1252,7 @@
         <div class="campo"><label>Etiqueta (opcional)</label><input type="text" id="nov-etiqueta" placeholder="Ej: Importante, Asamblea, Aviso"></div>
         <div class="campo"><label>Título</label><input type="text" id="nov-titulo" placeholder="Título de la novedad"></div>
         <div class="campo"><label>Texto</label><textarea id="nov-cuerpo" rows="4" placeholder="Escribí el contenido de la novedad..."></textarea></div>
+        <div class="campo"><label>Imagen (opcional)</label><input type="text" id="nov-imagen" placeholder="Ej: novedades/asamblea-agosto.jpg"><p class="campo-nota">Subí la imagen a GitHub en la carpeta "novedades" y escribí acá su nombre. Dejalo vacío si no lleva imagen.</p></div>
         <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
         <div class="nov-lista-tit">Novedades publicadas</div>
         <div id="admin-novedades-lista"></div>
@@ -1719,6 +1722,7 @@ function renderAnuncios(lista){
     const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) : '';
     return `
     <article class="anuncio">
+      ${a.imagen ? `<img class="anuncio-img" src="${a.imagen}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">` : ``}
       <div class="meta">
         ${a.etiqueta ? `<span class="etiqueta">${a.etiqueta}</span>` : ``}
         ${fecha ? `<time>${fecha}</time>` : ``}
@@ -3522,17 +3526,19 @@ window.publicarNovedad = async function(){
   const etiqueta = document.getElementById('nov-etiqueta').value.trim();
   const titulo = document.getElementById('nov-titulo').value.trim();
   const cuerpo = document.getElementById('nov-cuerpo').value.trim();
+  const imagen = document.getElementById('nov-imagen').value.trim();
   const res = document.getElementById('admin-resultado');
   if(!titulo){ mostrarResultadoAdmin('El título es obligatorio.', false); return; }
   res.textContent = 'Publicando...'; res.className = 'admin-resultado';
   try{
-    const r = await llamarAdmin('admin_crear_novedad', { clave: claveAdmin, p_etiqueta: etiqueta, p_titulo: titulo, p_cuerpo: cuerpo });
+    const r = await llamarAdmin('admin_crear_novedad', { clave: claveAdmin, p_etiqueta: etiqueta, p_titulo: titulo, p_cuerpo: cuerpo, p_imagen: imagen });
     const ok = String(r).indexOf('OK') === 0;
     mostrarResultadoAdmin(r, ok);
     if(ok){
       document.getElementById('nov-etiqueta').value = '';
       document.getElementById('nov-titulo').value = '';
       document.getElementById('nov-cuerpo').value = '';
+      document.getElementById('nov-imagen').value = '';
       cargarNovedadesPanel();
     }
   }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
