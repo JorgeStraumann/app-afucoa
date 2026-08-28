@@ -296,6 +296,7 @@
   .login-mensaje{font-size:14px;color:var(--tinta);line-height:1.5;margin-bottom:20px}
   .login-caja .campo{text-align:left;margin-bottom:16px}
   .login-caja .btn{width:100%}
+  .login-email-nota{font-size:12px;color:var(--tinta-suave);line-height:1.4;margin-top:6px}
   .login-error{font-size:13px;color:var(--rojo);line-height:1.4;margin-top:12px;min-height:1px}
   .login-volver-cedula{
     background:none;border:none;color:var(--tinta-suave);font-family:inherit;
@@ -803,6 +804,11 @@
       <label>Repetí tu clave</label>
       <input type="password" id="login-clave2" placeholder="••••••••" autocomplete="off">
     </div>
+    <div class="campo" id="login-campo-email" style="display:none">
+      <label>Tu correo electrónico (opcional, recomendado)</label>
+      <input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" autocomplete="off">
+      <p class="login-email-nota">Si lo dejás, vas a poder recuperar tu clave por correo si algún día la olvidás. Podés dejarlo en blanco.</p>
+    </div>
     <button class="btn dorado" id="login-btn" onclick="ingresar()">Continuar</button>
     <button class="login-volver-cedula" id="login-volver-cedula" onclick="volverACedula()" style="display:none">Usar otra cédula</button>
     <p class="login-error" id="login-error"></p>
@@ -1095,6 +1101,7 @@
             <option value="alta">Dar de alta un socio</option>
             <option value="baja">Dar de baja un socio</option>
             <option value="reactivar">Reactivar un socio</option>
+            <option value="resetclave">Restablecer clave de socio</option>
             <option value="solicitudes">Solicitudes de afiliación</option>
             <option value="lista">Lista del padrón</option>
             <option value="novedades">Publicar novedades</option>
@@ -1136,6 +1143,14 @@
         <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
         <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
         <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
+      </div>
+
+      <!-- RESTABLECER CLAVE -->
+      <div class="admin-panel" id="admin-panel-resetclave" style="display:none">
+        <p class="propuestas-intro">Si un socio olvidó su clave de acceso, buscalo y restablecé su clave. Después, la próxima vez que ingrese, podrá crear una nueva.</p>
+        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="reset-numero" inputmode="numeric" placeholder="Ej: 350"></div>
+        <button class="btn dorado" onclick="adminBuscarParaReset()">Buscar socio</button>
+        <div class="admin-ficha" id="reset-ficha" style="display:none"></div>
       </div>
 
       <!-- SOLICITUDES -->
@@ -2371,6 +2386,7 @@ window.ingresar = async function(){
       modoClave = 'crear';
       document.getElementById('login-clave-label').textContent = 'Creá tu clave de acceso (mínimo 4 caracteres)';
       document.getElementById('login-campo-clave2').style.display = 'block';
+      document.getElementById('login-campo-email').style.display = 'block';
       btn.textContent = 'Crear clave e ingresar';
       err.innerHTML = '<span style="color:var(--tinta-suave)">Es tu primera vez. Creá una clave personal para proteger tu ingreso. Anotala en un lugar seguro.</span>';
     }
@@ -2384,13 +2400,18 @@ window.ingresar = async function(){
 
   if(modoClave === 'crear'){
     const clave2 = document.getElementById('login-clave2').value;
+    const email = document.getElementById('login-email').value.trim();
     if(clave.length < 4){ err.textContent = 'La clave debe tener al menos 4 caracteres.'; return; }
     if(clave !== clave2){ err.textContent = 'Las dos claves no coinciden. Repetila igual.'; return; }
+    // si escribió algo en el mail, validar que tenga formato de correo
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      err.textContent = 'El correo no parece válido. Revisalo o dejalo en blanco.'; return;
+    }
     btn.disabled = true; btn.textContent = 'Creando...';
     try{
       const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/crear_clave_socio`, {
         method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
-        body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave })
+        body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave, p_email: email })
       });
       const r = await resp.json();
       const texto = interpretarRespuesta(r);
@@ -2442,8 +2463,10 @@ window.volverACedula = function(){
   document.getElementById('login-cedula').value = '';
   document.getElementById('login-clave').value = '';
   document.getElementById('login-clave2').value = '';
+  const em = document.getElementById('login-email'); if(em) em.value = '';
   document.getElementById('login-campo-clave').style.display = 'none';
   document.getElementById('login-campo-clave2').style.display = 'none';
+  const ce = document.getElementById('login-campo-email'); if(ce) ce.style.display = 'none';
   document.getElementById('login-volver-cedula').style.display = 'none';
   document.getElementById('login-mensaje').style.display = 'block';
   document.getElementById('login-error').textContent = '';
@@ -2986,6 +3009,7 @@ window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
+  document.getElementById('admin-panel-resetclave').style.display = (cual==='resetclave') ? 'block' : 'none';
   document.getElementById('admin-panel-solicitudes').style.display = (cual==='solicitudes') ? 'block' : 'none';
   document.getElementById('admin-panel-lista').style.display = (cual==='lista') ? 'block' : 'none';
   document.getElementById('admin-panel-novedades').style.display = (cual==='novedades') ? 'block' : 'none';
@@ -3655,6 +3679,62 @@ window.adminAlta = async function(){
 };
 
 // BUSCAR socio (para baja o reactivar): muestra sus datos y el botón de acción
+// buscar un socio para restablecer su clave
+window.adminBuscarParaReset = async function(){
+  const numero = document.getElementById('reset-numero').value.trim();
+  const ficha = document.getElementById('reset-ficha');
+  const res = document.getElementById('admin-resultado');
+  res.textContent = ''; res.className = 'admin-resultado';
+  ficha.style.display = 'none'; ficha.innerHTML = '';
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
+  ficha.style.display = 'block';
+  ficha.innerHTML = '<p class="admin-buscando">Buscando...</p>';
+  try{
+    const r = await llamarAdmin('admin_buscar_socio', { clave: claveAdmin, p_numero: parseInt(numero,10) });
+    if(!Array.isArray(r) || r.length === 0){
+      ficha.innerHTML = '<p class="admin-nohay">No se encontró ningún socio con el número ' + numero + '.</p>';
+      return;
+    }
+    const s = r[0];
+    const nombre = formatearNombre((s.primer_nombre||'') + ' ' + (s.primer_apellido||''));
+    ficha.innerHTML = `
+      <div class="admin-ficha-nombre">${nombre}</div>
+      <div class="admin-ficha-dato">Ficha N.º ${s.numero} · Cédula ${s.documento}</div>
+      <button class="btn" onclick="pedirResetClave('${(s.documento||'').replace(/'/g,'')}', '${nombre.replace(/'/g,'')}', this)">Restablecer su clave</button>`;
+  }catch(e){
+    ficha.innerHTML = '<p class="admin-nohay">No se pudo conectar. Intentá de nuevo.</p>';
+  }
+};
+
+// pedir confirmación antes de resetear
+window.pedirResetClave = function(documento, nombre, boton){
+  boton.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'admin-confirmar';
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">¿Restablecer la clave de ${nombre}? Su clave actual se borrará y deberá crear una nueva al ingresar.</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="confirmarResetClave('${documento}')">Sí, restablecer</button>
+      <button class="btn-conf-no" onclick="cancelarConfirmacion(this)">Cancelar</button>
+    </div>`;
+  boton.parentElement.appendChild(div);
+};
+
+window.confirmarResetClave = async function(documento){
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Restableciendo...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_resetear_clave', { clave: claveAdmin, p_documento: documento });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Clave restablecida. El socio podrá crear una nueva al ingresar.' : r, ok);
+    if(ok){
+      document.getElementById('reset-ficha').style.display = 'none';
+      document.getElementById('reset-ficha').innerHTML = '';
+      document.getElementById('reset-numero').value = '';
+    }
+  }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
+};
+
 window.adminBuscar = async function(tipo){
   const campoNum = (tipo==='baja') ? 'adm-baja-numero' : 'adm-react-numero';
   const contFicha = (tipo==='baja') ? 'adm-baja-ficha' : 'adm-react-ficha';
