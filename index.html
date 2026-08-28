@@ -162,6 +162,23 @@
   }
   .aviso-nuevas svg{width:22px;height:22px;flex:none;color:var(--dorado)}
   @keyframes aparecer{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+  .cuenta-tarjeta{
+    background:#fff;border:1px solid var(--linea);border-radius:14px;
+    padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(26,35,126,.06);
+  }
+  .cuenta-tit{font-size:16px;color:var(--verde);margin-bottom:14px;font-weight:700}
+  .cuenta-cargando{color:var(--tinta-suave);font-size:14px;text-align:center;padding:8px}
+  .cuenta-dato{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:10px 0;border-bottom:1px solid var(--linea);
+  }
+  .cuenta-dato:last-child{border-bottom:none}
+  .cuenta-etq{font-size:13px;color:var(--tinta-suave);font-weight:600;flex:none}
+  .cuenta-val{font-size:14.5px;color:var(--tinta);text-align:right;font-weight:500}
+  .cuenta-nota{font-size:12.5px;color:var(--tinta-suave);line-height:1.4;margin-bottom:12px}
+  .cuenta-msg{font-size:13px;margin-top:10px;min-height:1px;line-height:1.4}
+  .cuenta-msg.ok{color:var(--verde);font-weight:600}
+  .cuenta-msg.error{color:var(--rojo)}
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -1039,6 +1056,10 @@
   <!-- Menú desplegable de Información general -->
   <div class="menu-desplegable" id="menu-desplegable">
     <div class="menu-titulo">Información general</div>
+    <button class="menu-item" onclick="abrirMiCuenta()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      Mi cuenta
+    </button>
     <button class="menu-item" onclick="abrirDesdeMenu('v-directiva')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M18 20c0-2-1-3.5-2.5-4.3"/></svg>
       Comisión Directiva
@@ -1191,6 +1212,36 @@
   </section>
 
   <!-- ======== DIRECTIVA ======== -->
+  <!-- ======== MI CUENTA ======== -->
+  <section class="vista" id="v-cuenta">
+    <div class="titulo-seccion">Mi cuenta</div>
+
+    <!-- Datos del socio -->
+    <div class="cuenta-tarjeta" id="cuenta-datos">
+      <p class="cuenta-cargando">Cargando tus datos...</p>
+    </div>
+
+    <!-- Cambiar clave -->
+    <div class="cuenta-tarjeta">
+      <h3 class="cuenta-tit">Cambiar mi clave</h3>
+      <div class="campo"><label>Clave actual</label><input type="password" id="cta-clave-actual" placeholder="••••••••" autocomplete="off"></div>
+      <div class="campo"><label>Clave nueva (mínimo 4 caracteres)</label><input type="password" id="cta-clave-nueva" placeholder="••••••••" autocomplete="off"></div>
+      <div class="campo"><label>Repetí la clave nueva</label><input type="password" id="cta-clave-nueva2" placeholder="••••••••" autocomplete="off"></div>
+      <button class="btn dorado" onclick="cambiarMiClave()">Cambiar clave</button>
+      <p class="cuenta-msg" id="cta-clave-msg"></p>
+    </div>
+
+    <!-- Mi correo -->
+    <div class="cuenta-tarjeta">
+      <h3 class="cuenta-tit">Mi correo electrónico</h3>
+      <p class="cuenta-nota">Sirve para recuperar tu clave si algún día la olvidás. Podés agregarlo o cambiarlo cuando quieras.</p>
+      <div class="campo"><label>Correo electrónico</label><input type="email" id="cta-mail" placeholder="tucorreo@ejemplo.com" autocomplete="off"></div>
+      <button class="btn dorado" onclick="guardarMiMail()">Guardar correo</button>
+      <p class="cuenta-msg" id="cta-mail-msg"></p>
+    </div>
+  </section>
+
+  <!-- ======== COMISIÓN DIRECTIVA ======== -->
   <section class="vista" id="v-directiva">
     <div id="lista-directiva"></div>
   </section>
@@ -3328,6 +3379,102 @@ window.abrirDesdeMenu = function(idVista){
   if(idVista === 'v-documentos') pintarDocumentos();
   if(idVista === 'v-faq') pintarFaq();
   irArriba();
+};
+
+/* ============================================================
+   Mi cuenta (datos, cambiar clave, correo)
+   ============================================================ */
+window.abrirMiCuenta = function(){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.getElementById('v-cuenta').classList.add('activa');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+  menuDesplegable.classList.remove('abierto');
+  cargarMiCuenta();
+  irArriba();
+};
+
+// trae y muestra los datos del socio + su correo
+async function cargarMiCuenta(){
+  const cont = document.getElementById('cuenta-datos');
+  const cedula = localStorage.getItem('afucoa_socio');
+  if(!cedula){ cont.innerHTML = '<p class="cuenta-cargando">No se pudo identificar tu sesión.</p>'; return; }
+  cont.innerHTML = '<p class="cuenta-cargando">Cargando tus datos...</p>';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mi_cuenta`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula })
+    });
+    const data = await resp.json();
+    const d = Array.isArray(data) ? data[0] : data;
+    if(!d){ cont.innerHTML = '<p class="cuenta-cargando">No se encontraron tus datos.</p>'; return; }
+    const nombre = formatearNombre((d.primer_nombre||'') + ' ' + (d.primer_apellido||''));
+    cont.innerHTML = `
+      <div class="cuenta-dato"><span class="cuenta-etq">Nombre</span><span class="cuenta-val">${nombre}</span></div>
+      <div class="cuenta-dato"><span class="cuenta-etq">Ficha N.º</span><span class="cuenta-val">${d.numero||'—'}</span></div>
+      <div class="cuenta-dato"><span class="cuenta-etq">Cédula</span><span class="cuenta-val">${d.documento||'—'}</span></div>
+      <div class="cuenta-dato"><span class="cuenta-etq">Correo</span><span class="cuenta-val">${d.email || 'Sin correo registrado'}</span></div>`;
+    // pre-cargar el mail en el campo de editar
+    const campoMail = document.getElementById('cta-mail');
+    if(campoMail) campoMail.value = d.email || '';
+  }catch(e){
+    cont.innerHTML = '<p class="cuenta-cargando">No se pudo conectar. Intentá de nuevo.</p>';
+  }
+}
+
+// cambiar la clave
+window.cambiarMiClave = async function(){
+  const actual = document.getElementById('cta-clave-actual').value;
+  const nueva = document.getElementById('cta-clave-nueva').value;
+  const nueva2 = document.getElementById('cta-clave-nueva2').value;
+  const msg = document.getElementById('cta-clave-msg');
+  const cedula = localStorage.getItem('afucoa_socio');
+  msg.className = 'cuenta-msg';
+  if(!actual || !nueva){ msg.textContent = 'Completá tu clave actual y la nueva.'; msg.classList.add('error'); return; }
+  if(nueva.length < 4){ msg.textContent = 'La clave nueva debe tener al menos 4 caracteres.'; msg.classList.add('error'); return; }
+  if(nueva !== nueva2){ msg.textContent = 'Las dos claves nuevas no coinciden.'; msg.classList.add('error'); return; }
+  msg.textContent = 'Cambiando...';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cambiar_mi_clave`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula, p_clave_actual: actual, p_clave_nueva: nueva })
+    });
+    const r = await resp.json();
+    const texto = interpretarRespuesta(r);
+    if(texto.indexOf('OK') === 0){
+      msg.textContent = '¡Listo! Tu clave fue cambiada.'; msg.classList.add('ok');
+      document.getElementById('cta-clave-actual').value = '';
+      document.getElementById('cta-clave-nueva').value = '';
+      document.getElementById('cta-clave-nueva2').value = '';
+    }else{
+      msg.textContent = texto.replace('ERROR: ',''); msg.classList.add('error');
+    }
+  }catch(e){ msg.textContent = 'No se pudo conectar. Intentá de nuevo.'; msg.classList.add('error'); }
+};
+
+// guardar / actualizar el correo
+window.guardarMiMail = async function(){
+  const mail = document.getElementById('cta-mail').value.trim();
+  const msg = document.getElementById('cta-mail-msg');
+  const cedula = localStorage.getItem('afucoa_socio');
+  msg.className = 'cuenta-msg';
+  if(mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)){
+    msg.textContent = 'El correo no parece válido. Revisalo o dejalo vacío.'; msg.classList.add('error'); return;
+  }
+  msg.textContent = 'Guardando...';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/actualizar_mi_mail`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula, p_email: mail })
+    });
+    const r = await resp.json();
+    const texto = interpretarRespuesta(r);
+    if(texto.indexOf('OK') === 0){
+      msg.textContent = mail ? '¡Correo guardado!' : 'Correo quitado.'; msg.classList.add('ok');
+      cargarMiCuenta();  // refrescar los datos mostrados
+    }else{
+      msg.textContent = texto.replace('ERROR: ',''); msg.classList.add('error');
+    }
+  }catch(e){ msg.textContent = 'No se pudo conectar. Intentá de nuevo.'; msg.classList.add('error'); }
 };
 
 /* ============================================================
