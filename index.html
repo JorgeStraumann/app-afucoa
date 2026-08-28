@@ -36,12 +36,12 @@
      Se desplaza junto con la página. El velo blanco encima lo suaviza
      para que el texto siga siendo legible. */
   body::before{
-    content:"";position:absolute;inset:0;z-index:0;
+    content:"";position:fixed;inset:0;z-index:0;
     background:
-      linear-gradient(rgba(255,255,255,.80), rgba(255,255,255,.88)),
+      linear-gradient(rgba(255,255,255,.60), rgba(255,255,255,.72)),
       url("fondo-palacio.jpg");
     background-size:cover;
-    background-position:top center;
+    background-position:center center;
     background-repeat:no-repeat;
     pointer-events:none;
   }
