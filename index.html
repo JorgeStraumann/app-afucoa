@@ -313,26 +313,40 @@
   /* zona tocable sobre el pórtico central */
   #palacio-zona{
     position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
-    width:34%;height:30%;cursor:pointer;z-index:3;border-radius:8px;
+    width:38%;height:32%;cursor:pointer;z-index:3;border-radius:8px;
+    border:2px solid rgba(240,216,120,.9);
+    box-shadow:0 0 0 3px rgba(0,0,0,.25), inset 0 0 20px rgba(240,216,120,.25);
+    animation:marcoPuerta 1.6s ease-in-out infinite;
   }
-  #palacio-pulso{
-    position:absolute;inset:0;border-radius:10px;
-    box-shadow:0 0 0 0 rgba(232,200,96,.55);
-    animation:pulsoPuerta 1.8s ease-out infinite;
+  @keyframes marcoPuerta{
+    0%,100%{ border-color:rgba(240,216,120,.55); box-shadow:0 0 0 3px rgba(0,0,0,.2), inset 0 0 16px rgba(240,216,120,.15); }
+    50%{ border-color:rgba(240,216,120,1); box-shadow:0 0 18px 3px rgba(240,216,120,.5), inset 0 0 24px rgba(240,216,120,.35); }
   }
-  @keyframes pulsoPuerta{
-    0%{ box-shadow:0 0 0 0 rgba(232,200,96,.5); }
-    70%{ box-shadow:0 0 22px 6px rgba(232,200,96,0); }
-    100%{ box-shadow:0 0 0 0 rgba(232,200,96,0); }
+  /* cartelito "Tocá aquí" que apunta a la puerta desde arriba */
+  #palacio-cartel{
+    position:absolute;left:50%;top:8%;transform:translateX(-50%);z-index:5;
+    background:rgba(240,216,120,.96);color:#3a2e08;
+    padding:9px 18px;border-radius:22px;font-weight:800;font-size:15px;
+    white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);
+    display:flex;flex-direction:column;align-items:center;gap:2px;
   }
+  #palacio-cartel .cartel-sub{ font-size:11px;font-weight:600;opacity:.8 }
+  /* flecha que baja desde el cartel hacia la puerta */
+  #palacio-flecha-abajo{
+    position:absolute;left:50%;top:15%;transform:translateX(-50%);z-index:5;
+    width:30px;height:30px;color:#f0d878;
+    animation:flechaBaja 1.4s ease-in-out infinite;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));
+  }
+  @keyframes flechaBaja{ 0%,100%{ transform:translateX(-50%) translateY(0);opacity:.7 } 50%{ transform:translateX(-50%) translateY(8px);opacity:1 } }
+  #palacio-pulso{ display:none; }
   #palacio-texto{
-    position:absolute;left:0;right:0;bottom:9%;text-align:center;z-index:4;
+    position:absolute;left:0;right:0;bottom:7%;text-align:center;z-index:4;
     color:#fff;pointer-events:none;padding:0 20px;
   }
   #palacio-titulo{ font-size:28px;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 12px rgba(0,0,0,.6); }
-  #palacio-sub{ font-size:15px;margin-top:6px;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.7); }
-  #palacio-flecha{ width:26px;height:26px;margin-top:12px;color:#f0d878;animation:flechaSube 1.6s ease-in-out infinite; }
-  @keyframes flechaSube{ 0%,100%{ transform:translateY(0);opacity:.6 } 50%{ transform:translateY(-6px);opacity:1 } }
+  #palacio-sub{ font-size:14px;margin-top:6px;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.7); }
+  #palacio-flecha{ display:none; }
   #palacio-entrada.oculto{ display:none; }
 
   #login-pantalla{
@@ -853,12 +867,17 @@
 <!-- ======== ENTRADA AL PALACIO (previa al login) ======== -->
 <div id="palacio-entrada">
   <div id="palacio-img">
-    <div id="palacio-zona" onclick="entrarAlPalacio()" role="button" aria-label="Entrar">
+    <div id="palacio-cartel">
+      <span>Tocá el Palacio para entrar</span>
+      <span class="cartel-sub">Tocá la entrada, entre las columnas</span>
+    </div>
+    <svg id="palacio-flecha-abajo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <div id="palacio-zona" onclick="entrarAlPalacio()" role="button" aria-label="Entrar al Palacio">
       <div id="palacio-pulso"></div>
     </div>
     <div id="palacio-texto">
       <div id="palacio-titulo">App de AFUCOA</div>
-      <div id="palacio-sub">Tocá el Palacio para ingresar</div>
+      <div id="palacio-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
       <svg id="palacio-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
     </div>
   </div>
