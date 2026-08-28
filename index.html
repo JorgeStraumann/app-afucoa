@@ -2856,9 +2856,36 @@ window.ingresar = async function(){
   }
 };
 
+// ===== Sesión con vencimiento (dura unas horas) =====
+const HORAS_SESION = 8;  // la sesión dura 8 horas de inactividad
+
+// guarda la cédula + el momento hasta el que vale la sesión
+function guardarSesion(cedula){
+  const doc = cedula.replace(/[^0-9kK]/g,'');
+  const vence = Date.now() + HORAS_SESION * 60 * 60 * 1000;
+  localStorage.setItem('afucoa_socio', doc);
+  localStorage.setItem('afucoa_sesion_vence', String(vence));
+}
+
+// devuelve la cédula si la sesión sigue vigente; si venció, la borra y devuelve null
+function leerSesion(){
+  const doc = localStorage.getItem('afucoa_socio');
+  const vence = parseInt(localStorage.getItem('afucoa_sesion_vence') || '0', 10);
+  if(!doc) return null;
+  if(!vence || Date.now() > vence){
+    // sesión vencida: limpiar
+    localStorage.removeItem('afucoa_socio');
+    localStorage.removeItem('afucoa_sesion_vence');
+    return null;
+  }
+  // sesión válida: renovar el tiempo (cada uso extiende la sesión)
+  guardarSesion(doc);
+  return doc;
+}
+
 // entra a la app como socio (guarda sesión y muestra saludo)
 async function entrarComoSocio(cedula){
-  localStorage.setItem('afucoa_socio', cedula.replace(/[^0-9kK]/g,''));
+  guardarSesion(cedula);
   abrirApp();
   const datos = await traerDatosSocio(cedula);
   mostrarSaludo(datos);
@@ -2892,6 +2919,7 @@ function abrirApp(){
 // cerrar sesión: olvida la cédula y vuelve al login
 window.cerrarSesion = function(){
   localStorage.removeItem('afucoa_socio');
+  localStorage.removeItem('afucoa_sesion_vence');
   claveAdmin = "";  // olvidar la clave de administrador por seguridad
   document.body.classList.add('con-login');
   document.getElementById('login-pantalla').style.display = 'flex';
@@ -2904,12 +2932,15 @@ window.cerrarSesion = function(){
   // cerrar el menú si estaba abierto
   const md = document.getElementById('menu-desplegable');
   if(md) md.classList.remove('abierto');
+  // volver a mostrar la pantalla de bienvenida (portada con Acceder)
+  const sp = document.getElementById('splash');
+  if(sp){ sp.style.display='flex'; sp.classList.remove('oculto'); }
   window.scrollTo(0,0);
 };
 
-// al abrir la app: si ya ingresó antes en este celular, entra directo
+// al abrir la app: si tiene sesión vigente (no vencida), entra directo
 async function revisarSesion(){
-  const guardada = localStorage.getItem('afucoa_socio');
+  const guardada = leerSesion();  // devuelve null si venció
   if(guardada){
     // re-verificar por si le dieron de baja desde que entró la última vez
     const r = await verificarCedula(guardada);
@@ -2919,11 +2950,11 @@ async function revisarSesion(){
       mostrarSaludo(datos);
       return;
     }
-    if(r === 'no'){ localStorage.removeItem('afucoa_socio'); } // ya no es socio
+    if(r === 'no'){ localStorage.removeItem('afucoa_socio'); localStorage.removeItem('afucoa_sesion_vence'); } // ya no es socio
     // si es 'error' (sin conexión), lo dejamos entrar igual para no bloquearlo
     if(r === 'error'){ abrirApp(); return; }
   }
-  // si no hay sesión, la pantalla de login queda visible (es lo que se ve por defecto)
+  // si no hay sesión vigente, la pantalla de bienvenida/login queda visible
 }
 
 // botón "quiero afiliarme" desde el login: muestra SOLO el formulario, sin entrar a la app
@@ -4379,9 +4410,12 @@ window.cerrarSplash = function(){
   const sp = document.getElementById('splash');
   if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 500); }
 };
-/* si el socio ya tiene sesión activa, saltear la bienvenida y entrar directo */
+/* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
 window.addEventListener('load', ()=>{
-  if(localStorage.getItem('afucoa_socio')){
+  const doc = localStorage.getItem('afucoa_socio');
+  const vence = parseInt(localStorage.getItem('afucoa_sesion_vence') || '0', 10);
+  const vigente = doc && vence && Date.now() <= vence;
+  if(vigente){
     const sp = document.getElementById('splash');
     if(sp){ sp.style.display='none'; }
   }
