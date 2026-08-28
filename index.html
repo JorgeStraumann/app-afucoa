@@ -297,6 +297,14 @@
   .login-caja .campo{text-align:left;margin-bottom:16px}
   .login-caja .btn{width:100%}
   .login-email-nota{font-size:12px;color:var(--tinta-suave);line-height:1.4;margin-top:6px}
+  .login-olvide{
+    background:none;border:none;color:var(--dorado);font-family:inherit;
+    font-size:13.5px;font-weight:600;cursor:pointer;margin-top:12px;text-decoration:underline;
+  }
+  #recuperacion-pantalla{
+    position:fixed;inset:0;z-index:2000;background:var(--verde);
+    display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+  }
   .login-error{font-size:13px;color:var(--rojo);line-height:1.4;margin-top:12px;min-height:1px}
   .login-volver-cedula{
     background:none;border:none;color:var(--tinta-suave);font-family:inherit;
@@ -811,6 +819,7 @@
     </div>
     <button class="btn dorado" id="login-btn" onclick="ingresar()">Continuar</button>
     <button class="login-volver-cedula" id="login-volver-cedula" onclick="volverACedula()" style="display:none">Usar otra cédula</button>
+    <button class="login-olvide" id="login-olvide" onclick="abrirRecuperacion()" style="display:none">Olvidé mi contraseña</button>
     <p class="login-error" id="login-error"></p>
     <div class="login-separador"><span>¿Todavía no sos socio?</span></div>
     <button class="btn-afiliarse login-afiliarse" onclick="afiliarseDesdeLogin()">
@@ -839,7 +848,45 @@
   </div>
 </div>
 
-<!-- ======== AFILIACIÓN DESDE EL LOGIN (sin entrar a la app) ======== -->
+<!-- ======== RECUPERAR CLAVE ======== -->
+<div id="recuperacion-pantalla" style="display:none">
+  <div class="login-caja">
+    <div class="login-logo"><img src="logo-afucoa.png" alt="AFUCOA" onerror="this.style.display='none'"></div>
+    <div class="login-titulo">Recuperar mi clave</div>
+
+    <!-- Paso 1: pedir el código -->
+    <div id="rec-paso1">
+      <p class="login-mensaje">Ingresá tu cédula. Si tenés un correo registrado, te enviaremos un código para crear una clave nueva.</p>
+      <div class="campo">
+        <label>Cédula de identidad</label>
+        <input type="text" id="rec-cedula" inputmode="numeric" placeholder="Ej: 1.234.567-8" autocomplete="off">
+      </div>
+      <button class="btn dorado" id="rec-btn1" onclick="pedirCodigoRecuperacion()">Enviarme el código</button>
+    </div>
+
+    <!-- Paso 2: ingresar código + clave nueva -->
+    <div id="rec-paso2" style="display:none">
+      <p class="login-mensaje" id="rec-mensaje2">Te enviamos un código a tu correo. Ingresalo acá junto con tu clave nueva.</p>
+      <div class="campo">
+        <label>Código recibido por correo</label>
+        <input type="text" id="rec-codigo" inputmode="numeric" placeholder="6 dígitos" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label>Nueva clave (mínimo 4 caracteres)</label>
+        <input type="password" id="rec-clave" placeholder="••••••••" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label>Repetí la nueva clave</label>
+        <input type="password" id="rec-clave2" placeholder="••••••••" autocomplete="off">
+      </div>
+      <button class="btn dorado" id="rec-btn2" onclick="confirmarRecuperacion()">Cambiar mi clave e ingresar</button>
+    </div>
+
+    <button class="login-volver-cedula" onclick="cerrarRecuperacion()">Volver al ingreso</button>
+    <p class="login-error" id="rec-error"></p>
+  </div>
+</div>
+
 <div id="afiliacion-pantalla" style="display:none">
   <div class="afilp-caja">
     <div class="afil-hero">
@@ -2330,6 +2377,113 @@ function interpretarRespuesta(r){
   return String(r);
 }
 
+// ===== RECUPERACIÓN DE CLAVE =====
+let cedulaRecuperacion = '';
+
+window.abrirRecuperacion = function(){
+  document.getElementById('login-pantalla').style.display = 'none';
+  document.getElementById('recuperacion-pantalla').style.display = 'flex';
+  // pre-cargar la cédula si venía escribiéndola
+  const cedLogin = document.getElementById('login-cedula').value.trim();
+  if(cedLogin) document.getElementById('rec-cedula').value = cedLogin;
+  document.getElementById('rec-paso1').style.display = 'block';
+  document.getElementById('rec-paso2').style.display = 'none';
+  document.getElementById('rec-error').textContent = '';
+};
+
+window.cerrarRecuperacion = function(){
+  document.getElementById('recuperacion-pantalla').style.display = 'none';
+  document.getElementById('login-pantalla').style.display = 'flex';
+  // limpiar
+  document.getElementById('rec-cedula').value = '';
+  document.getElementById('rec-codigo').value = '';
+  document.getElementById('rec-clave').value = '';
+  document.getElementById('rec-clave2').value = '';
+  document.getElementById('rec-error').textContent = '';
+  document.getElementById('rec-btn1').disabled = false;
+  document.getElementById('rec-btn1').textContent = 'Enviarme el código';
+  volverACedula();
+};
+
+// Paso 1: pedir el código de recuperación
+window.pedirCodigoRecuperacion = async function(){
+  const cedula = document.getElementById('rec-cedula').value.trim();
+  const err = document.getElementById('rec-error');
+  const btn = document.getElementById('rec-btn1');
+  err.textContent = '';
+  if(!cedula){ err.textContent = 'Ingresá tu cédula.'; return; }
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try{
+    // 1) pedir a Supabase que genere el código y devuelva el mail
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pedir_recuperacion`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula })
+    });
+    const data = await resp.json();
+    const r = Array.isArray(data) ? data[0] : data;
+    if(!r || r.estado === 'sin_mail'){
+      btn.disabled = false; btn.textContent = 'Enviarme el código';
+      err.innerHTML = 'No tenés un correo registrado, o la cédula no tiene clave creada.<br>Para restablecer tu clave, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285.';
+      return;
+    }
+    // 2) mandar el correo con el código, vía Google Apps Script
+    await fetch(URL_PUENTE, {
+      method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ tipo:'recuperacion', email: r.email, codigo: r.codigo })
+    });
+    // 3) pasar al paso 2
+    cedulaRecuperacion = cedula;
+    document.getElementById('rec-paso1').style.display = 'none';
+    document.getElementById('rec-paso2').style.display = 'block';
+    document.getElementById('rec-mensaje2').textContent = 'Te enviamos un código a ' + ocultarMail(r.email) + '. Ingresalo acá junto con tu clave nueva. (Revisá también la carpeta de spam.)';
+    btn.disabled = false; btn.textContent = 'Enviarme el código';
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Enviarme el código';
+    err.textContent = 'No se pudo enviar el código. Revisá tu conexión e intentá de nuevo.';
+  }
+};
+
+// Paso 2: confirmar el código y cambiar la clave
+window.confirmarRecuperacion = async function(){
+  const codigo = document.getElementById('rec-codigo').value.trim();
+  const clave = document.getElementById('rec-clave').value;
+  const clave2 = document.getElementById('rec-clave2').value;
+  const err = document.getElementById('rec-error');
+  const btn = document.getElementById('rec-btn2');
+  err.textContent = '';
+  if(!codigo){ err.textContent = 'Ingresá el código que te llegó por correo.'; return; }
+  if(clave.length < 4){ err.textContent = 'La clave debe tener al menos 4 caracteres.'; return; }
+  if(clave !== clave2){ err.textContent = 'Las dos claves no coinciden. Repetila igual.'; return; }
+  btn.disabled = true; btn.textContent = 'Cambiando...';
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/recuperar_con_codigo`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedulaRecuperacion, p_codigo: codigo, p_clave_nueva: clave })
+    });
+    const r = await resp.json();
+    const texto = interpretarRespuesta(r);
+    if(texto.indexOf('OK') === 0){
+      // clave cambiada: entrar directo
+      document.getElementById('recuperacion-pantalla').style.display = 'none';
+      entrarComoSocio(cedulaRecuperacion);
+    }else{
+      btn.disabled = false; btn.textContent = 'Cambiar mi clave e ingresar';
+      err.textContent = texto.replace('ERROR: ','');
+    }
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Cambiar mi clave e ingresar';
+    err.textContent = 'No se pudo cambiar la clave. Intentá de nuevo.';
+  }
+};
+
+// oculta parte del mail para mostrarlo sin revelarlo del todo (ej: ju***@gmail.com)
+function ocultarMail(mail){
+  if(!mail || mail.indexOf('@') < 0) return 'tu correo';
+  const partes = mail.split('@');
+  const ini = partes[0].slice(0,2);
+  return ini + '***@' + partes[1];
+}
+
 // paso actual del login: 'cedula' (pidiendo cédula) o 'clave' (pidiendo/creando clave)
 let pasoLogin = 'cedula';
 let modoClave = '';  // 'crear' (primera vez) o 'ingresar' (ya tiene clave)
@@ -2381,6 +2535,7 @@ window.ingresar = async function(){
       modoClave = 'ingresar';
       document.getElementById('login-clave-label').textContent = 'Ingresá tu clave de acceso';
       document.getElementById('login-campo-clave2').style.display = 'none';
+      document.getElementById('login-olvide').style.display = 'block';
       btn.textContent = 'Ingresar';
     }else{
       modoClave = 'crear';
@@ -2468,6 +2623,7 @@ window.volverACedula = function(){
   document.getElementById('login-campo-clave2').style.display = 'none';
   const ce = document.getElementById('login-campo-email'); if(ce) ce.style.display = 'none';
   document.getElementById('login-volver-cedula').style.display = 'none';
+  const ol = document.getElementById('login-olvide'); if(ol) ol.style.display = 'none';
   document.getElementById('login-mensaje').style.display = 'block';
   document.getElementById('login-error').textContent = '';
   document.getElementById('login-btn').textContent = 'Continuar';
