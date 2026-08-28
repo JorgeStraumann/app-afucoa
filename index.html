@@ -246,6 +246,16 @@
   }
   .conv-mini.activa{border-color:var(--verde);opacity:1}
   .convenio-cuerpo{padding:18px}
+  .conv-botones{display:flex;gap:8px;align-items:stretch;margin-top:4px}
+  .conv-botones .btn{flex:1;margin:0}
+  .btn-compartir-conv{
+    display:flex;align-items:center;gap:6px;background:none;
+    border:1px solid var(--linea);border-radius:10px;
+    color:var(--verde);font-family:inherit;font-size:13px;font-weight:600;
+    padding:0 14px;cursor:pointer;transition:.15s;white-space:nowrap;
+  }
+  .btn-compartir-conv:hover{background:var(--arena-2);border-color:var(--verde)}
+  .btn-compartir-conv svg{width:16px;height:16px;flex:none}
   .conv-rubro{
     font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
     color:var(--dorado);margin-bottom:4px;
@@ -1926,6 +1936,53 @@ window.toggleIndiceConvenios = function(){
   flecha.style.transform = abierto ? '' : 'rotate(180deg)';
 };
 
+// convierte un título en un slug simple y sin tildes (para links estables)
+function slugConvenio(titulo){
+  return (titulo||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')  // quitar tildes
+    .replace(/[^a-z0-9 ]/gi,'')
+    .trim().replace(/\s+/g,'-');
+}
+
+// comparte un convenio puntual con un link directo
+window.compartirConvenio = async function(indice){
+  const c = CONVENIOS[indice];
+  if(!c) return;
+  const base = location.origin + location.pathname;
+  const link = base + '?convenio=' + slugConvenio(c.titulo);
+  const texto = `Mirá este convenio de AFUCOA: ${c.titulo}`;
+  if(navigator.share){
+    try{
+      await navigator.share({ title: c.titulo, text: texto, url: link });
+      return;
+    }catch(e){ return; }
+  }
+  try{
+    await navigator.clipboard.writeText(link);
+    avisar('Link del convenio copiado. ¡Pegalo donde quieras compartirlo!');
+  }catch(e){
+    avisar('Copiá este link: ' + link);
+  }
+};
+
+// al abrir la app, si viene con ?convenio=... mostrar ese convenio directo
+function revisarConvenioEnlace(){
+  const params = new URLSearchParams(location.search);
+  const slug = params.get('convenio');
+  if(!slug) return;
+  const buscado = decodeURIComponent(slug).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const idx = CONVENIOS.findIndex(c => slugConvenio(c.titulo) === buscado);
+  if(idx >= 0){
+    document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+    document.getElementById('v-convenios').classList.add('activa');
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+    const btnConv = document.querySelector('nav button[data-vista="v-convenios"]');
+    if(btnConv) btnConv.classList.add('activo');
+    setTimeout(()=>{ abrirConvenioDesdeIndice(idx); irArriba(); }, 300);
+  }
+}
+
 // al tocar un nombre del índice: mostrar solo ese convenio
 window.abrirConvenioDesdeIndice = function(indice){
   const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
@@ -2014,7 +2071,13 @@ function pintarConvenios(){
         ${beneficios}
         ${requisitos}
         ${contactos}
-        <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Solicitar convenio</button>
+        <div class="conv-botones">
+          <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Solicitar convenio</button>
+          <button class="btn-compartir-conv" onclick="compartirConvenio(${i})" aria-label="Compartir este convenio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+            Compartir
+          </button>
+        </div>
 
         <!-- formulario de datos, oculto hasta que tocan Solicitar -->
         <div class="form-convenio" id="form-convenio-${i}" style="display:none">
@@ -4190,6 +4253,7 @@ async function cargarConvenios(){
   }catch(e){ /* sin conexión: se usan los del código */ }
   pintarConvenios();
   pintarCategorias();
+  revisarConvenioEnlace();
 }
 cargarConvenios();
 revisarSesion();
