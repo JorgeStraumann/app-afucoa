@@ -3465,6 +3465,7 @@ window.adminLista = async function(filtro, boton){
         <td>${nombre}</td>
         <td>${s.documento||''}</td>
         <td>${estado}</td>
+        <td>${s.email||'—'}</td>
       </tr>`;
     }).join('');
     cont.innerHTML = `
@@ -3475,7 +3476,7 @@ window.adminLista = async function(filtro, boton){
       <div class="lista-total" id="lista-total">${listaDatosActual.length} socio(s)</div>
       <div class="lista-scroll">
         <table class="lista-tabla">
-          <thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+          <thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th><th>Correo</th></tr></thead>
           <tbody id="lista-tbody">${filas}</tbody>
         </table>
       </div>
@@ -3516,7 +3517,7 @@ window.descargarListaWord = function(){
   const filas = listaDatosActual.map(s=>{
     const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
     const estado = s.activo ? 'Activo' : 'Inactivo';
-    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td></tr>`;
+    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td><td>${s.email||''}</td></tr>`;
   }).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
     body{font-family:Calibri,Arial,sans-serif}
@@ -3527,7 +3528,7 @@ window.descargarListaWord = function(){
   </style></head><body>
     <h2>${titulo}</h2>
     <p>Total: ${listaDatosActual.length} socio(s)</p>
-    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th><th>Correo</th></tr></thead>
     <tbody>${filas}</tbody></table>
   </body></html>`;
   const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
@@ -3542,7 +3543,7 @@ window.descargarListaPDF = function(){
   const filas = listaDatosActual.map(s=>{
     const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
     const estado = s.activo ? 'Activo' : 'Inactivo';
-    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td></tr>`;
+    return `<tr><td>${s.numero}</td><td>${nombre}</td><td>${s.documento||''}</td><td>${estado}</td><td>${s.email||''}</td></tr>`;
   }).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titulo}</title><style>
     body{font-family:Arial,sans-serif;padding:20px}
@@ -3554,7 +3555,7 @@ window.descargarListaPDF = function(){
   </style></head><body>
     <h2>${titulo}</h2>
     <p>Total: ${listaDatosActual.length} socio(s)</p>
-    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th></tr></thead>
+    <table><thead><tr><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th><th>Estado</th><th>Correo</th></tr></thead>
     <tbody>${filas}</tbody></table>
     <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
@@ -3573,8 +3574,8 @@ window.descargarRespaldo = async function(){
       mostrarResultadoAdmin('No hay socios para respaldar.', false); return;
     }
     const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
-    const cabecera = ['numero','documento','primer_nombre','primer_apellido','activo'].map(esc).join(',');
-    const filas = r.map(s => [s.numero, s.documento, s.primer_nombre, s.primer_apellido, s.activo ? 'activo':'inactivo'].map(esc).join(','));
+    const cabecera = ['numero','documento','primer_nombre','primer_apellido','activo','email'].map(esc).join(',');
+    const filas = r.map(s => [s.numero, s.documento, s.primer_nombre, s.primer_apellido, s.activo ? 'activo':'inactivo', s.email||''].map(esc).join(','));
     const csv = '\ufeff' + cabecera + '\r\n' + filas.join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const hoy = new Date().toISOString().slice(0,10);
