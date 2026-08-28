@@ -51,31 +51,39 @@
   /* ---------- Pantalla de carga (splash) ---------- */
   #splash{
     position:fixed;inset:0;z-index:3000;
-    background:linear-gradient(160deg,#1a237e 0%,#283593 55%,#1a237e 100%);
+    background:linear-gradient(rgba(26,35,126,.78),rgba(26,35,126,.82)), url('palacio-entrada.jpg') center 38% / cover no-repeat;
     display:flex;align-items:center;justify-content:center;
     transition:opacity .5s ease;
   }
   #splash.oculto{opacity:0;pointer-events:none}
-  .splash-inner{text-align:center;animation:splashEntra .7s ease}
+  .splash-inner{text-align:center;animation:splashEntra .7s ease;padding:0 28px;max-width:440px}
   .splash-logo{
     width:96px;height:96px;border-radius:50%;background:#fff;padding:8px;
-    box-shadow:0 8px 30px rgba(0,0,0,.35);animation:splashLatir 1.6s ease-in-out infinite;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);animation:splashLatir 2.4s ease-in-out infinite;
   }
   .splash-nombre{
     color:#fff;font-size:30px;font-weight:800;letter-spacing:1px;margin-top:18px;
   }
-  .splash-sub{color:#b5c0f0;font-size:14px;margin-top:2px;letter-spacing:.5px}
-  .splash-barra{
-    width:140px;height:4px;border-radius:2px;background:rgba(255,255,255,.2);
-    margin:22px auto 0;overflow:hidden;
+  .splash-sub{color:#d8dffb;font-size:13.5px;margin-top:4px;line-height:1.4}
+  .splash-frase{
+    color:#f0d878;font-size:13px;font-style:italic;line-height:1.5;
+    margin:24px auto 0;max-width:340px;
   }
-  .splash-barra-fill{
-    width:40%;height:100%;border-radius:2px;background:var(--dorado);
-    animation:splashCarga 1.2s ease-in-out infinite;
+  .splash-frase-aut{
+    display:block;font-style:normal;font-weight:700;font-size:12px;
+    letter-spacing:1px;margin-top:6px;color:rgba(255,255,255,.7);
   }
+  .splash-btn{
+    margin-top:30px;background:var(--dorado);color:#3a2e08;
+    border:none;border-radius:30px;font-family:inherit;font-size:16px;font-weight:800;
+    padding:14px 48px;cursor:pointer;letter-spacing:.5px;
+    box-shadow:0 6px 20px rgba(240,216,120,.4);transition:transform .15s ease;
+    animation:splashBtnLatir 2s ease-in-out infinite;
+  }
+  .splash-btn:active{transform:scale(.96)}
   @keyframes splashEntra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  @keyframes splashLatir{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-  @keyframes splashCarga{0%{transform:translateX(-120%)}100%{transform:translateX(360%)}}
+  @keyframes splashLatir{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes splashBtnLatir{0%,100%{box-shadow:0 6px 20px rgba(240,216,120,.4)}50%{box-shadow:0 6px 28px rgba(240,216,120,.7)}}
 
   /* ---------- Encabezado ---------- */
   header{
@@ -363,53 +371,6 @@
   .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 
   /* ---------- Pantalla de ingreso (login) ---------- */
-  #palacio-entrada{
-    position:fixed;inset:0;z-index:2500;background:#0b1030;overflow:hidden;
-  }
-  #palacio-img{
-    position:absolute;inset:0;
-    background:url('palacio-entrada.jpg') center 38% / cover no-repeat;
-    transition:transform 1.2s ease-in, opacity .6s ease-in .6s;
-    transform-origin:50% 46%;
-  }
-  #palacio-img.entrando{ transform:scale(3.6); opacity:0; }
-  /* oscurecido suave para que se lea el texto */
-  #palacio-img::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(to bottom, rgba(10,16,48,.15) 0%, rgba(10,16,48,0) 30%, rgba(10,16,48,.55) 100%);
-  }
-  /* zona tocable: la puerta central del Vestíbulo */
-  #palacio-zona{
-    position:absolute;left:50%;top:64%;transform:translate(-50%,-50%);
-    width:12%;height:20%;cursor:pointer;z-index:3;border-radius:4px;
-  }
-  /* indicador: cartel arriba + flecha que termina justo sobre la puerta central */
-  #palacio-indicador{
-    position:absolute;left:50%;top:49%;transform:translateX(-50%);z-index:5;
-    display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;
-    animation:latidoSuave 2s ease-in-out infinite;
-  }
-  #palacio-indicador .cartel{
-    background:rgba(26,35,126,.92);color:#fff;
-    padding:8px 16px;border-radius:20px;font-weight:700;font-size:13px;
-    white-space:nowrap;box-shadow:0 3px 14px rgba(0,0,0,.5);
-    border:1.5px solid rgba(240,216,120,.85);
-  }
-  #palacio-indicador .flecha{
-    width:26px;height:26px;color:#f0d878;
-    filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));
-  }
-  @keyframes latidoSuave{ 0%,100%{ transform:translateX(-50%) translateY(0);opacity:.9 } 50%{ transform:translateX(-50%) translateY(6px);opacity:1 } }
-  #palacio-pulso{ display:none; }
-  #palacio-texto{
-    position:absolute;left:0;right:0;bottom:7%;text-align:center;z-index:4;
-    color:#fff;pointer-events:none;padding:0 20px;
-  }
-  #palacio-titulo{ font-size:28px;font-weight:800;letter-spacing:.5px;text-shadow:0 2px 12px rgba(0,0,0,.6); }
-  #palacio-sub{ font-size:14px;margin-top:6px;opacity:.95;text-shadow:0 2px 10px rgba(0,0,0,.7); }
-  #palacio-flecha{ display:none; }
-  #palacio-entrada.oculto{ display:none; }
-
   #login-pantalla{
     position:fixed;inset:0;z-index:2000;
     background:linear-gradient(rgba(20,26,70,.72),rgba(20,26,70,.82)), url('vestibulo-honor.jpg') center / cover no-repeat;
@@ -927,29 +888,16 @@
   <div class="splash-inner">
     <img src="logo-header.png" alt="AFUCOA" class="splash-logo">
     <div class="splash-nombre">AFUCOA</div>
-    <div class="splash-sub">Comisión Administrativa</div>
-    <div class="splash-barra"><div class="splash-barra-fill"></div></div>
+    <div class="splash-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
+    <div class="splash-frase">
+      «Mi autoridad emana de vosotros y ella cesa por vuestra presencia soberana»
+      <span class="splash-frase-aut">— Artigas</span>
+    </div>
+    <button class="splash-btn" onclick="cerrarSplash()">Acceder</button>
   </div>
 </div>
 
 <!-- ======== PANTALLA DE INGRESO (solo socios) ======== -->
-<!-- ======== ENTRADA AL PALACIO (previa al login) ======== -->
-<div id="palacio-entrada">
-  <div id="palacio-img">
-    <div id="palacio-indicador">
-      <div class="cartel">Ingresá a la app de AFUCOA</div>
-      <svg class="flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-    </div>
-    <div id="palacio-zona" onclick="entrarAlPalacio()" role="button" aria-label="Ingresar a la app de AFUCOA">
-      <div id="palacio-pulso"></div>
-    </div>
-    <div id="palacio-texto">
-      <div id="palacio-titulo">App de AFUCOA</div>
-      <div id="palacio-sub">Asociación de Funcionarios de la Comisión Administrativa</div>
-      <svg id="palacio-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-    </div>
-  </div>
-</div>
 
 <div id="login-pantalla">
   <div class="login-caja">
@@ -2946,13 +2894,6 @@ window.cerrarSesion = function(){
   localStorage.removeItem('afucoa_socio');
   claveAdmin = "";  // olvidar la clave de administrador por seguridad
   document.body.classList.add('con-login');
-  // volver a mostrar la entrada del Palacio
-  const entrada = document.getElementById('palacio-entrada');
-  const img = document.getElementById('palacio-img');
-  const pulso = document.getElementById('palacio-pulso');
-  if(entrada){ entrada.classList.remove('oculto'); }
-  if(img){ img.classList.remove('entrando'); }
-  if(pulso){ pulso.style.display = 'block'; }
   document.getElementById('login-pantalla').style.display = 'flex';
   if(typeof volverACedula === 'function') volverACedula();  // resetear a pedir cédula
   document.getElementById('login-cedula').value = '';
@@ -2970,8 +2911,6 @@ window.cerrarSesion = function(){
 async function revisarSesion(){
   const guardada = localStorage.getItem('afucoa_socio');
   if(guardada){
-    // si hay sesión, saltear la entrada del Palacio
-    ocultarPalacioEntrada();
     // re-verificar por si le dieron de baja desde que entró la última vez
     const r = await verificarCedula(guardada);
     if(r === 'si'){
@@ -2985,25 +2924,6 @@ async function revisarSesion(){
     if(r === 'error'){ abrirApp(); return; }
   }
   // si no hay sesión, la pantalla de login queda visible (es lo que se ve por defecto)
-}
-
-// animación de "entrar" al Palacio: zoom hacia el pórtico y aparece el login
-window.entrarAlPalacio = function(){
-  const img = document.getElementById('palacio-img');
-  const entrada = document.getElementById('palacio-entrada');
-  if(!img || !entrada) return;
-  img.classList.add('entrando');
-  // ocultar el pulso durante la animación
-  const pulso = document.getElementById('palacio-pulso');
-  if(pulso) pulso.style.display = 'none';
-  // cuando termina el zoom, ocultar la entrada (deja ver el login que está debajo)
-  setTimeout(()=>{ entrada.classList.add('oculto'); }, 1300);
-};
-
-// oculta la entrada del Palacio sin animación (cuando ya hay sesión)
-function ocultarPalacioEntrada(){
-  const entrada = document.getElementById('palacio-entrada');
-  if(entrada) entrada.classList.add('oculto');
 }
 
 // botón "quiero afiliarme" desde el login: muestra SOLO el formulario, sin entrar a la app
@@ -4454,12 +4374,17 @@ async function cargarConvenios(){
 cargarConvenios();
 revisarSesion();
 
-/* ocultar la pantalla de carga (splash) tras un momento */
+/* la pantalla de bienvenida se cierra al tocar "Acceder" */
+window.cerrarSplash = function(){
+  const sp = document.getElementById('splash');
+  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 500); }
+};
+/* si el socio ya tiene sesión activa, saltear la bienvenida y entrar directo */
 window.addEventListener('load', ()=>{
-  setTimeout(()=>{
+  if(localStorage.getItem('afucoa_socio')){
     const sp = document.getElementById('splash');
-    if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 500); }
-  }, 1400);
+    if(sp){ sp.style.display='none'; }
+  }
 });
 
 /* Registrar el service worker (para poder instalarla como app) */
