@@ -2299,6 +2299,22 @@ function mostrarSaludo(datos){
   }
 }
 
+// interpreta la respuesta de Supabase (puede venir como texto, array, u objeto de error)
+function interpretarRespuesta(r){
+  if(r == null) return '';
+  if(typeof r === 'string') return r;
+  if(Array.isArray(r)) return r.length ? interpretarRespuesta(r[0]) : '';
+  // objeto de error de Supabase (message, hint, details...)
+  if(typeof r === 'object'){
+    if(r.message) return 'ERROR: ' + r.message;
+    if(r.hint) return 'ERROR: ' + r.hint;
+    // objeto con un solo valor de texto
+    const vals = Object.values(r);
+    if(vals.length === 1 && typeof vals[0] === 'string') return vals[0];
+  }
+  return String(r);
+}
+
 // paso actual del login: 'cedula' (pidiendo cédula) o 'clave' (pidiendo/creando clave)
 let pasoLogin = 'cedula';
 let modoClave = '';  // 'crear' (primera vez) o 'ingresar' (ya tiene clave)
@@ -2377,11 +2393,12 @@ window.ingresar = async function(){
         body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave })
       });
       const r = await resp.json();
-      if(String(r).indexOf('OK') === 0){
+      const texto = interpretarRespuesta(r);
+      if(texto.indexOf('OK') === 0){
         entrarComoSocio(cedulaEnProceso);
       }else{
         btn.disabled = false; btn.textContent = 'Crear clave e ingresar';
-        err.textContent = String(r).replace('ERROR: ','');
+        err.textContent = texto ? texto.replace('ERROR: ','') : 'No se pudo crear la clave. Intentá de nuevo.';
       }
     }catch(e){
       btn.disabled = false; btn.textContent = 'Crear clave e ingresar';
@@ -2431,6 +2448,7 @@ window.volverACedula = function(){
   document.getElementById('login-mensaje').style.display = 'block';
   document.getElementById('login-error').textContent = '';
   document.getElementById('login-btn').textContent = 'Continuar';
+  document.getElementById('login-btn').disabled = false;
 };
 
 // oculta el login y muestra la app
