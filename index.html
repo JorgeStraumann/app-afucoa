@@ -4498,13 +4498,11 @@ const VAPID_KEY = "BEKOJgmVuh08M-w1RkS_d0IZkRke2giKlB73ovatkbWTlwBgDcb0yGQ6veUtn
 async function activarNotificaciones(){
   // solo si el navegador lo soporta
   if(!('Notification' in window) || typeof firebase === 'undefined' || !firebase.messaging){
-    console.log('[Push] Navegador no soporta notificaciones o Firebase no cargó');
     return;
   }
   try{
     // pedir permiso al usuario
     const permiso = await Notification.requestPermission();
-    console.log('[Push] Permiso:', permiso);
     if(permiso !== 'granted') return;  // dijo que no, o no respondió
 
     if(!firebase.apps || !firebase.apps.length){
@@ -4512,15 +4510,13 @@ async function activarNotificaciones(){
     }
     const messaging = firebase.messaging();
 
-    // registrar el service worker de notificaciones y ESPERAR a que esté listo
+    // registrar el service worker de notificaciones con su propio scope
     const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
     await navigator.serviceWorker.ready;
-    console.log('[Push] Service worker de Firebase registrado:', reg.scope);
 
     // obtener el token de este dispositivo
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-    if(!token){ console.log('[Push] No se obtuvo token'); return; }
-    console.log('[Push] Token obtenido OK');
+    if(!token) return;
 
     // guardar el token en Supabase, asociado al socio
     const cedula = localStorage.getItem('afucoa_socio') || '';
@@ -4528,18 +4524,14 @@ async function activarNotificaciones(){
       method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
       body: JSON.stringify({ p_token: token, p_documento: cedula })
     });
-    console.log('[Push] Token guardado en Supabase');
 
     // si llega una notificación con la app abierta, mostrar un aviso suave
     messaging.onMessage((payload)=>{
-      console.log('[Push] Mensaje recibido con app abierta:', payload);
       const t = (payload.notification && payload.notification.title) || 'AFUCOA';
       const b = (payload.notification && payload.notification.body) || '';
       avisar(t + (b ? ': ' + b : ''));
     });
-  }catch(e){
-    console.log('[Push] ERROR:', e);  // ahora sí vemos si algo falla
-  }
+  }catch(e){ /* si algo falla, la app sigue funcionando normal */ }
 }
 window.cerrarSplash = function(){
   const sp = document.getElementById('splash');
