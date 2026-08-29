@@ -228,6 +228,12 @@
   .cuenta-msg{font-size:13px;margin-top:10px;min-height:1px;line-height:1.4}
   .cuenta-msg.ok{color:var(--verde);font-weight:600}
   .cuenta-msg.error{color:var(--rojo)}
+  .push-opcion{
+    background:#eef1ff;border:1px solid #c5cef8;border-radius:12px;
+    padding:16px;margin-top:14px;animation:aparecer .3s ease;
+  }
+  .push-opcion-txt{font-size:14px;color:var(--verde);font-weight:600;margin-bottom:12px;line-height:1.4}
+  .push-opcion-btns{display:flex;gap:10px}
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -3862,14 +3868,60 @@ window.publicarNovedad = async function(){
     const ok = String(r).indexOf('OK') === 0;
     mostrarResultadoAdmin(r, ok);
     if(ok){
+      // guardar el título/cuerpo para la notificación antes de limpiar
+      const notiTitulo = titulo;
+      const notiCuerpo = cuerpo || 'Hay una nueva novedad en la app de AFUCOA';
       document.getElementById('nov-etiqueta').value = '';
       document.getElementById('nov-titulo').value = '';
       document.getElementById('nov-cuerpo').value = '';
       document.getElementById('nov-imagen').value = '';
       cargarNovedadesPanel();
+      // ofrecer enviar la notificación push
+      mostrarOpcionPush(notiTitulo, notiCuerpo);
     }
   }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
+
+// muestra un botón para enviar la notificación push de la novedad recién publicada
+function mostrarOpcionPush(titulo, cuerpo){
+  const res = document.getElementById('admin-resultado');
+  const div = document.createElement('div');
+  div.className = 'push-opcion';
+  div.innerHTML = `
+    <p class="push-opcion-txt">✅ Novedad publicada. ¿Querés avisarles a los socios con una notificación?</p>
+    <div class="push-opcion-btns">
+      <button class="btn-conf-si" id="btn-enviar-push">Sí, enviar notificación</button>
+      <button class="btn-conf-no" onclick="this.closest('.push-opcion').remove()">Ahora no</button>
+    </div>`;
+  res.parentElement.insertBefore(div, res.nextSibling);
+  document.getElementById('btn-enviar-push').onclick = async function(){
+    this.disabled = true; this.textContent = 'Enviando...';
+    await enviarNotificacionPush(titulo, cuerpo);
+    div.remove();
+  };
+}
+
+// trae los tokens y le pide al Apps Script que envíe la notificación
+async function enviarNotificacionPush(titulo, cuerpo){
+  const res = document.getElementById('admin-resultado');
+  try{
+    // 1) traer todos los tokens registrados
+    const tokensResp = await llamarAdmin('admin_listar_tokens', { clave: claveAdmin });
+    const tokens = Array.isArray(tokensResp) ? tokensResp.map(t=>t.token).filter(Boolean) : [];
+    if(tokens.length === 0){
+      mostrarResultadoAdmin('No hay celulares registrados para notificar todavía.', false);
+      return;
+    }
+    // 2) pedirle al Apps Script que las envíe
+    res.textContent = `Enviando a ${tokens.length} dispositivo(s)...`; res.className = 'admin-resultado';
+    await fetch(URL_PUENTE, {
+      method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ tipo:'push', titulo: titulo, cuerpo: cuerpo, tokens: tokens })
+    });
+    // como es no-cors, no podemos leer la respuesta, pero el envío se dispara
+    mostrarResultadoAdmin(`Notificación enviada a ${tokens.length} dispositivo(s).`, true);
+  }catch(e){ mostrarResultadoAdmin('No se pudo enviar la notificación. Intentá de nuevo.', false); }
+}
 
 // listar las novedades en el panel (con botón de borrar)
 async function cargarNovedadesPanel(){
