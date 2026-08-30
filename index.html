@@ -2951,6 +2951,7 @@ window.cerrarSesion = function(){
   localStorage.removeItem('afucoa_socio');
   localStorage.removeItem('afucoa_sesion_vence');
   claveAdmin = "";  // olvidar la clave de administrador por seguridad
+  try{ sessionStorage.removeItem('afucoa_admin_clave'); }catch(e){}  // olvidar el panel recordado
   document.body.classList.add('con-login');
   document.getElementById('login-pantalla').style.display = 'flex';
   if(typeof volverACedula === 'function') volverACedula();  // resetear a pedir cédula
@@ -2978,6 +2979,7 @@ async function revisarSesion(){
       abrirApp();
       const datos = await traerDatosSocio(guardada);
       mostrarSaludo(datos);
+      reabrirPanelSiCorresponde();  // si estaba en el panel antes del refresh, volver
       return;
     }
     if(r === 'no'){ localStorage.removeItem('afucoa_socio'); localStorage.removeItem('afucoa_sesion_vence'); } // ya no es socio
@@ -3518,9 +3520,45 @@ window.abrirPanelAdmin = function(){
   document.getElementById('v-admin').classList.add('activa');
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
   menuDesplegable.classList.remove('abierto');
-  resetearPanelAdmin();
+  // si el panel está recordado (clave guardada), reabrir directo sin pedir clave
+  let guardada = '';
+  try{ guardada = sessionStorage.getItem('afucoa_admin_clave') || ''; }catch(e){}
+  if(guardada){
+    reabrirPanelSiCorresponde();
+  }else{
+    resetearPanelAdmin();
+  }
   irArriba();
 };
+
+// reabre el panel automáticamente si hay una clave guardada (tras un refresh)
+async function reabrirPanelSiCorresponde(){
+  let clave = '';
+  try{ clave = sessionStorage.getItem('afucoa_admin_clave') || ''; }catch(e){}
+  if(!clave) return;
+  // verificar que la clave siga siendo válida antes de mostrar el panel
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_verificar_clave`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ clave: clave })
+    });
+    const valida = await resp.json();
+    if(valida === true){
+      claveAdmin = clave;
+      // abrir la vista del panel
+      document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+      document.getElementById('v-admin').classList.add('activa');
+      document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+      document.getElementById('admin-bloqueo').style.display = 'none';
+      document.getElementById('admin-contenido').style.display = 'block';
+      document.getElementById('admin-menu').value = 'estadisticas';
+      adminTabSelect('estadisticas');
+    }else{
+      try{ sessionStorage.removeItem('afucoa_admin_clave'); }catch(e){}
+    }
+  }catch(e){ /* sin conexión: no reabrir, que ingrese normal */ }
+}
 
 // vuelve el panel al estado bloqueado (pide clave, oculta contenido)
 function resetearPanelAdmin(){
@@ -3552,6 +3590,8 @@ window.entrarPanelAdmin = async function(){
     const valida = await resp.json();
     if(valida === true){
       claveAdmin = clave;
+      // recordar el panel para que sobreviva al refresh (mientras dure la sesión)
+      try{ sessionStorage.setItem('afucoa_admin_clave', clave); }catch(e){}
       err.textContent = '';
       document.getElementById('admin-bloqueo').style.display = 'none';
       document.getElementById('admin-contenido').style.display = 'block';
