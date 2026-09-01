@@ -1,0 +1,9 @@
+cédula;ficha;nombre;apellido;email;teléfono;sector;estado
+1.234.567-2;PILOT-T001;Ana;Prueba;ana.pilot@example.invalid;099000001;Administración;activo
+2.345.678-3;PILOT-T002;Bruno;Prueba;bruno.pilot@example.invalid;099000002;Talleres;activo
+3.456.789-4;PILOT-T003;Carla;Prueba;carla.pilot@example.invalid;099000003;Servicios;activo
+4.567.890-5;PILOT-T004;Diego;Prueba;diego.pilot@example.invalid;099000004;Comisiones;activo
+5.678.901-6;PILOT-T005;Elena;Prueba;elena.pilot@example.invalid;099000005;Mantenimiento;activo
+6.789.012-7;PILOT-T006;Facundo;Prueba;facundo.pilot@example.invalid;099000006;Administración;activo
+123;PILOT-X001;Inválida;Prueba;invalida@example.invalid;;;activo
+1.234.567-2;PILOT-X002;Duplicada;Prueba;duplicada@example.invalid;;;activo

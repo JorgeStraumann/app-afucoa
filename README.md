@@ -26,6 +26,10 @@ Ejecutar en este orden:
 
 No se debe usar `service_role` en el navegador. Los buckets de expedientes y documentos son privados. Las mutaciones administrativas siguen sometidas a RLS.
 
+## Pilot 01
+
+El procedimiento de incorporación controlada de 5–10 socios V1 está documentado en `docs/pilot-01.md`. La normalización no toca Supabase; la creación de Auth se realiza solamente desde el importador Node server-side y exige confirmación explícita del proyecto DEV. `npm run test:pilot` valida idempotencia y rollback con datos sintéticos.
+
 ## Incremento 10
 - Socios administrativos conectables a `profiles`.
 - Bandeja real de expedientes y RPC transaccional para cambios de estado.

@@ -5,7 +5,7 @@ Fecha: 1 de septiembre de 2026. Proyecto: `imiplnspvmsrsuikulwm` (`AFUCOA V2 DEV
 ## Alcance y seguridad
 
 - Entorno local configurado en modo `supabase` con URL y publishable key.
-- No se incorporó ni expuso una `service_role` en frontend, scripts o evidencias.
+- No se incorporó ni expuso ningún valor de `service_role` en frontend o evidencias. El importador Pilot 01 posterior solo admite la clave desde el entorno privado del proceso Node server-side.
 - No se modificó AFUCOA V1 ni un proyecto de producción.
 - Los tres perfiles DEV quedaron restaurados en sus roles finales: `socio`, `admin` y `superadmin`.
 

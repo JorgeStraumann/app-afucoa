@@ -8,7 +8,7 @@
 - Propuestas del socio conectables a Supabase.
 - Noticias/Comunicados/Agenda conectables a `content_items`.
 - Preparación de perfiles para trazabilidad de migración V1.
-- Script local para normalizar un CSV V1 sin escribir en producción.
+- Flujo Pilot 01 para normalizar, prevalidar, importar de forma idempotente y revertir un lote de 5–10 socios en DEV.
 - Matriz de pruebas RLS para anon/socio A/socio B/admin.
 
 ## Decisión de migración
@@ -19,10 +19,16 @@ La migración se divide en tres operaciones y nunca se hace directamente sobre p
 
 No se migran contraseñas V1 salvo que exista un hash compatible y exista una razón técnica justificada. Por defecto se crea una activación/recuperación inicial.
 
+## Pilot 01 preparado
+- Procedimiento operativo: `docs/pilot-01.md`.
+- Auth se crea únicamente con `supabase.auth.admin.createUser()` desde Node server-side.
+- Reporte separado de credenciales y journal de rollback por lote.
+- Validación sintética automatizada sin crear usuarios reales.
+
 ## Pendiente antes de usuarios reales
 - Integrar proveedor transaccional de correo para entregar códigos de recuperación.
 - Añadir rate limiting/CAPTCHA al endpoint público de recuperación.
 - Ejecutar `schema-v2.sql`, `security-v2.sql` y `storage-v2.sql` en desarrollo.
-- Completar pruebas RLS de `tests/rls-checklist.md`.
-- Validar build Vite completo y pruebas de navegador.
+- Aprobar la lista nominal de 5–10 participantes y el canal seguro de entrega de credenciales temporales.
+- Habilitar protección de contraseñas filtradas y revisar SMTP/recuperación antes del inicio del piloto.
 - Conectar las mutaciones del panel Admin a RPC/Edge Functions auditadas.
