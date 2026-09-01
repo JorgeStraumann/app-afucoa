@@ -18,3 +18,7 @@ Ejecutar en un proyecto Supabase de desarrollo con cuatro identidades: anon, soc
 `*` El portal actual exige sesión para biblioteca. La verificación QR es la única ruta pública de datos de membresía.
 
 Además probar: token QR vencido/revocado, usuario dado de baja, archivo con path ajeno, propuesta cerrada, sesión admin degradada a socio y recuperación con más de cinco intentos.
+
+## Prueba automatizada
+
+`rls-live-check.mjs` ejecuta la matriz contra identidades reales y requiere las variables de entorno `AFUCOA_SUPABASE_URL`, `AFUCOA_PUBLISHABLE_KEY` y `AFUCOA_TEST_USERS`. Las credenciales nunca deben guardarse en el repositorio.
