@@ -4,10 +4,7 @@ import { proposals as demoProposals } from './mock-data.js';
 export async function listProposals() {
   if (appMode !== 'supabase') return demoProposals.map(x => ({ ...x }));
   const client = requireSupabase();
-  const { data, error } = await client
-    .from('proposals')
-    .select('id,title,description,status,response,published_at,closed_at,created_at,profile_id,proposal_supports(profile_id)')
-    .order('created_at', { ascending: false });
+  const { data, error } = await client.rpc('list_visible_proposals');
   if (error) throw error;
   return (data || []).map(row => ({
     id: row.id,
@@ -16,12 +13,12 @@ export async function listProposals() {
     description: row.description,
     status: row.status,
     statusLabel: labelStatus(row.status),
-    supports: row.proposal_supports?.length || 0,
+    supports: Number(row.support_count || 0),
     response: row.response,
     dateLabel: new Date(row.created_at).toLocaleDateString('es-UY'),
     category: 'Propuesta',
-    mine: false,
-    supported: false,
+    mine: Boolean(row.mine),
+    supported: Boolean(row.supported),
   }));
 }
 

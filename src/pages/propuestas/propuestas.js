@@ -1,5 +1,6 @@
 import { appMode } from '../../services/supabase.js';
 import { listProposals, createProposal, supportProposal } from '../../services/proposals-repository.js';
+import { escapeHtml } from '../../utils/html.js';
 
 let proposals = [];
 
@@ -15,7 +16,7 @@ export async function renderProposals() {
 
 function proposalCards(items) {
   if (!items.length) return `<div class="card empty-state"><h3>No hay propuestas en esta vista</h3><p>Cuando existan, aparecerán acá.</p></div>`;
-  return items.map(p => `<article class="card proposal-card"><div class="proposal-top"><span class="category-tag">${p.category || 'Propuesta'}</span><span class="pill ${p.status==='respondida'?'success-soft':''}">${p.statusLabel}</span></div><h3>${p.title}</h3><p>${p.summary}</p>${p.response ? `<div class="institutional-response"><strong>Respuesta de AFUCOA</strong><p>${p.response}</p></div>`:''}<div class="proposal-foot"><div><strong>${p.supports}</strong><small> apoyos</small></div>${p.status==='publicada'?`<button class="button ghost support-button" data-support="${p.id}" ${p.supported?'disabled':''}>${p.supported?'Apoyada ✓':'Apoyar propuesta'}</button>`:`<small>${p.dateLabel}</small>`}</div></article>`).join('');
+  return items.map(p => `<article class="card proposal-card"><div class="proposal-top"><span class="category-tag">${escapeHtml(p.category || 'Propuesta')}</span><span class="pill ${p.status==='respondida'?'success-soft':''}">${escapeHtml(p.statusLabel)}</span></div><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.summary)}</p>${p.response ? `<div class="institutional-response"><strong>Respuesta de AFUCOA</strong><p>${escapeHtml(p.response)}</p></div>`:''}<div class="proposal-foot"><div><strong>${Number(p.supports)||0}</strong><small> apoyos</small></div>${p.status==='publicada'?`<button class="button ghost support-button" data-support="${escapeHtml(p.id)}" ${p.supported?'disabled':''}>${p.supported?'Apoyada ✓':'Apoyar propuesta'}</button>`:`<small>${escapeHtml(p.dateLabel)}</small>`}</div></article>`).join('');
 }
 
 export function bindProposals() {

@@ -16,7 +16,7 @@ import { renderAccount, bindAccount } from './pages/cuenta/cuenta.js';
 import { renderVerification } from './pages/verificacion/verificacion.js';
 import { renderRecovery, bindRecovery } from './pages/recuperar/recuperar.js';
 import { registerRoute, setRouteChangeHandler, startRouter, navigate, renderCurrentRoute } from './router/router.js';
-import { bootstrapSession, getSession, isAdminSession, startDemoSession, startRealSession } from './store/session.js';
+import { bootstrapSession, getSession, isAdminSession, refreshProfile, startDemoSession, startRealSession } from './store/session.js';
 import { signInWithDocument } from './services/auth-service.js';
 import { appMode } from './services/supabase.js';
 import { renderAdminDashboard, bindAdminDashboard, renderAdminMembers, bindAdminMembers, renderAdminRequests, bindAdminRequests, renderAdminAgreements, bindAdminAgreements } from './pages/admin/admin.js';
@@ -54,6 +54,7 @@ registerRoute('/admin/configuracion', renderAdminSettings, { layout: 'admin', ad
 setRouteChangeHandler(async ({ path, route, params }) => {
   const session = getSession();
   if (!route.public && !session) { navigate('/login'); return; }
+  if (route.adminOnly && session && appMode === 'supabase') await refreshProfile();
   if (route.adminOnly && !isAdminSession()) { navigate('/'); return; }
   if (path === '/login' && session) { navigate('/'); return; }
 

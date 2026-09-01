@@ -32,5 +32,5 @@ export async function submitRequest(definitionId, payload) {
     p_payload: payload,
   });
   if (error) throw error;
-  return data;
+  return Array.isArray(data) ? data[0] ?? null : data;
 }
