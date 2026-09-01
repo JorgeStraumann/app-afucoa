@@ -9,7 +9,7 @@ export function normalizeDocument(value = '') {
 export function documentToAuthEmail(documentNumber) {
   const normalized = normalizeDocument(documentNumber);
   if (normalized.length < 6) throw new Error('Ingresá una cédula válida.');
-  return `ci-${normalized}@${aliasDomain}`;
+  return `${normalized}@${aliasDomain}`;
 }
 
 export async function signInWithDocument(documentNumber, password) {
@@ -24,7 +24,7 @@ export async function signInWithDocument(documentNumber, password) {
 export async function signOut() {
   if (!supabase) return;
   const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  if (error && error.name !== 'AuthSessionMissingError') throw error;
 }
 
 export async function getAuthSession() {

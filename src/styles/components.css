@@ -366,6 +366,7 @@
 @media (max-width:599px) {
   .module-head { align-items:flex-start; flex-direction:column; }
   .module-head .button { width:100%; }
+  .chips,.tabs { flex-wrap:wrap; overflow:visible; }
   .document-card { grid-template-columns:auto 1fr; }
   .document-actions { grid-column:1/-1; justify-content:flex-end; }
 }

@@ -60,9 +60,12 @@ export async function refreshProfile() {
 }
 
 export async function endSession() {
-  if (appMode === 'demo') localStorage.removeItem(SESSION_KEY);
-  else await authSignOut();
-  currentSession = null;
+  try {
+    if (appMode === 'demo') localStorage.removeItem(SESSION_KEY);
+    else await authSignOut();
+  } finally {
+    currentSession = null;
+  }
 }
 
 async function buildRealSession(authSession) {

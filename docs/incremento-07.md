@@ -11,7 +11,7 @@ La selección se realiza mediante variables de entorno. Nunca se debe guardar la
 
 ## Autenticación por cédula
 
-La UX mantiene cédula + contraseña. Supabase Auth usa internamente un alias de email determinístico, por ejemplo `ci-12345678@auth.afucoa.local`. Ese alias NO es el correo real del socio y no constituye un secreto.
+La UX mantiene cédula + contraseña. Supabase Auth usa internamente un alias de email determinístico, por ejemplo `12345678@auth.afucoa.local`. Ese alias NO es el correo real del socio y no constituye un secreto.
 
 La recuperación de contraseña no debe intentar enviar correo al alias. Se implementará con una Edge Function que reciba la cédula, resuelva el correo real del perfil y dispare un flujo de recuperación sin exponerlo al cliente.
 

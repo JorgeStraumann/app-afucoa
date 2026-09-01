@@ -12,7 +12,7 @@ export function renderAdminDashboard() {
     ${adminHead('Panel de administración','Resumen operativo de AFUCOA y tareas que requieren atención.')}
     <section id="admin-stat-grid" class="admin-stat-grid">${adminStats.map(statCard).join('')}</section>
     <section class="admin-dashboard-grid">
-      <article class="card admin-panel"><div class="admin-panel-head"><div><span class="eyebrow">Prioridad operativa</span><h2>Solicitudes que requieren atención</h2></div><a class="text-button" href="#/admin/tramites">Ver bandeja →</a></div>${requestTable(adminRequests.slice(0,4),true)}</article>
+      <article class="card admin-panel"><div class="admin-panel-head"><div><span class="eyebrow">Prioridad operativa</span><h2>Solicitudes que requieren atención</h2></div><a class="text-button" href="#/admin/tramites">Ver bandeja →</a></div><div id="admin-dashboard-requests">${requestTable(adminRequests.slice(0,4),true)}</div></article>
       <article class="card admin-panel"><div class="admin-panel-head"><div><span class="eyebrow">Actividad</span><h2>Movimientos recientes</h2></div></div><div id="admin-dashboard-activity" class="admin-activity">${adminActivity.map(activityRow).join('')}</div></article>
     </section>
     <section class="admin-quick-grid">
@@ -37,6 +37,8 @@ export async function bindAdminDashboard() {
     const grid=document.querySelector('#admin-stat-grid'); if(grid) grid.innerHTML=stats.map(statCard).join('');
     const activity=document.querySelector('#admin-dashboard-activity');
     if(activity) activity.innerHTML=(data.audit.length ? data.audit.map(x=>activityRow({icon:'↻',title:x.action,meta:`${x.actor} · ${x.at}`})).join('') : '<p class="muted">Sin actividad administrativa registrada.</p>');
+    const requests=document.querySelector('#admin-dashboard-requests');
+    if(requests) requests.innerHTML=requestTable(data.requests.filter(x=>x.status!=='Resuelta'&&x.status!=='Cancelada').slice(0,4),true);
   } catch (error) { console.error(error); showAdminError('No se pudieron cargar las métricas reales.'); }
 }
 

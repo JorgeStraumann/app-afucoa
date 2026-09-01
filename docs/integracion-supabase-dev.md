@@ -12,7 +12,7 @@ Variables locales:
 VITE_AFUCOA_MODE=supabase
 VITE_SUPABASE_URL=<URL del proyecto DEV>
 VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key del proyecto DEV>
-VITE_AFUCOA_AUTH_DOMAIN=auth.afucoa.local
+VITE_AUTH_ALIAS_DOMAIN=auth.afucoa.local
 ```
 
 ## Resultado de las pruebas

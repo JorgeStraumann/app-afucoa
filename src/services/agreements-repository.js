@@ -16,7 +16,9 @@ export async function listAgreements({ category = null, search = '' } = {}) {
 
 export async function getAgreement(id) {
   if (appMode !== 'supabase') return mockAgreements.find(item => String(item.id) === String(id)) || null;
-  const { data, error } = await requireSupabase().from('agreements').select('*, agreement_locations(*)').eq('id', id).maybeSingle();
+  let query = requireSupabase().from('agreements').select('*, agreement_locations(*)').eq('status', 'publicado');
+  query = /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(id)) ? query.eq('id', id) : query.eq('slug', id);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data;
 }

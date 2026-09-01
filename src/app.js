@@ -6,7 +6,7 @@ import { adminShell, bindAdminShell } from './components/admin-shell.js';
 import { renderHome } from './pages/home/home.js';
 import { renderLogin, bindLogin } from './pages/login/login.js';
 import { renderCarnet, bindCarnet } from './pages/carnet/carnet.js';
-import { renderConvenios, bindConvenios, renderAgreementDetail } from './pages/convenios/convenios.js';
+import { renderConvenios, bindConvenios, renderAgreementDetail, bindAgreementDetail } from './pages/convenios/convenios.js';
 import { renderTramites, renderNewRequest, bindNewRequest, renderRequestDetail, bindRequestDetail } from './pages/tramites/tramites.js';
 import { renderNoticias } from './pages/noticias/noticias.js';
 import { renderDocuments, bindDocuments } from './pages/documentos/documentos.js';
@@ -29,7 +29,7 @@ registerRoute('/recuperar', renderRecovery, { public: true, bare: true, bind: bi
 registerRoute('/', renderHome);
 registerRoute('/carnet', renderCarnet, { bind: bindCarnet });
 registerRoute('/convenios', renderConvenios, { bind: bindConvenios });
-registerRoute('/convenios/:id', ({ id }) => renderAgreementDetail(id));
+registerRoute('/convenios/:id', ({ id }) => renderAgreementDetail(id), { bind: bindAgreementDetail });
 registerRoute('/tramites', renderTramites);
 registerRoute('/tramites/nuevo/:id', ({ id }) => renderNewRequest(id), { bind: bindNewRequest });
 registerRoute('/solicitudes/:id', ({ id }) => renderRequestDetail(id), { bind: bindRequestDetail });

@@ -1,6 +1,6 @@
 import { appMode, requireSupabase } from './supabase.js';
 import { adminMembers, adminRequests, adminAgreements, adminActivity } from './admin-mock-data.js';
-import { adminContent, adminProposals, auditEvents } from './admin-content-mock-data.js';
+import { adminContent, adminDocuments, adminProposals, adminNotifications, auditEvents, adminSettings } from './admin-content-mock-data.js';
 
 const stateLabels = {
   activo: 'Activo', inactivo: 'Inactivo', pendiente: 'Pendiente', baja: 'Baja',
@@ -16,7 +16,7 @@ const fmtDate = (value) => value ? new Intl.DateTimeFormat('es-UY', { dateStyle:
 export async function listAdminMembers() {
   if (appMode === 'demo') return adminMembers;
   const client = requireSupabase();
-  const { data, error } = await client.from('profiles').select('id,first_name,last_name,document_number,member_number,email,sector,status,joined_at,requests:requests(id)').order('last_name');
+  const { data, error } = await client.from('profiles').select('id,first_name,last_name,document_number,member_number,email,sector,status,joined_at,requests:requests!requests_profile_id_fkey(id)').order('last_name');
   if (error) throw error;
   return (data || []).map(m => ({
     id: m.id,
@@ -103,6 +103,143 @@ export async function saveAdminContent(input) {
   return data;
 }
 
+export async function listAdminDocuments() {
+  if (appMode === 'demo') return adminDocuments;
+  const client = requireSupabase();
+  const { data, error } = await client.from('documents').select('*').order('updated_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(x => ({
+    id: x.id,
+    title: x.title,
+    category: x.category,
+    version: x.version || 'Sin versión',
+    status: label(x.status),
+    current: x.is_current,
+    updated: fmtDate(x.updated_at),
+    storagePath: x.storage_path,
+    raw: x
+  }));
+}
+
+export async function saveAdminDocument(input) {
+  if (appMode === 'demo') return { demo: true };
+  const client = requireSupabase();
+  const file = input.file;
+  if (!(file instanceof File) || (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf'))) throw new Error('Seleccioná un archivo PDF válido.');
+  const base = slugify(file.name.replace(/\.pdf$/i, '')) || 'documento';
+  const storagePath = `admin/${Date.now()}-${base}.pdf`;
+  const { error: uploadError } = await client.storage.from('documents-private').upload(storagePath, file, {
+    contentType: 'application/pdf',
+    upsert: false
+  });
+  if (uploadError) throw uploadError;
+  const payload = {
+    title: input.title,
+    category: input.category,
+    description: input.description || null,
+    version: input.version || null,
+    storage_path: storagePath,
+    effective_from: input.effectiveFrom || null,
+    is_current: Boolean(input.isCurrent),
+    status: input.status || 'borrador'
+  };
+  const { data, error } = await client.from('documents').insert(payload).select().single();
+  if (error) {
+    await client.storage.from('documents-private').remove([storagePath]);
+    throw error;
+  }
+  return data;
+}
+
+export async function listAdminNotifications() {
+  if (appMode === 'demo') return adminNotifications;
+  const client = requireSupabase();
+  const { data, error } = await client.from('notifications')
+    .select('id,type,title,body,target_path,priority,created_at,recipients:notification_recipients(count)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(x => ({
+    id: x.id,
+    title: x.title,
+    status: 'Enviada',
+    channel: 'Centro AFUCOA',
+    audience: `${x.recipients?.[0]?.count || 0} destinatarios`,
+    sendAt: fmtDate(x.created_at),
+    raw: x
+  }));
+}
+
+export async function createAdminNotification(input) {
+  if (appMode === 'demo') return { demo: true };
+  const client = requireSupabase();
+  const { data: notification, error } = await client.from('notifications').insert({
+    type: input.type || 'institucional',
+    title: input.title,
+    body: input.body,
+    target_path: input.targetPath || '#/notificaciones',
+    priority: Number(input.priority || 3)
+  }).select().single();
+  if (error) throw error;
+
+  const { data: profiles, error: profilesError } = await client.from('profiles').select('id').eq('status', 'activo');
+  if (profilesError) {
+    await client.from('notifications').delete().eq('id', notification.id);
+    throw profilesError;
+  }
+  const recipients = (profiles || []).map(profile => ({ notification_id: notification.id, profile_id: profile.id }));
+  if (recipients.length) {
+    const { error: recipientError } = await client.from('notification_recipients').insert(recipients);
+    if (recipientError) {
+      await client.from('notifications').delete().eq('id', notification.id);
+      throw recipientError;
+    }
+  }
+  return notification;
+}
+
+export async function getAdminSettings() {
+  if (appMode === 'demo') return adminSettings;
+  const client = requireSupabase();
+  const { data, error } = await client.from('app_settings').select('key,value');
+  if (error) throw error;
+  const stored = Object.fromEntries((data || []).map(row => [row.key, row.value]));
+  return {
+    ...adminSettings,
+    ...(stored.organization || {}),
+    ...(stored.features || {})
+  };
+}
+
+export async function saveAdminSettings(input) {
+  if (appMode === 'demo') return { demo: true };
+  const client = requireSupabase();
+  const rows = [
+    {
+      key: 'organization',
+      value: {
+        organizationName: input.organizationName,
+        fullName: input.fullName,
+        supportEmail: input.supportEmail,
+        requestPrefix: input.requestPrefix,
+        defaultRequestOwner: input.defaultRequestOwner
+      },
+      description: 'Datos generales de AFUCOA V2 DEV'
+    },
+    {
+      key: 'features',
+      value: {
+        allowMemberProposals: Boolean(input.allowMemberProposals),
+        requireProposalModeration: Boolean(input.requireProposalModeration),
+        allowPush: Boolean(input.allowPush)
+      },
+      description: 'Funciones operativas de AFUCOA V2 DEV'
+    }
+  ];
+  const { data, error } = await client.from('app_settings').upsert(rows, { onConflict: 'key' }).select('key,value');
+  if (error) throw error;
+  return data;
+}
+
 export async function listAdminProposals() {
   if (appMode === 'demo') return adminProposals;
   const client = requireSupabase();
@@ -139,7 +276,7 @@ export async function getAdminDashboardData() {
     listAuditEvents(8)
   ]);
   [members, requests, proposals].forEach(r => { if (r.error) throw r.error; });
-  return { activeMembers:members.count || 0, openRequests:requests.count || 0, proposalsToModerate:proposals.count || 0, audit };
+  return { activeMembers:members.count || 0, openRequests:requests.count || 0, proposalsToModerate:proposals.count || 0, audit, requests: await listAdminRequests() };
 }
 
 function slugify(value='') { return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }

@@ -27,14 +27,13 @@ Además probar: token QR vencido/revocado, usuario dado de baja, archivo con pat
 
 ## Última ejecución en DEV
 
-Fecha: 31 de agosto de 2026 (1 de septiembre UTC). Proyecto: `imiplnspvmsrsuikulwm`.
+Fecha: 1 de septiembre de 2026. Proyecto: `imiplnspvmsrsuikulwm`.
 
-- Matriz base: 40/40 controles aprobados.
-- Integración profunda inicial: 32/34; detectó ambigüedad SQL en `create_membership_verification_token`.
-- Integración profunda tras la corrección: 34/34 controles aprobados.
+- Matriz base con fixtures dinámicos: 40/40 controles aprobados.
+- Integración profunda: 34/34 controles aprobados.
 - Logins verificados: socio, admin y superadmin.
 - Aislamiento socio A/socio B aprobado para solicitudes, mensajes, metadatos y objetos de Storage.
 - Mi Cuenta: contacto editable; rol y ficha inmutables para socio.
 - Propuestas: moderación, apoyo único, cierre, autoría y total de apoyos aprobados.
 - QR: generación, validación anónima mínima y revocación del token anterior aprobadas.
-- Limpieza: fixtures, objetos privados y tokens temporales eliminados; roles y contacto restaurados.
+- Limpieza: fixtures, objetos privados y tokens temporales eliminados mediante la sesión administrativa y limpieza DEV; roles y contacto restaurados.
