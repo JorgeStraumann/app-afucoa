@@ -1,0 +1,10 @@
+import { listPublishedContent } from '../../services/content-repository.js';
+
+export async function renderNoticias() {
+  let items = [];
+  try { items = await listPublishedContent(); } catch (error) { console.error(error); }
+  const featured = items.find(item => item.featured) || items[0];
+  return `<div class="page-title"><div><span class="eyebrow">Actualidad AFUCOA</span><h1>Noticias y Agenda</h1><p>Comunicaciones institucionales, novedades y próximas actividades en un único lugar.</p></div></div><section class="content-layout"><div>${featured ? `<article class="editorial-feature"><div><span class="pill gold">${featured.badge}</span><h2>${featured.title}</h2><p>${featured.summary || ''}</p><div class="event-meta"><strong>${featured.dateLabel || ''}</strong><span>${featured.location || ''}</span></div></div><div class="editorial-monogram" aria-hidden="true">A</div></article>` : `<div class="card empty-state"><h3>Sin publicaciones</h3><p>Las novedades publicadas por AFUCOA aparecerán acá.</p></div>`}<div class="section-head subsection"><h2>Últimas publicaciones</h2></div><div class="editorial-list">${items.filter(x=>x!==featured).map(contentCard).join('')}</div></div><aside><div class="section-head"><h2>Agenda</h2></div>${agenda(items)}</aside></section>`;
+}
+function contentCard(item){return `<article class="card editorial-card"><div><span class="pill ${item.kind==='comunicado'?'info':'new'}">${item.badge}</span><h3>${item.title}</h3><p>${item.summary || ''}</p></div><div class="editorial-card-foot"><span>${item.dateLabel || ''}</span></div></article>`;}
+function agenda(items){const events=items.filter(x=>x.kind==='evento').slice(0,3);if(!events.length)return `<article class="card empty-state compact"><p>No hay actividades próximas publicadas.</p></article>`;return events.map(e=>`<article class="card agenda-card"><div class="agenda-date"><strong>${new Date(e.starts_at).toLocaleDateString('es-UY',{day:'2-digit'})}</strong><span>${new Date(e.starts_at).toLocaleDateString('es-UY',{month:'short'}).toUpperCase()}</span></div><div><span class="eyebrow">Agenda</span><h3>${e.title}</h3><p>${e.location || ''}</p></div></article>`).join('');}
