@@ -234,6 +234,13 @@
   }
   .push-opcion-txt{font-size:14px;color:var(--verde);font-weight:600;margin-bottom:12px;line-height:1.4}
   .push-opcion-btns{display:flex;gap:10px}
+  .admin-confirmar-borrar{ border:1.5px solid #e57373; background:#fff5f5; }
+  .btn-eliminar-socio{
+    width:100%;margin-top:10px;padding:13px;border:1.5px solid #e57373;
+    background:#fff;color:#c62828;border-radius:12px;font-family:inherit;
+    font-size:15px;font-weight:700;cursor:pointer;transition:.15s;
+  }
+  .btn-eliminar-socio:active{ transform:scale(.98);background:#ffebee; }
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -4420,7 +4427,8 @@ window.adminBuscar = async function(tipo){
         : `<p class="admin-aviso">Este socio ya está inactivo.</p>`;
     }else{
       boton = !s.activo
-        ? `<button class="btn" onclick="adminConfirmar('reactivar', ${s.numero})">Reactivar a este socio</button>`
+        ? `<button class="btn" onclick="adminConfirmar('reactivar', ${s.numero})">Reactivar a este socio</button>
+           <button class="btn-eliminar-socio" onclick="pedirConfirmacionBorrado(${s.numero}, '${nombre.replace(/'/g,"")}', this)">Eliminar definitivamente</button>`
         : `<p class="admin-aviso">Este socio ya está activo.</p>`;
     }
     ficha.innerHTML = `
@@ -4456,6 +4464,60 @@ window.cancelarConfirmacion = function(boton){
   div.remove();
   const btnBaja = cont.querySelector('.btn');
   if(btnBaja) btnBaja.style.display = '';
+};
+
+// BORRADO DEFINITIVO — primera confirmación
+window.pedirConfirmacionBorrado = function(numero, nombre, boton){
+  const cont = boton.parentElement;
+  // ocultar los botones mientras se confirma
+  cont.querySelectorAll('button').forEach(b => b.style.display = 'none');
+  const div = document.createElement('div');
+  div.className = 'admin-confirmar admin-confirmar-borrar';
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">⚠️ Vas a <b>borrar definitivamente</b> a ${nombre} (ficha ${numero}).<br>Esta acción <b>no se puede deshacer</b>. ¿Estás seguro?</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="pedirConfirmacionBorrado2(${numero}, this)">Sí, continuar</button>
+      <button class="btn-conf-no" onclick="cancelarConfirmacionBorrado(this)">Cancelar</button>
+    </div>`;
+  cont.appendChild(div);
+};
+
+// BORRADO DEFINITIVO — segunda confirmación (doble seguridad)
+window.pedirConfirmacionBorrado2 = function(numero, boton){
+  const div = boton.closest('.admin-confirmar');
+  div.innerHTML = `
+    <p class="admin-confirmar-txt">Última confirmación: tocá "Borrar" para eliminar a la ficha ${numero} para siempre.</p>
+    <div class="admin-confirmar-btns">
+      <button class="btn-conf-si" onclick="ejecutarBorrado(${numero}, this)">Borrar definitivamente</button>
+      <button class="btn-conf-no" onclick="cancelarConfirmacionBorrado(this)">Cancelar</button>
+    </div>`;
+};
+
+// cancela el borrado y restaura los botones
+window.cancelarConfirmacionBorrado = function(boton){
+  const div = boton.closest('.admin-confirmar');
+  const cont = div.parentElement;
+  div.remove();
+  cont.querySelectorAll('button').forEach(b => b.style.display = '');
+};
+
+// ejecuta el borrado definitivo en Supabase
+window.ejecutarBorrado = async function(numero, boton){
+  boton.disabled = true; boton.textContent = 'Borrando...';
+  try{
+    const r = await llamarAdmin('admin_borrar_socio', { clave: claveAdmin, p_numero: parseInt(numero,10) });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(ok ? 'Socio borrado definitivamente.' : String(r).replace('ERROR: ',''), ok);
+    if(ok){
+      // limpiar la ficha y el campo de búsqueda
+      const ficha = document.getElementById('adm-react-ficha');
+      if(ficha){ ficha.style.display = 'none'; ficha.innerHTML = ''; }
+      const campo = document.getElementById('adm-react-numero');
+      if(campo) campo.value = '';
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo borrar. Intentá de nuevo.', false);
+  }
 };
 
 window.adminConfirmar = async function(tipo, numero){
