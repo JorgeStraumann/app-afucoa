@@ -677,6 +677,14 @@
   .nov-item-fecha{font-size:11px;color:var(--tinta-suave)}
   .nov-item-tit{font-size:15px;font-weight:600;color:var(--tinta);margin-bottom:10px}
   .nov-item-borrar{background:#fff;color:var(--rojo);border:1px solid #f0b4b4;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer}
+  .nov-item-acciones{display:flex;gap:8px;flex-wrap:wrap}
+  .nov-item-push{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--verde);color:#fff;border:none;border-radius:8px;
+    font-family:inherit;font-size:13px;font-weight:600;padding:8px 16px;cursor:pointer;
+  }
+  .nov-item-push svg{width:15px;height:15px;flex:none}
+  .nov-item-push:active{transform:scale(.97)}
   .conv-adm-acciones{display:flex;gap:6px}
   .conv-adm-editar,.conv-adm-toggle,.conv-adm-borrar{
     flex:1;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;
@@ -4159,6 +4167,8 @@ async function cargarNovedadesPanel(){
     }
     cont.innerHTML = r.map(n=>{
       const fecha = new Date(n.fecha).toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'});
+      const tituloEsc = (n.titulo||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const cuerpoEsc = (n.cuerpo||'Hay una nueva novedad en la app de AFUCOA').replace(/'/g,"\\'").replace(/"/g,'&quot;');
       return `
         <div class="nov-item">
           <div class="nov-item-top">
@@ -4166,11 +4176,37 @@ async function cargarNovedadesPanel(){
             <span class="nov-item-fecha">${fecha}</span>
           </div>
           <div class="nov-item-tit">${n.titulo}</div>
-          <button class="nov-item-borrar" onclick="borrarNovedad(${n.id})">Eliminar</button>
+          <div class="nov-item-acciones">
+            <button class="nov-item-push" onclick="enviarPushNovedad('${tituloEsc}', '${cuerpoEsc}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              Enviar notificación
+            </button>
+            <button class="nov-item-borrar" onclick="borrarNovedad(${n.id})">Eliminar</button>
+          </div>
         </div>`;
     }).join('');
   }catch(e){ cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar. Intentá de nuevo.</p>'; }
 }
+
+// enviar notificación push de una novedad ya publicada (desde la lista del panel)
+window.enviarPushNovedad = function(titulo, cuerpo){
+  const res = document.getElementById('admin-resultado');
+  // pedir confirmación antes de enviar (para no mandar sin querer)
+  const div = document.createElement('div');
+  div.className = 'push-opcion';
+  div.innerHTML = `
+    <p class="push-opcion-txt">📢 ¿Enviar una notificación a los socios con esta novedad?<br><b>${titulo}</b></p>
+    <div class="push-opcion-btns">
+      <button class="btn-conf-si" id="btn-conf-push-nov">Sí, enviar a todos</button>
+      <button class="btn-conf-no" onclick="this.closest('.push-opcion').remove()">Cancelar</button>
+    </div>`;
+  res.parentElement.insertBefore(div, res.nextSibling);
+  document.getElementById('btn-conf-push-nov').onclick = async function(){
+    this.disabled = true; this.textContent = 'Enviando...';
+    await enviarNotificacionPush(titulo, cuerpo);
+    div.remove();
+  };
+};
 
 // borrar una novedad
 window.borrarNovedad = async function(id){
