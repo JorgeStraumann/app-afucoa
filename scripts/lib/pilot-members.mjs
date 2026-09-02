@@ -167,6 +167,7 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
       let profile = uniqueProfiles[0] || null;
       if (profile && (profile.migration_source !== row.migration_source || profile.migration_external_id !== row.migration_external_id)) throw reject('perfil_existente_sin_trazabilidad_v1');
       if (profile && (profile.document_number !== row.document_number || profile.member_number !== row.member_number)) throw reject('datos_clave_no_coinciden');
+      if (profile && !profile.auth_user_id && ['inactivo', 'baja'].includes(profile.status)) throw reject('perfil_historico_inactivo_requiere_revision');
 
       const authEmail = authEmailForDocument(row.document_number, authDomain);
       let authUser = profile?.auth_user_id ? await adapter.getAuthUser(profile.auth_user_id) : await adapter.findAuthUserByEmail(authEmail);
@@ -230,6 +231,7 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
         report.summary.imported += 1;
         report.summary.profiles_linked += 1;
         report.rollback.push({
+          migration_source: row.migration_source,
           migration_external_id: row.migration_external_id,
           profile_id: profile.id,
           profile_created: !profileBefore,
@@ -253,24 +255,85 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
 }
 
 export async function rollbackPilot({ journal, adapter, onProgress = async () => {} }) {
-  const result = { batch_id: journal.batch_id, started_at: new Date().toISOString(), rolled_back: 0, already_absent: 0, rejected: 0, items: [] };
+  const result = {
+    batch_id: journal.batch_id,
+    started_at: new Date().toISOString(),
+    deleted: 0,
+    deactivated_preserved_history: 0,
+    restored_existing_profile: 0,
+    auth_delete_failed: 0,
+    rejected: 0,
+    items: [],
+  };
   for (const entry of [...(journal.rollback || [])].reverse()) {
-    const item = { migration_external_id: entry.migration_external_id, profile_id: entry.profile_id, auth_user_id: entry.auth_user_id };
+    const item = {
+      migration_source: entry.migration_source || PILOT_SOURCE,
+      migration_external_id: entry.migration_external_id,
+      profile_id: entry.profile_id,
+      auth_user_id: entry.auth_user_id,
+      auth_user_deleted: false,
+    };
     try {
+      let authUser = null;
+      if (entry.auth_user_created) {
+        authUser = await adapter.getAuthUser(entry.auth_user_id);
+        if (authUser && authUser.app_metadata?.pilot_batch_id !== journal.batch_id) throw reject('auth_no_pertenece_al_lote');
+      }
+
       const profile = await adapter.getProfile(entry.profile_id);
       if (entry.profile_created) {
-        if (profile && (profile.migration_external_id !== entry.migration_external_id || profile.auth_user_id !== entry.auth_user_id)) throw reject('perfil_cambio_desde_importacion');
-        if (profile) await adapter.deleteProfile(profile.id);
-      } else if (profile && entry.profile_before) {
-        await adapter.updateProfile(profile.id, entry.profile_before);
+        if (profile && (profile.migration_source !== (entry.migration_source || PILOT_SOURCE) || profile.migration_external_id !== entry.migration_external_id)) throw reject('perfil_cambio_desde_importacion');
+        const alreadyDeactivated = Boolean(profile && profile.auth_user_id === null && profile.status === 'inactivo');
+        if (profile && profile.auth_user_id !== entry.auth_user_id && !alreadyDeactivated) throw reject('perfil_cambio_desde_importacion');
+
+        if (!profile) {
+          item.status = 'deleted';
+          item.profile_deleted = true;
+          item.idempotent_replay = true;
+        } else {
+          const activity = await adapter.getProfileActivity(profile.id);
+          item.activity = activity;
+          if (activity.has_activity || alreadyDeactivated) {
+            if (!alreadyDeactivated) await adapter.updateProfile(profile.id, { auth_user_id: null, status: 'inactivo' });
+            item.status = 'deactivated_preserved_history';
+            item.profile_deactivated = true;
+            item.history_preserved = true;
+            item.idempotent_replay = alreadyDeactivated;
+          } else {
+            await adapter.deleteProfile(profile.id);
+            item.status = 'deleted';
+            item.profile_deleted = true;
+            item.idempotent_replay = false;
+          }
+        }
+      } else {
+        if (!profile || !entry.profile_before) throw reject('perfil_preexistente_ausente');
+        const importedLinkIsCurrent = profile.auth_user_id === entry.auth_user_id
+          && profile.migration_source === (entry.migration_source || PILOT_SOURCE)
+          && profile.migration_external_id === entry.migration_external_id;
+        const previousLinkIsCurrent = profile.auth_user_id === entry.profile_before.auth_user_id
+          && profile.migration_source === entry.profile_before.migration_source
+          && profile.migration_external_id === entry.profile_before.migration_external_id;
+        if (!importedLinkIsCurrent && !previousLinkIsCurrent) throw reject('perfil_cambio_desde_importacion');
+        if (importedLinkIsCurrent) await adapter.updateProfile(profile.id, entry.profile_before);
+        item.status = 'restored_existing_profile';
+        item.profile_restored = importedLinkIsCurrent;
+        item.idempotent_replay = previousLinkIsCurrent;
       }
-      if (entry.auth_user_created) {
-        const authUser = await adapter.getAuthUser(entry.auth_user_id);
-        if (authUser && authUser.app_metadata?.pilot_batch_id !== journal.batch_id) throw reject('auth_no_pertenece_al_lote');
-        if (authUser) await adapter.deleteAuthUser(entry.auth_user_id);
+
+      if (entry.auth_user_created && authUser) {
+        try {
+          await adapter.deleteAuthUser(entry.auth_user_id);
+          item.auth_user_deleted = true;
+        } catch (error) {
+          item.auth_user_delete_error = error.message;
+          item.auth_access_invalidated_by_profile_unlink = true;
+          result.auth_delete_failed += 1;
+        }
+      } else if (entry.auth_user_created) {
+        item.auth_user_already_absent = true;
       }
-      item.status = profile ? 'rolled_back' : 'already_absent';
-      result[profile ? 'rolled_back' : 'already_absent'] += 1;
+      result[item.status] += 1;
     } catch (error) {
       item.status = 'rejected';
       item.rejection_reason = error.code || 'error_rollback';

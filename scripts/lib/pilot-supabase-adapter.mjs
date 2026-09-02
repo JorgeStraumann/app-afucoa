@@ -1,3 +1,27 @@
+export const PROFILE_ACTIVITY_REFERENCES = Object.freeze([
+  ['agreement_favorites', 'profile_id'],
+  ['app_settings', 'updated_by'],
+  ['audit_log', 'actor_profile_id'],
+  ['content_items', 'created_by'],
+  ['document_favorites', 'profile_id'],
+  ['document_versions', 'created_by'],
+  ['membership_verification_tokens', 'profile_id'],
+  ['notification_campaigns', 'created_by'],
+  ['notification_preferences', 'profile_id'],
+  ['notification_recipients', 'profile_id'],
+  ['password_recovery_codes', 'profile_id'],
+  ['proposal_moderation_events', 'actor_profile_id'],
+  ['proposal_supports', 'profile_id'],
+  ['proposals', 'profile_id'],
+  ['push_devices', 'profile_id'],
+  ['request_drafts', 'profile_id'],
+  ['request_events', 'actor_profile_id'],
+  ['request_files', 'uploaded_by'],
+  ['request_messages', 'author_profile_id'],
+  ['requests', 'assigned_to'],
+  ['requests', 'profile_id'],
+]);
+
 export function createPilotSupabaseAdapter(client) {
   const authByEmail = new Map();
   let authLoaded = false;
@@ -37,6 +61,15 @@ export function createPilotSupabaseAdapter(client) {
     async getProfile(profileId) {
       const rows = await selectProfiles('id', profileId);
       return rows[0] || null;
+    },
+    async getProfileActivity(profileId) {
+      const checks = await Promise.all(PROFILE_ACTIVITY_REFERENCES.map(async ([table, column]) => {
+        const { count, error } = await client.from(table).select('*', { count: 'exact', head: true }).eq(column, profileId);
+        if (error) throw new Error(`No se pudo verificar actividad en ${table}.${column}: ${error.message || error}`);
+        return { table, column, count: count || 0 };
+      }));
+      const dependencies = checks.filter(check => check.count > 0);
+      return { has_activity: dependencies.length > 0, dependencies };
     },
     async findAuthUserByEmail(email) {
       await loadAuthUsers();

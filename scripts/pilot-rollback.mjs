@@ -22,8 +22,9 @@ if (!args.apply) {
     actions: [...(journal.rollback || [])].reverse().map(entry => ({
       migration_external_id: entry.migration_external_id,
       profile_id: entry.profile_id,
-      delete_profile: entry.profile_created,
-      restore_profile: !entry.profile_created,
+      profile_strategy: entry.profile_created
+        ? 'delete_if_no_activity_else_deactivate_preserve_history'
+        : 'restore_existing_profile',
       delete_auth_user: entry.auth_user_created,
     })),
   };
@@ -38,4 +39,13 @@ const client = createClient(url, serviceRoleKey, { auth: { autoRefreshToken: fal
 const adapter = createPilotSupabaseAdapter(client);
 const result = await rollbackPilot({ journal, adapter, onProgress: partial => writeJsonAtomic(outputPath, { ...partial, project_ref: DEV_PROJECT_REF, mode: 'apply' }) });
 writeJsonAtomic(outputPath, { ...result, project_ref: DEV_PROJECT_REF, mode: 'apply' });
-console.log(JSON.stringify({ mode: 'apply', batch_id: journal.batch_id, rolled_back: result.rolled_back, already_absent: result.already_absent, rejected: result.rejected, report: outputPath }, null, 2));
+console.log(JSON.stringify({
+  mode: 'apply',
+  batch_id: journal.batch_id,
+  deleted: result.deleted,
+  deactivated_preserved_history: result.deactivated_preserved_history,
+  restored_existing_profile: result.restored_existing_profile,
+  auth_delete_failed: result.auth_delete_failed,
+  rejected: result.rejected,
+  report: outputPath,
+}, null, 2));

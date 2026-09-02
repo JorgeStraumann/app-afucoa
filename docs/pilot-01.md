@@ -16,13 +16,17 @@ Destino único permitido: `AFUCOA V2 DEV` (`imiplnspvmsrsuikulwm`). V1 es solo f
 - `supabase.auth.admin.createUser()` se ejecuta exclusivamente en el script Node server-side. La clave privilegiada se lee de `SUPABASE_SERVICE_ROLE_KEY`, nunca de una variable `VITE_*` ni del frontend.
 - Auth usa el alias `<cedula>@auth.afucoa.local`, contraseña temporal aleatoria, `email_confirm: true` y `app_metadata` del lote.
 - El informe general no contiene contraseñas. Las credenciales temporales nuevas se separan en un archivo privado ignorado por Git.
-- Cada lote genera un journal suficiente para revertir perfiles y usuarios Auth creados por ese lote.
+- Cada lote genera un journal suficiente para revertir perfiles y usuarios Auth creados por ese lote sin borrar historia de negocio.
+- Una identidad histórica `inactivo`/`baja` sin Auth nunca se vuelve a vincular automáticamente: requiere revisión humana para impedir apropiaciones por cédula o ficha coincidente.
 
 ## Archivos
 
 - `scripts/prepare-v1-members.mjs`: normaliza y rechaza filas antes de acceder a Supabase.
 - `scripts/pilot-import-members.mjs`: preflight e importación idempotente server-side.
 - `scripts/pilot-rollback.mjs`: plan y ejecución del rollback.
+- `scripts/lib/pilot-members.mjs`: reglas puras de preparación, importación, idempotencia y rollback.
+- `scripts/lib/pilot-cli.mjs`: guardas de destino DEV, secretos server-side y escritura atómica de reportes.
+- `scripts/lib/pilot-supabase-adapter.mjs`: único adaptador que usa Auth Admin y consulta dependencias de `profiles`.
 - `tests/pilot-import.test.mjs`: validación sintética de preparación, idempotencia, conflicto Auth y rollback.
 - `tests/fixtures/pilot-v1-sample.csv`: fixture sin datos reales.
 
@@ -114,7 +118,17 @@ node scripts/pilot-rollback.mjs `
   --apply
 ```
 
-El rollback procesa el lote en orden inverso, valida que Auth conserve `pilot_batch_id` y se niega a borrar un perfil que cambió desde la importación. Puede repetirse: los objetos ya ausentes se reportan como `already_absent`.
+El rollback procesa el lote en orden inverso, valida que Auth conserve `pilot_batch_id` y consulta todas las FK actuales que apuntan a `profiles`:
+
+- Si el profile fue creado por el lote y no tiene actividad, elimina el profile y el Auth creado por el lote. El reporte indica `deleted`.
+- Si tiene trámites, propuestas, mensajes, archivos, eventos, auditoría, favoritos, notificaciones, dispositivos u otra dependencia, primero establece `auth_user_id=null` y `status=inactivo`; después elimina el Auth del lote. El profile y toda su trazabilidad permanecen. El reporte indica `deactivated_preserved_history` y enumera las dependencias encontradas.
+- Si el lote vinculó un profile preexistente, restaura su vínculo anterior en vez de eliminarlo.
+
+El orden de desactivación corta inmediatamente la asociación entre el JWT y `profiles`; esto protege la aplicación incluso durante el tiempo restante de un JWT ya emitido. El comando puede repetirse de forma idempotente: conserva el mismo resultado `deleted` o `deactivated_preserved_history` con `idempotent_replay=true` cuando corresponde.
+
+Si Supabase no permite eliminar un Auth (por ejemplo, por propiedad de objetos de Storage), el perfil ya queda borrado o desvinculado/inactivo y por eso no conserva acceso funcional. El reporte incrementa `auth_delete_failed` y conserva el detalle para completar la limpieza server-side; no oculta el fallo.
+
+Una reimportación posterior puede recrear limpiamente una identidad eliminada sin actividad. En cambio, un profile histórico preservado queda inactivo y sin Auth, y el importador lo rechaza con `perfil_historico_inactivo_requiere_revision`; tampoco acepta otra `migration_external_id` que coincida por cédula o ficha.
 
 ### 8. Cierre seguro
 
@@ -130,7 +144,9 @@ Entregar credenciales temporales por un canal separado y borrar el archivo local
 - Fixture: 8 filas sin datos reales.
 - Aceptadas: 5.
 - Rechazadas: 3 (`cedula_invalida` y las dos filas implicadas en una `cedula_duplicada_en_archivo`).
-- Pruebas: creación simulada, segundo intento idempotente, rechazo de email Auth ajeno y rollback repetible.
+- Pruebas: creación simulada, segundo intento idempotente, rechazo de email Auth ajeno, rollback repetible sin actividad, reimportación limpia y rollback preservando un socio con trámite y propuesta.
+- Se verifica que el profile con historia se desactive antes de borrar Auth, que el segundo rollback sea idempotente y que ninguna reimportación pueda apropiarse de esa identidad histórica.
+- Resultado actual de la suite sintética: 6/6 tests aprobados.
 - No se creó ningún usuario Auth real ni perfil real durante esta validación.
 
 ## Recuperación ante interrupciones
