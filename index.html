@@ -258,6 +258,27 @@
   .anuncio:active{transform:scale(.985);box-shadow:0 2px 8px rgba(26,35,126,.12)}
   .anuncio::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--verde),var(--dorado))}
   .anuncio-img{width:calc(100% + 32px);margin:-16px -16px 12px;display:block;max-height:220px;object-fit:cover;border-radius:14px 14px 0 0}
+  .nov-galeria{position:relative;width:calc(100% + 32px);margin:-16px -16px 12px}
+  .nov-galeria-img{width:100%;margin:0;max-height:340px}
+  .nov-galeria-flecha{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:34px;height:34px;border-radius:50%;border:none;
+    background:rgba(26,35,126,.72);color:#fff;font-size:22px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s;
+  }
+  .nov-galeria-flecha:active{background:rgba(26,35,126,.95)}
+  .nov-galeria-flecha.izq{left:8px}
+  .nov-galeria-flecha.der{right:8px}
+  .nov-galeria-puntos{
+    position:absolute;bottom:10px;left:0;right:0;
+    display:flex;justify-content:center;gap:6px;
+  }
+  .nov-galeria-puntos span{
+    width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.55);
+    transition:.2s;
+  }
+  .nov-galeria-puntos span.activo{background:#fff;width:20px;border-radius:4px}
   .campo-nota{font-size:12px;color:var(--tinta-suave);line-height:1.4;margin-top:5px}
   .anuncio.urgente::before{background:var(--rojo)}
   .anuncio .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
@@ -1406,7 +1427,7 @@
         <div class="campo"><label>Etiqueta (opcional)</label><input type="text" id="nov-etiqueta" placeholder="Ej: Importante, Asamblea, Aviso"></div>
         <div class="campo"><label>Título</label><input type="text" id="nov-titulo" placeholder="Título de la novedad"></div>
         <div class="campo"><label>Texto</label><textarea id="nov-cuerpo" rows="4" placeholder="Escribí el contenido de la novedad..."></textarea></div>
-        <div class="campo"><label>Imagen (opcional)</label><input type="text" id="nov-imagen" placeholder="Ej: novedades/asamblea-agosto.jpg"><p class="campo-nota">Subí la imagen a GitHub en la carpeta "novedades" y escribí acá su nombre. Dejalo vacío si no lleva imagen.</p></div>
+        <div class="campo"><label>Imagen(es) (opcional)</label><textarea id="nov-imagen" rows="3" placeholder="novedades/promo1.jpg&#10;novedades/promo2.jpg"></textarea><p class="campo-nota">Subí las imágenes a GitHub en la carpeta "novedades" y escribí acá sus nombres. Para varias imágenes (galería), poné una por línea. Dejalo vacío si no lleva imagen.</p></div>
         <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
         <div class="nov-lista-tit">Novedades publicadas</div>
         <div id="admin-novedades-lista"></div>
@@ -1876,11 +1897,27 @@ function renderAnuncios(lista){
     actualizarAvisoNovedades(0);
     return;
   }
-  cont.innerHTML = lista.map(a=>{
+  cont.innerHTML = lista.map((a, idx)=>{
     const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-UY',{day:'2-digit',month:'short',year:'numeric'}) : '';
+    // el campo imagen puede tener una o varias imágenes separadas por saltos de línea
+    const imgs = (a.imagen||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+    let galeria = '';
+    if(imgs.length === 1){
+      galeria = `<img class="anuncio-img" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">`;
+    }else if(imgs.length > 1){
+      galeria = `
+      <div class="nov-galeria">
+        <img class="anuncio-img nov-galeria-img" id="nov-img-${idx}" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">
+        <button class="nov-galeria-flecha izq" onclick="cambiarImgNovedad(${idx}, -1)" aria-label="Anterior">‹</button>
+        <button class="nov-galeria-flecha der" onclick="cambiarImgNovedad(${idx}, 1)" aria-label="Siguiente">›</button>
+        <div class="nov-galeria-puntos" id="nov-puntos-${idx}">
+          ${imgs.map((_,k)=>`<span class="${k===0?'activo':''}"></span>`).join('')}
+        </div>
+      </div>`;
+    }
     return `
     <article class="anuncio">
-      ${a.imagen ? `<img class="anuncio-img" src="${a.imagen}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">` : ``}
+      ${galeria}
       <div class="meta">
         ${a.etiqueta ? `<span class="etiqueta">${a.etiqueta}</span>` : ``}
         ${fecha ? `<time>${fecha}</time>` : ``}
@@ -1889,9 +1926,26 @@ function renderAnuncios(lista){
       ${a.cuerpo ? `<p>${a.cuerpo}</p>` : ``}
     </article>`;
   }).join('');
+  // guardar las imágenes de cada novedad para la galería
+  window._novedadesImgs = lista.map(a => (a.imagen||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean));
+  window._novedadesImgIdx = lista.map(()=>0);
   // calcular cuántas novedades son nuevas para este socio
   calcularNovedadesNuevas(lista);
 }
+
+// cambiar de imagen en la galería de una novedad
+window.cambiarImgNovedad = function(idxNov, dir){
+  const imgs = (window._novedadesImgs && window._novedadesImgs[idxNov]) || [];
+  if(imgs.length < 2) return;
+  let actual = window._novedadesImgIdx[idxNov] || 0;
+  actual = (actual + dir + imgs.length) % imgs.length;
+  window._novedadesImgIdx[idxNov] = actual;
+  const img = document.getElementById('nov-img-'+idxNov);
+  if(img) img.src = imgs[actual];
+  // actualizar puntos
+  const puntos = document.getElementById('nov-puntos-'+idxNov);
+  if(puntos){ [...puntos.children].forEach((p,k)=> p.className = k===actual ? 'activo' : ''); }
+};
 
 // guarda cuántas novedades hay y cuál es la más reciente, y compara con lo ya visto
 let totalNovedadesActual = 0;
