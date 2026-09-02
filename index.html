@@ -241,6 +241,14 @@
     font-size:15px;font-weight:700;cursor:pointer;transition:.15s;
   }
   .btn-eliminar-socio:active{ transform:scale(.98);background:#ffebee; }
+  .btn-ver-convenio{
+    display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+    background:var(--verde);color:#fff;border:none;border-radius:10px;
+    font-family:inherit;font-size:14px;font-weight:700;padding:11px 18px;cursor:pointer;
+    transition:transform .15s, filter .15s;box-shadow:0 3px 10px rgba(26,35,126,.18);
+  }
+  .btn-ver-convenio:active{transform:scale(.97)}
+  .btn-ver-convenio svg{width:17px;height:17px;flex:none}
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -1452,6 +1460,7 @@
         <div class="campo"><label>Título</label><input type="text" id="nov-titulo" placeholder="Título de la novedad"></div>
         <div class="campo"><label>Texto</label><textarea id="nov-cuerpo" rows="4" placeholder="Escribí el contenido de la novedad..."></textarea></div>
         <div class="campo"><label>Imagen(es) (opcional)</label><textarea id="nov-imagen" rows="3" placeholder="novedades/promo1.jpg&#10;novedades/promo2.jpg"></textarea><p class="campo-nota">Subí las imágenes a GitHub en la carpeta "novedades" y escribí acá sus nombres. Para varias imágenes (galería), poné una por línea. Dejalo vacío si no lleva imagen.</p></div>
+        <div class="campo"><label>Enlazar a un convenio (opcional)</label><select id="nov-convenio"><option value="">— Sin enlace —</option></select><p class="campo-nota">Si la novedad es sobre un convenio, elegilo acá. Aparecerá un botón "Ver convenio completo" en la novedad.</p></div>
         <button class="btn" onclick="publicarNovedad()">Publicar novedad</button>
         <div class="nov-lista-tit">Novedades publicadas</div>
         <div id="admin-novedades-lista"></div>
@@ -1948,6 +1957,10 @@ function renderAnuncios(lista){
       </div>
       <h3>${a.titulo}</h3>
       ${a.cuerpo ? `<p>${a.cuerpo}</p>` : ``}
+      ${a.convenio_enlace ? `<button class="btn-ver-convenio" onclick="irAlConvenio('${(a.convenio_enlace||'').replace(/'/g,"\\'")}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 18l6-6-6-6"/></svg>
+        Ver convenio completo
+      </button>` : ``}
     </article>`;
   }).join('');
   // guardar las imágenes de cada novedad para la galería
@@ -2297,6 +2310,23 @@ window.cambiarImagen = function(i, src, mini){
 };
 
 // amplía una imagen a pantalla completa
+// va a la sección Convenios y abre el convenio indicado (por su nombre)
+window.irAlConvenio = function(nombreConvenio){
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const buscado = norm(nombreConvenio);
+  const idx = CONVENIOS.findIndex(c => norm(c.titulo) === buscado);
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.getElementById('v-convenios').classList.add('activa');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+  const btnConv = document.querySelector('nav button[data-vista="v-convenios"]');
+  if(btnConv) btnConv.classList.add('activo');
+  if(idx >= 0){
+    setTimeout(()=>{ abrirConvenioDesdeIndice(idx); irArriba(); }, 200);
+  }else{
+    irArriba();
+  }
+};
+
 // visor de imágenes ampliadas, con deslizamiento entre las imágenes del convenio
 let _visorImgs = [];
 let _visorIdx = 0;
@@ -3770,7 +3800,7 @@ window.adminTabSelect = function(cual){
   if(cual==='historial') cargarHistorial();
   if(cual==='lista') adminLista('activos', null);
   if(cual==='solicitudes') cargarSolicitudes();
-  if(cual==='novedades') cargarNovedadesPanel();
+  if(cual==='novedades'){ cargarNovedadesPanel(); llenarSelectConvenios(); }
   if(cual==='convenios') cargarConveniosPanel();
   if(cual==='estadisticas') cargarEstadisticas();
   if(cual==='propuestas') cargarPropuestasPanel();
@@ -4042,11 +4072,12 @@ window.publicarNovedad = async function(){
   const titulo = document.getElementById('nov-titulo').value.trim();
   const cuerpo = document.getElementById('nov-cuerpo').value.trim();
   const imagen = document.getElementById('nov-imagen').value.trim();
+  const convenio = document.getElementById('nov-convenio').value;
   const res = document.getElementById('admin-resultado');
   if(!titulo){ mostrarResultadoAdmin('El título es obligatorio.', false); return; }
   res.textContent = 'Publicando...'; res.className = 'admin-resultado';
   try{
-    const r = await llamarAdmin('admin_crear_novedad', { clave: claveAdmin, p_etiqueta: etiqueta, p_titulo: titulo, p_cuerpo: cuerpo, p_imagen: imagen });
+    const r = await llamarAdmin('admin_crear_novedad', { clave: claveAdmin, p_etiqueta: etiqueta, p_titulo: titulo, p_cuerpo: cuerpo, p_imagen: imagen, p_convenio_enlace: convenio });
     const ok = String(r).indexOf('OK') === 0;
     mostrarResultadoAdmin(r, ok);
     if(ok){
@@ -4057,12 +4088,23 @@ window.publicarNovedad = async function(){
       document.getElementById('nov-titulo').value = '';
       document.getElementById('nov-cuerpo').value = '';
       document.getElementById('nov-imagen').value = '';
+      document.getElementById('nov-convenio').value = '';
       cargarNovedadesPanel();
       // ofrecer enviar la notificación push
       mostrarOpcionPush(notiTitulo, notiCuerpo);
     }
   }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
+
+// llena el desplegable de "enlazar a convenio" con los convenios existentes
+function llenarSelectConvenios(){
+  const sel = document.getElementById('nov-convenio');
+  if(!sel || !Array.isArray(CONVENIOS)) return;
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">— Sin enlace —</option>' +
+    CONVENIOS.map(c=>`<option value="${(c.titulo||'').replace(/"/g,'&quot;')}">${c.titulo||''}</option>`).join('');
+  sel.value = actual;
+}
 
 // muestra un botón para enviar la notificación push de la novedad recién publicada
 function mostrarOpcionPush(titulo, cuerpo){
