@@ -249,6 +249,58 @@
   }
   .btn-ver-convenio:active{transform:scale(.97)}
   .btn-ver-convenio svg{width:17px;height:17px;flex:none}
+  /* ---------- Carnet de socio ---------- */
+  .carnet{
+    background:linear-gradient(160deg,#1a237e,#283593);color:#fff;
+    border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(26,35,126,.3);
+    max-width:400px;margin:0 auto;overflow:hidden;position:relative;
+  }
+  .carnet-header{display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(240,216,120,.3);padding-bottom:14px;margin-bottom:16px}
+  .carnet-logo{width:46px;height:46px;background:#fff;border-radius:50%;padding:4px}
+  .carnet-marca{font-size:22px;font-weight:800;letter-spacing:1px}
+  .carnet-sub{font-size:10px;color:#c5cef8;line-height:1.3;margin-top:2px}
+  .carnet-cuerpo{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+  .carnet-foto{
+    width:88px;height:88px;flex:none;border-radius:12px;background:rgba(255,255,255,.12);
+    border:2px solid rgba(240,216,120,.5);display:flex;align-items:center;justify-content:center;
+    overflow:hidden;color:rgba(255,255,255,.5);
+  }
+  .carnet-foto svg{width:52px;height:52px}
+  .carnet-foto img{width:100%;height:100%;object-fit:cover}
+  .carnet-datos{flex:1;min-width:0}
+  .carnet-nombre{font-size:19px;font-weight:700;margin-bottom:8px;line-height:1.15}
+  .carnet-linea{font-size:13px;color:#e8ecff;margin-bottom:3px}
+  .carnet-linea span{color:#a9b4e8;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .carnet-estado{margin-top:8px;font-size:12px;font-weight:700;color:#7CFFA0;letter-spacing:.5px}
+  .carnet-qr-zona{background:#fff;border-radius:12px;padding:16px;text-align:center}
+  .carnet-qr-zona #carnet-qr{display:flex;justify-content:center}
+  .carnet-qr-zona #carnet-qr img, .carnet-qr-zona #carnet-qr canvas{border-radius:6px}
+  .carnet-qr-nota{font-size:11px;color:#555;margin-top:10px;line-height:1.4}
+
+  /* ---------- Pantalla de verificación (comercio) ---------- */
+  #verificacion-pantalla{
+    position:fixed;inset:0;z-index:4000;
+    background:linear-gradient(160deg,#eef1fb,#dfe4f5);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .verif-caja{
+    background:#fff;border-radius:20px;padding:32px 28px;text-align:center;
+    max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.2);
+    border-top:6px solid #1a237e;
+  }
+  .verif-caja.verif-ok{border-top-color:#2e9e5b}
+  .verif-caja.verif-error{border-top-color:#c0392b}
+  .verif-logo{width:64px;height:64px;background:#1a237e;border-radius:50%;padding:6px;margin-bottom:8px}
+  .verif-marca{font-size:20px;font-weight:800;color:#1a237e;letter-spacing:1px;margin-bottom:20px}
+  .verif-cargando{color:#888;font-size:15px;padding:20px}
+  .verif-check{width:70px;height:70px;border-radius:50%;background:#2e9e5b;color:#fff;font-size:40px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+  .verif-cruz{width:70px;height:70px;border-radius:50%;background:#c0392b;color:#fff;font-size:36px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+  .verif-estado-ok{font-size:20px;font-weight:800;color:#2e9e5b;letter-spacing:1px;margin-bottom:14px}
+  .verif-estado-error{font-size:18px;font-weight:800;color:#c0392b;letter-spacing:.5px;margin-bottom:14px}
+  .verif-nombre{font-size:22px;font-weight:700;color:#1a237e;margin-bottom:4px}
+  .verif-ficha{font-size:15px;color:#555;margin-bottom:16px}
+  .verif-sello{font-size:12px;color:#888;border-top:1px solid #eee;padding-top:12px;line-height:1.4}
+
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -976,6 +1028,17 @@
 </style>
 </head>
 <body>
+<!-- Pantalla de verificación de carnet (la ve el comercio al escanear el QR) -->
+<div id="verificacion-pantalla" style="display:none">
+  <div class="verif-caja" id="verif-caja">
+    <img src="logo-header.png" alt="AFUCOA" class="verif-logo">
+    <div class="verif-marca">AFUCOA</div>
+    <div id="verif-contenido">
+      <div class="verif-cargando">Verificando...</div>
+    </div>
+  </div>
+</div>
+
 <div id="splash">
   <div class="splash-inner">
     <img src="logo-header.png" alt="AFUCOA" class="splash-logo">
@@ -1148,6 +1211,10 @@
     <button class="menu-item" onclick="abrirMiCuenta()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
       Mi cuenta
+    </button>
+    <button class="menu-item" onclick="abrirMiCarnet()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M13 10h5M13 14h5M6 15c0-1.5 1.3-2 3-2s3 .5 3 2"/></svg>
+      Mi carnet de socio
     </button>
     <button class="menu-item" onclick="abrirDesdeMenu('v-directiva')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 5a3 3 0 0 1 0 6"/><path d="M18 20c0-2-1-3.5-2.5-4.3"/></svg>
@@ -1327,6 +1394,14 @@
       <div class="campo"><label>Correo electrónico</label><input type="email" id="cta-mail" placeholder="tucorreo@ejemplo.com" autocomplete="off"></div>
       <button class="btn dorado" onclick="guardarMiMail()">Guardar correo</button>
       <p class="cuenta-msg" id="cta-mail-msg"></p>
+    </div>
+  </section>
+
+  <!-- ======== MI CARNET DE SOCIO ======== -->
+  <section class="vista" id="v-carnet">
+    <div class="titulo-seccion">Mi carnet de socio</div>
+    <div id="carnet-cont">
+      <p class="cuenta-cargando">Cargando tu carnet...</p>
     </div>
   </section>
 
@@ -1545,6 +1620,8 @@
 <!-- Firebase para notificaciones push -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<!-- Librería para generar códigos QR del carnet -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 /* ==================================================================
@@ -3690,6 +3767,128 @@ window.guardarMiMail = async function(){
 };
 
 /* ============================================================
+   Mi carnet de socio (con QR verificable)
+   ============================================================ */
+window.abrirMiCarnet = function(){
+  document.querySelectorAll('.vista').forEach(v=>v.classList.remove('activa'));
+  document.getElementById('v-carnet').classList.add('activa');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('activo'));
+  menuDesplegable.classList.remove('abierto');
+  cargarMiCarnet();
+  irArriba();
+};
+
+// carga el carnet del socio: sus datos + su código QR
+async function cargarMiCarnet(){
+  const cont = document.getElementById('carnet-cont');
+  const cedula = localStorage.getItem('afucoa_socio');
+  if(!cedula){ cont.innerHTML = '<p class="cuenta-cargando">No se pudo identificar tu sesión.</p>'; return; }
+  cont.innerHTML = '<p class="cuenta-cargando">Cargando tu carnet...</p>';
+  try{
+    // traer los datos del socio
+    const datosResp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mi_cuenta`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula })
+    });
+    const datos = await datosResp.json();
+    const d = Array.isArray(datos) ? datos[0] : datos;
+    if(!d){ cont.innerHTML = '<p class="cuenta-cargando">No se encontraron tus datos.</p>'; return; }
+
+    // traer (o generar si no tiene) el código de carnet
+    let codigo = await traerCodigoCarnet(cedula);
+    if(!codigo){ codigo = await regenerarCodigoCarnet(cedula, false); }
+
+    const nombre = formatearNombre((d.primer_nombre||'') + ' ' + (d.primer_apellido||''));
+    // pintar el carnet
+    cont.innerHTML = `
+      <div class="carnet" id="carnet-tarjeta">
+        <div class="carnet-header">
+          <img src="logo-header.png" alt="AFUCOA" class="carnet-logo">
+          <div>
+            <div class="carnet-marca">AFUCOA</div>
+            <div class="carnet-sub">Asociación de Funcionarios<br>de la Comisión Administrativa</div>
+          </div>
+        </div>
+        <div class="carnet-cuerpo">
+          <div class="carnet-foto" id="carnet-foto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+          </div>
+          <div class="carnet-datos">
+            <div class="carnet-nombre">${nombre}</div>
+            <div class="carnet-linea"><span>Ficha N.º</span> ${d.numero||'—'}</div>
+            <div class="carnet-linea"><span>Cédula</span> ${d.documento||'—'}</div>
+            <div class="carnet-estado">● SOCIO ACTIVO</div>
+          </div>
+        </div>
+        <div class="carnet-qr-zona">
+          <div id="carnet-qr"></div>
+          <p class="carnet-qr-nota">Presentá este código en el comercio para validar tu condición de socio.</p>
+        </div>
+      </div>
+      <button class="btn dorado" style="margin-top:16px" onclick="regenerarCarnetManual()">Regenerar mi código QR</button>
+      <p class="cuenta-nota" style="text-align:center;margin-top:8px">Si regenerás el código, el anterior deja de funcionar. Útil por seguridad.</p>
+      <p class="cuenta-msg" id="carnet-msg"></p>`;
+
+    // dibujar el QR con el enlace de verificación
+    pintarQRCarnet(codigo);
+  }catch(e){
+    cont.innerHTML = '<p class="cuenta-cargando">No se pudo cargar el carnet. Intentá de nuevo.</p>';
+  }
+}
+
+// dibuja el QR a partir del código
+function pintarQRCarnet(codigo){
+  const cont = document.getElementById('carnet-qr');
+  if(!cont) return;
+  cont.innerHTML = '';
+  const url = location.origin + location.pathname + '?verificar=' + codigo;
+  if(typeof QRCode !== 'undefined'){
+    new QRCode(cont, { text: url, width: 180, height: 180, colorDark:'#1a237e', colorLight:'#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  }else{
+    cont.innerHTML = '<p style="font-size:12px;color:#888">No se pudo generar el QR.</p>';
+  }
+}
+
+// trae el código de carnet actual (o null si no tiene)
+async function traerCodigoCarnet(cedula){
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mi_carnet`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula })
+    });
+    const cod = await resp.json();
+    return (typeof cod === 'string' && cod) ? cod : null;
+  }catch(e){ return null; }
+}
+
+// genera/regenera el código en Supabase, devuelve el nuevo código
+async function regenerarCodigoCarnet(cedula){
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/generar_carnet`, {
+    method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ p_documento: cedula })
+  });
+  const cod = await resp.json();
+  if(typeof cod === 'string' && cod.indexOf('ERROR') === 0) return null;
+  return (typeof cod === 'string') ? cod : null;
+}
+
+// botón "Regenerar mi código QR"
+window.regenerarCarnetManual = async function(){
+  const msg = document.getElementById('carnet-msg');
+  const cedula = localStorage.getItem('afucoa_socio');
+  msg.className = 'cuenta-msg'; msg.textContent = 'Regenerando...';
+  try{
+    const nuevo = await regenerarCodigoCarnet(cedula);
+    if(nuevo){
+      pintarQRCarnet(nuevo);
+      msg.textContent = '¡Código regenerado! El anterior ya no funciona.'; msg.classList.add('ok');
+    }else{
+      msg.textContent = 'No se pudo regenerar. Intentá de nuevo.'; msg.classList.add('error');
+    }
+  }catch(e){ msg.textContent = 'No se pudo conectar. Intentá de nuevo.'; msg.classList.add('error'); }
+};
+
+/* ============================================================
    Panel de gestión (administrador)
    ============================================================ */
 let claveAdmin = "";  // se guarda temporalmente solo mientras el panel está abierto
@@ -4795,6 +4994,57 @@ async function cargarConvenios(){
 }
 cargarConvenios();
 revisarSesion();
+
+/* ============================================================
+   Verificación de carnet (cuando se abre con ?verificar=CODIGO)
+   ============================================================ */
+(function revisarVerificacion(){
+  const params = new URLSearchParams(location.search);
+  const codigo = params.get('verificar');
+  if(!codigo) return;
+  // mostrar la pantalla de verificación y ocultar todo lo demás
+  const pant = document.getElementById('verificacion-pantalla');
+  const splash = document.getElementById('splash');
+  if(splash) splash.style.display = 'none';
+  document.body.classList.remove('con-login');
+  const login = document.getElementById('login-pantalla');
+  if(login) login.style.display = 'none';
+  pant.style.display = 'flex';
+  // consultar a Supabase
+  fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_carnet`, {
+    method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ p_codigo: codigo })
+  }).then(r=>r.json()).then(data=>{
+    const d = Array.isArray(data) ? data[0] : data;
+    const cont = document.getElementById('verif-contenido');
+    const caja = document.getElementById('verif-caja');
+    if(d && d.nombre && d.activo === true){
+      caja.classList.add('verif-ok');
+      cont.innerHTML = `
+        <div class="verif-check">✓</div>
+        <div class="verif-estado-ok">SOCIO ACTIVO</div>
+        <div class="verif-nombre">${d.nombre}</div>
+        <div class="verif-ficha">Ficha N.º ${d.ficha}</div>
+        <div class="verif-sello">Verificado por AFUCOA · ${new Date().toLocaleDateString('es-UY')}</div>`;
+    }else if(d && d.nombre && d.activo === false){
+      caja.classList.add('verif-error');
+      cont.innerHTML = `
+        <div class="verif-cruz">✕</div>
+        <div class="verif-estado-error">SOCIO NO ACTIVO</div>
+        <div class="verif-nombre">${d.nombre}</div>
+        <div class="verif-ficha">Ficha N.º ${d.ficha}</div>
+        <div class="verif-sello">Este carnet no corresponde a un socio activo.</div>`;
+    }else{
+      caja.classList.add('verif-error');
+      cont.innerHTML = `
+        <div class="verif-cruz">✕</div>
+        <div class="verif-estado-error">CÓDIGO NO VÁLIDO</div>
+        <div class="verif-sello">Este código no corresponde a ningún carnet. Puede haber sido regenerado.</div>`;
+    }
+  }).catch(e=>{
+    document.getElementById('verif-contenido').innerHTML = '<div class="verif-cargando">No se pudo verificar. Revisá la conexión.</div>';
+  });
+})();
 
 /* ============================================================
    Notificaciones push (Firebase Cloud Messaging)
