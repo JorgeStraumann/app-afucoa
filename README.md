@@ -30,6 +30,12 @@ No se debe usar `service_role` en el navegador. Los buckets de expedientes y doc
 
 El procedimiento de incorporación controlada de 5–10 socios V1 está documentado en `docs/pilot-01.md`. La normalización no toca Supabase; la creación de Auth se realiza solamente desde el importador Node server-side y exige confirmación explícita del proyecto DEV. `npm run test:pilot` valida idempotencia y rollback con datos sintéticos.
 
+Pilot 01 real está temporalmente suspendido. No ejecutar `--apply` ni importar personas reales hasta una nueva autorización explícita.
+
+## Staging web
+
+La rama `afucoa-v2` incluye un workflow aislado para GitHub Pages, conectado exclusivamente a Supabase DEV con publishable key. La preparación y operación segura se documentan en `docs/staging.md`.
+
 ## Incremento 10
 - Socios administrativos conectables a `profiles`.
 - Bandeja real de expedientes y RPC transaccional para cambios de estado.

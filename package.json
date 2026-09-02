@@ -3,10 +3,14 @@
   "private": true,
   "version": "0.10.0",
   "type": "module",
+  "packageManager": "pnpm@11.19.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:staging": "node scripts/validate-staging-env.mjs && vite build --mode staging",
     "preview": "vite preview",
+    "preview:staging": "vite preview --host 0.0.0.0",
+    "test:staging": "pnpm run build:staging && node scripts/check-staging-dist.mjs",
     "test:pilot": "node --test tests/pilot-import.test.mjs",
     "test:rls": "node tests/rls-live-check.mjs",
     "test:integration": "node tests/supabase-integration-live.mjs"

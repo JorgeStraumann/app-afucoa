@@ -1,7 +1,7 @@
 {
   "name": "AFUCOA",
   "short_name": "AFUCOA",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#F7F9FC",
   "theme_color": "#0A3D91",
