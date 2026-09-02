@@ -403,10 +403,34 @@
   .conv-autoriza span{font-size:13px;color:var(--tinta);line-height:1.45}
   /* imagen ampliada a pantalla completa */
   .lightbox{
-    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
-    display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;
+    position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;
+    display:flex;align-items:center;justify-content:center;padding:20px;
   }
-  .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+  .lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;user-select:none}
+  .visor-flecha{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:46px;height:46px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.15);color:#fff;font-size:30px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s;backdrop-filter:blur(4px);
+  }
+  .visor-flecha:active{background:rgba(255,255,255,.3)}
+  .visor-flecha.izq{left:12px}
+  .visor-flecha.der{right:12px}
+  .visor-cerrar{
+    position:absolute;top:14px;right:14px;
+    width:40px;height:40px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.15);color:#fff;font-size:26px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+  }
+  .visor-puntos{
+    position:absolute;bottom:24px;left:0;right:0;
+    display:flex;justify-content:center;gap:7px;
+  }
+  .visor-puntos span{
+    width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.4);transition:.2s;
+  }
+  .visor-puntos span.activo{background:#fff;width:24px;border-radius:5px}
 
   /* ---------- Pantalla de ingreso (login) ---------- */
   #login-pantalla{
@@ -2170,7 +2194,7 @@ function pintarConvenios(){
     const galeria = tieneImg ? `
       <div class="conv-galeria">
         <img class="conv-img-principal" id="conv-img-${i}" src="${c.imagenes[0]}" alt="${c.titulo}"
-             onclick="ampliarImagen(this.src)">
+             onclick="ampliarImagen(${i}, 0)">
         ${c.imagenes.length > 1 ? `
           <div class="conv-miniaturas">
             ${c.imagenes.map((img,n)=>`
@@ -2273,13 +2297,70 @@ window.cambiarImagen = function(i, src, mini){
 };
 
 // amplía una imagen a pantalla completa
-window.ampliarImagen = function(src){
+// visor de imágenes ampliadas, con deslizamiento entre las imágenes del convenio
+let _visorImgs = [];
+let _visorIdx = 0;
+window.ampliarImagen = function(indiceConv, indiceImg){
+  const c = CONVENIOS[indiceConv];
+  _visorImgs = (c && c.imagenes) ? c.imagenes.slice() : [];
+  if(_visorImgs.length === 0) return;
+  _visorIdx = indiceImg || 0;
+
   const overlay = document.createElement('div');
   overlay.className = 'lightbox';
-  overlay.innerHTML = `<img src="${src}" alt="ampliada">`;
-  overlay.onclick = ()=>overlay.remove();
+  overlay.id = 'visor-lightbox';
+  const hayVarias = _visorImgs.length > 1;
+  overlay.innerHTML = `
+    <img id="visor-img" src="${_visorImgs[_visorIdx]}" alt="ampliada">
+    ${hayVarias ? `
+      <button class="visor-flecha izq" aria-label="Anterior">‹</button>
+      <button class="visor-flecha der" aria-label="Siguiente">›</button>
+      <div class="visor-puntos">${_visorImgs.map((_,k)=>`<span class="${k===_visorIdx?'activo':''}"></span>`).join('')}</div>
+    ` : ``}
+    <button class="visor-cerrar" aria-label="Cerrar">×</button>`;
   document.body.appendChild(overlay);
+
+  // cerrar al tocar el fondo (no la imagen ni los botones)
+  overlay.onclick = (e)=>{ if(e.target === overlay) overlay.remove(); };
+  overlay.querySelector('.visor-cerrar').onclick = ()=> overlay.remove();
+
+  if(hayVarias){
+    overlay.querySelector('.visor-flecha.izq').onclick = (e)=>{ e.stopPropagation(); moverVisor(-1); };
+    overlay.querySelector('.visor-flecha.der').onclick = (e)=>{ e.stopPropagation(); moverVisor(1); };
+    // deslizar con el dedo (swipe) en el celular
+    let x0 = null;
+    const img = overlay.querySelector('#visor-img');
+    overlay.addEventListener('touchstart', ev=>{ x0 = ev.touches[0].clientX; }, {passive:true});
+    overlay.addEventListener('touchend', ev=>{
+      if(x0 === null) return;
+      const dx = ev.changedTouches[0].clientX - x0;
+      if(Math.abs(dx) > 40){ moverVisor(dx < 0 ? 1 : -1); }
+      x0 = null;
+    }, {passive:true});
+    // flechas del teclado (en computadora)
+    overlay._teclado = (ev)=>{
+      if(ev.key === 'ArrowLeft') moverVisor(-1);
+      else if(ev.key === 'ArrowRight') moverVisor(1);
+      else if(ev.key === 'Escape') overlay.remove();
+    };
+    document.addEventListener('keydown', overlay._teclado);
+    // limpiar el listener del teclado al cerrar
+    const obs = new MutationObserver(()=>{
+      if(!document.body.contains(overlay)){ document.removeEventListener('keydown', overlay._teclado); obs.disconnect(); }
+    });
+    obs.observe(document.body, {childList:true});
+  }
 };
+
+// cambia la imagen del visor ampliado
+function moverVisor(dir){
+  if(_visorImgs.length < 2) return;
+  _visorIdx = (_visorIdx + dir + _visorImgs.length) % _visorImgs.length;
+  const img = document.getElementById('visor-img');
+  if(img) img.src = _visorImgs[_visorIdx];
+  const puntos = document.querySelector('#visor-lightbox .visor-puntos');
+  if(puntos){ [...puntos.children].forEach((p,k)=> p.className = k===_visorIdx ? 'activo' : ''); }
+}
 
 /* ============================================================
    Envíos
