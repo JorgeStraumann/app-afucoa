@@ -307,6 +307,12 @@
   .verif-ficha{font-size:15px;color:#555;margin-bottom:16px}
   .verif-sello{font-size:12px;color:#888;border-top:1px solid #eee;padding-top:12px;line-height:1.4}
 
+  .foto-confirmar{
+    background:#eef1ff;border:1px solid #c5cef8;border-radius:12px;
+    padding:14px 16px;margin-top:14px;text-align:center;animation:aparecer .3s ease;
+  }
+  .foto-confirmar-txt{font-size:14px;color:var(--verde);font-weight:600;margin-bottom:10px}
+  .foto-confirmar-btns{display:flex;gap:10px;justify-content:center}
   .titulo-seccion{
     font-size:13px;letter-spacing:2px;text-transform:uppercase;
     color:var(--tinta-suave);margin:4px 2px 14px;font-weight:700;
@@ -3867,28 +3873,22 @@ async function cargarFotoCarnet(cedula){
       body: JSON.stringify({ p_documento: cedula })
     });
     const foto = await resp.json();
-    console.log('[Foto] mi_foto devolvió:', JSON.stringify(foto));
     if(typeof foto === 'string' && foto){
       mostrarFotoEnCarnet(foto);
-    }else{
-      console.log('[Foto] no hay foto guardada o formato inesperado');
     }
-  }catch(e){ console.log('[Foto] error al cargar:', e); }
+  }catch(e){ /* si no tiene foto, queda el ícono por defecto */ }
 }
 
 // pone la imagen en el recuadro del carnet
 function mostrarFotoEnCarnet(nombreArchivo, cacheBust){
   const cont = document.getElementById('carnet-foto');
-  if(!cont){ console.log('[Foto] no se encontró #carnet-foto'); return; }
+  if(!cont) return;
   const sufijo = cacheBust ? ('?t=' + Date.now()) : '';
   const url = `${SUPABASE_URL}/storage/v1/object/public/fotos-socios/${nombreArchivo}${sufijo}`;
-  console.log('[Foto] intentando mostrar:', url);
-
   const img = new Image();
   img.alt = 'Foto';
   let intentos = 0;
   img.onload = ()=>{
-    console.log('[Foto] cargó OK');
     cont.innerHTML = '';
     cont.appendChild(img);
     const editar = document.createElement('div');
@@ -3898,7 +3898,6 @@ function mostrarFotoEnCarnet(nombreArchivo, cacheBust){
   };
   img.onerror = ()=>{
     intentos++;
-    console.log('[Foto] error de carga, intento', intentos);
     if(intentos <= 2){
       setTimeout(()=>{ img.src = url + (sufijo ? '&' : '?') + 'r=' + intentos; }, 800);
     }
@@ -3906,34 +3905,81 @@ function mostrarFotoEnCarnet(nombreArchivo, cacheBust){
   img.src = url;
 }
 
-// sube la foto que el socio eligió (la achica antes para que no pese mucho)
+// cuando el socio elige una foto: mostrar un preview y pedir confirmación
+let _fotoPendiente = null;
 window.subirFotoCarnet = async function(input){
   const file = input.files && input.files[0];
   if(!file) return;
+  const msg = document.getElementById('carnet-msg');
+  if(msg){ msg.className = 'cuenta-msg'; msg.textContent = ''; }
+  try{
+    // achicar la imagen y guardarla como pendiente (todavía no se sube)
+    _fotoPendiente = await achicarImagen(file, 500);
+    // mostrar el preview en el recuadro
+    const cont = document.getElementById('carnet-foto');
+    const urlPreview = URL.createObjectURL(_fotoPendiente);
+    cont.innerHTML = `<img src="${urlPreview}" alt="Vista previa">`;
+    // mostrar los botones de confirmar / cancelar
+    let zona = document.getElementById('carnet-foto-confirmar');
+    if(!zona){
+      zona = document.createElement('div');
+      zona.id = 'carnet-foto-confirmar';
+      zona.className = 'foto-confirmar';
+      const tarjeta = document.getElementById('carnet-tarjeta');
+      tarjeta.parentElement.insertBefore(zona, tarjeta.nextSibling);
+    }
+    zona.innerHTML = `
+      <p class="foto-confirmar-txt">¿Usar esta foto para tu carnet?</p>
+      <div class="foto-confirmar-btns">
+        <button class="btn-conf-si" onclick="confirmarFotoCarnet()">Sí, guardar</button>
+        <button class="btn-conf-no" onclick="cancelarFotoCarnet()">Cancelar</button>
+      </div>`;
+    zona.style.display = 'block';
+  }catch(e){
+    if(msg){ msg.textContent = 'No se pudo preparar la foto. Intentá de nuevo.'; msg.classList.add('error'); }
+  }
+};
+
+// confirmar: subir la foto pendiente
+window.confirmarFotoCarnet = async function(){
+  if(!_fotoPendiente) return;
   const cedula = localStorage.getItem('afucoa_socio');
   const msg = document.getElementById('carnet-msg');
-  if(msg){ msg.className = 'cuenta-msg'; msg.textContent = 'Subiendo tu foto...'; }
+  const zona = document.getElementById('carnet-foto-confirmar');
+  if(msg){ msg.className = 'cuenta-msg'; msg.textContent = 'Guardando tu foto...'; }
+  if(zona){ zona.querySelectorAll('button').forEach(b=>b.disabled=true); }
   try{
-    // achicar la imagen a máx 500px para que no pese mucho
-    const blob = await achicarImagen(file, 500);
     const nombreArchivo = `socio-${cedula}.jpg`;
-    // subir al bucket (upsert: reemplaza si ya existía)
     const up = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-socios/${nombreArchivo}`, {
       method: 'POST',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'image/jpeg', 'x-upsert':'true' },
-      body: blob
+      body: _fotoPendiente
     });
     if(!up.ok){ throw new Error('subida falló'); }
-    // guardar el nombre en la base
     await fetch(`${SUPABASE_URL}/rest/v1/rpc/guardar_mi_foto`, {
       method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
       body: JSON.stringify({ p_documento: cedula, p_foto: nombreArchivo })
     });
+    _fotoPendiente = null;
+    if(zona){ zona.style.display = 'none'; zona.innerHTML = ''; }
     mostrarFotoEnCarnet(nombreArchivo, true);
-    if(msg){ msg.textContent = '¡Foto actualizada!'; msg.classList.add('ok'); }
+    if(msg){ msg.textContent = '¡Foto guardada!'; msg.classList.add('ok'); }
   }catch(e){
-    if(msg){ msg.textContent = 'No se pudo subir la foto. Intentá de nuevo.'; msg.classList.add('error'); }
+    if(msg){ msg.textContent = 'No se pudo guardar la foto. Intentá de nuevo.'; msg.classList.add('error'); }
+    if(zona){ zona.querySelectorAll('button').forEach(b=>b.disabled=false); }
   }
+};
+
+// cancelar: descartar la foto pendiente y volver a la anterior
+window.cancelarFotoCarnet = function(){
+  _fotoPendiente = null;
+  const zona = document.getElementById('carnet-foto-confirmar');
+  if(zona){ zona.style.display = 'none'; zona.innerHTML = ''; }
+  const msg = document.getElementById('carnet-msg');
+  if(msg){ msg.textContent = ''; msg.className = 'cuenta-msg'; }
+  // recargar la foto que tenía (o el ícono)
+  const cedula = localStorage.getItem('afucoa_socio');
+  cargarFotoCarnet(cedula);
 };
 
 // achica una imagen manteniendo proporción, devuelve un Blob jpg
