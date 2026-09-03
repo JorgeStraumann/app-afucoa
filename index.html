@@ -5197,9 +5197,31 @@ window.addEventListener('load', ()=>{
   }
 });
 
-/* Registrar el service worker (para poder instalarla como app) */
+/* Registrar el service worker y mantener la app SIEMPRE actualizada */
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // buscar actualizaciones cada vez que se abre la app
+    reg.update();
+    // si aparece una versión nueva, activarla y recargar automáticamente
+    reg.addEventListener('updatefound', () => {
+      const nuevo = reg.installing;
+      if(!nuevo) return;
+      nuevo.addEventListener('statechange', () => {
+        if(nuevo.state === 'installed' && navigator.serviceWorker.controller){
+          // hay una versión nueva lista: recargar para usarla
+          nuevo.postMessage && nuevo.postMessage('skipWaiting');
+          location.reload();
+        }
+      });
+    });
+  }).catch(()=>{});
+
+  // revisar actualizaciones también cada vez que la app vuelve al primer plano
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible'){
+      navigator.serviceWorker.getRegistration().then(reg => { if(reg) reg.update(); }).catch(()=>{});
+    }
+  });
 }
 </script>
 </body>
