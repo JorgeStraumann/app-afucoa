@@ -3867,25 +3867,28 @@ async function cargarFotoCarnet(cedula){
       body: JSON.stringify({ p_documento: cedula })
     });
     const foto = await resp.json();
+    console.log('[Foto] mi_foto devolvió:', JSON.stringify(foto));
     if(typeof foto === 'string' && foto){
       mostrarFotoEnCarnet(foto);
+    }else{
+      console.log('[Foto] no hay foto guardada o formato inesperado');
     }
-  }catch(e){ /* si no tiene foto, queda el ícono por defecto */ }
+  }catch(e){ console.log('[Foto] error al cargar:', e); }
 }
 
 // pone la imagen en el recuadro del carnet
 function mostrarFotoEnCarnet(nombreArchivo, cacheBust){
   const cont = document.getElementById('carnet-foto');
-  if(!cont) return;
-  // solo agregar ?t= cuando acabamos de subir (para ver la nueva); si no, URL estable
+  if(!cont){ console.log('[Foto] no se encontró #carnet-foto'); return; }
   const sufijo = cacheBust ? ('?t=' + Date.now()) : '';
   const url = `${SUPABASE_URL}/storage/v1/object/public/fotos-socios/${nombreArchivo}${sufijo}`;
+  console.log('[Foto] intentando mostrar:', url);
 
-  // crear la imagen por JS para controlar la carga sin borrar nada por error
   const img = new Image();
   img.alt = 'Foto';
   let intentos = 0;
   img.onload = ()=>{
+    console.log('[Foto] cargó OK');
     cont.innerHTML = '';
     cont.appendChild(img);
     const editar = document.createElement('div');
@@ -3895,11 +3898,10 @@ function mostrarFotoEnCarnet(nombreArchivo, cacheBust){
   };
   img.onerror = ()=>{
     intentos++;
+    console.log('[Foto] error de carga, intento', intentos);
     if(intentos <= 2){
-      // reintentar tras un momento (la imagen puede tardar en estar lista)
       setTimeout(()=>{ img.src = url + (sufijo ? '&' : '?') + 'r=' + intentos; }, 800);
     }
-    // si falla tras los reintentos, NO borramos nada: dejamos lo que haya (el ícono)
   };
   img.src = url;
 }
