@@ -263,7 +263,13 @@
   .carnet-foto{
     width:88px;height:88px;flex:none;border-radius:12px;background:rgba(255,255,255,.12);
     border:2px solid rgba(240,216,120,.5);display:flex;align-items:center;justify-content:center;
-    overflow:hidden;color:rgba(255,255,255,.5);
+    overflow:hidden;color:rgba(255,255,255,.5);cursor:pointer;position:relative;
+  }
+  .carnet-foto-editar{
+    position:absolute;bottom:-2px;right:-2px;
+    background:var(--dorado);border-radius:50%;width:26px;height:26px;
+    display:flex;align-items:center;justify-content:center;font-size:13px;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
   }
   .carnet-foto svg{width:52px;height:52px}
   .carnet-foto img{width:100%;height:100%;object-fit:cover}
@@ -3810,9 +3816,11 @@ async function cargarMiCarnet(){
           </div>
         </div>
         <div class="carnet-cuerpo">
-          <div class="carnet-foto" id="carnet-foto">
+          <div class="carnet-foto" id="carnet-foto" onclick="document.getElementById('carnet-foto-input').click()" title="Tocá para poner tu foto">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <div class="carnet-foto-editar">📷</div>
           </div>
+          <input type="file" id="carnet-foto-input" accept="image/*" style="display:none" onchange="subirFotoCarnet(this)">
           <div class="carnet-datos">
             <div class="carnet-nombre">${nombre}</div>
             <div class="carnet-linea"><span>Ficha N.º</span> ${d.numero||'—'}</div>
@@ -3831,6 +3839,8 @@ async function cargarMiCarnet(){
 
     // dibujar el QR con el enlace de verificación
     pintarQRCarnet(codigo);
+    // cargar la foto del socio si ya tiene una
+    cargarFotoCarnet(cedula);
   }catch(e){
     cont.innerHTML = '<p class="cuenta-cargando">No se pudo cargar el carnet. Intentá de nuevo.</p>';
   }
@@ -3847,6 +3857,80 @@ function pintarQRCarnet(codigo){
   }else{
     cont.innerHTML = '<p style="font-size:12px;color:#888">No se pudo generar el QR.</p>';
   }
+}
+
+// muestra la foto del socio en el carnet (si tiene una guardada)
+async function cargarFotoCarnet(cedula){
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/mi_foto`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula })
+    });
+    const foto = await resp.json();
+    if(typeof foto === 'string' && foto){
+      mostrarFotoEnCarnet(foto);
+    }
+  }catch(e){ /* si no tiene foto, queda el ícono por defecto */ }
+}
+
+// pone la imagen en el recuadro del carnet
+function mostrarFotoEnCarnet(nombreArchivo){
+  const cont = document.getElementById('carnet-foto');
+  if(!cont) return;
+  const url = `${SUPABASE_URL}/storage/v1/object/public/fotos-socios/${nombreArchivo}?t=${Date.now()}`;
+  cont.innerHTML = `<img src="${url}" alt="Foto" onerror="this.parentElement.innerHTML='<svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.3\\'><circle cx=\\'12\\' cy=\\'9\\' r=\\'4\\'/><path d=\\'M4 21c0-4 4-6 8-6s8 2 8 6\\'/></svg>'">
+    <div class="carnet-foto-editar">📷</div>`;
+}
+
+// sube la foto que el socio eligió (la achica antes para que no pese mucho)
+window.subirFotoCarnet = async function(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const cedula = localStorage.getItem('afucoa_socio');
+  const msg = document.getElementById('carnet-msg');
+  if(msg){ msg.className = 'cuenta-msg'; msg.textContent = 'Subiendo tu foto...'; }
+  try{
+    // achicar la imagen a máx 500px para que no pese mucho
+    const blob = await achicarImagen(file, 500);
+    const nombreArchivo = `socio-${cedula}.jpg`;
+    // subir al bucket (upsert: reemplaza si ya existía)
+    const up = await fetch(`${SUPABASE_URL}/storage/v1/object/fotos-socios/${nombreArchivo}`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'image/jpeg', 'x-upsert':'true' },
+      body: blob
+    });
+    if(!up.ok){ throw new Error('subida falló'); }
+    // guardar el nombre en la base
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/guardar_mi_foto`, {
+      method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_documento: cedula, p_foto: nombreArchivo })
+    });
+    mostrarFotoEnCarnet(nombreArchivo);
+    if(msg){ msg.textContent = '¡Foto actualizada!'; msg.classList.add('ok'); }
+  }catch(e){
+    if(msg){ msg.textContent = 'No se pudo subir la foto. Intentá de nuevo.'; msg.classList.add('error'); }
+  }
+};
+
+// achica una imagen manteniendo proporción, devuelve un Blob jpg
+function achicarImagen(file, maxLado){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = ()=>{
+      let {width, height} = img;
+      if(width > height){ if(width > maxLado){ height = height * maxLado / width; width = maxLado; } }
+      else { if(height > maxLado){ width = width * maxLado / height; height = maxLado; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(b => b ? resolve(b) : reject(new Error('sin blob')), 'image/jpeg', 0.85);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // trae el código de carnet actual (o null si no tiene)
