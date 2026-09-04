@@ -72,6 +72,7 @@
 .button.light { background:white; color:var(--afucoa-blue-900); }
 .button.wide { width:100%; }
 .button-row,.card-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+.push-controls [hidden] { display:none!important; }
 .subsection { margin-top:22px; }
 .pill,.category-tag { display:inline-flex; align-items:center; width:max-content; border-radius:999px; padding:6px 9px; font-size:.72rem; font-weight:800; }
 .pill.success { background:#e9f7ee; color:var(--afucoa-success); }

@@ -106,6 +106,12 @@ test('U Service Worker bloquea destinos externos incluso en click',async()=>{
 test('registrar worker al cargar no solicita permiso ni suscribe',async()=>{
   const f=await browser();await f.api.registerPushWorker();assert.equal(f.stats.permission+f.stats.subscribe,0);
 });
+test('controles push ocultos prevalecen sobre display de botones',async()=>{
+  const css=await readFile(new URL('src/styles/components.css',root),'utf8');
+  assert.match(css,/\.push-controls \[hidden\]\s*\{\s*display:none!important/);
+  const controls=await readFile(new URL('src/components/push-controls.js',root),'utf8');
+  assert.ok(controls.includes('card push-controls'));
+});
 test('envío continúa lotes acotados y agrega solo resultados públicos',async()=>{
   let calls=0;
   const api=await module('src/services/push-service.js',{requireSupabase:()=>({functions:{invoke:async()=>({data:{status:'complete',found:++calls===1?40:1,sent:calls===1?40:1,limited:calls===1,endpoint:'never-forward'}})}})},['sendNotificationPush']);

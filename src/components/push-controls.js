@@ -1,7 +1,7 @@
 import {getPushState,activatePush,deactivatePush} from '../services/push-service.js';
 
 export function pushControls() {
-  return `<article class="card"><h2>Notificaciones en este dispositivo</h2>
+  return `<article class="card push-controls"><h2>Notificaciones en este dispositivo</h2>
     <p class="muted">Son opcionales. La pantalla bloqueada solo mostrará un aviso genérico; el contenido completo queda dentro de AFUCOA.</p>
     <p id="push-state" role="status" aria-live="polite">Consultando…</p>
     <div class="button-row"><button type="button" class="button secondary" id="push-enable" disabled>Activar notificaciones</button>
@@ -25,11 +25,11 @@ export function bindPushControls() {
   const refresh = async () => {try {paint(await getPushState());}catch {state.textContent='No se pudo consultar';note.textContent='Las notificaciones internas siguen disponibles.';enable.disabled=true;}};
   enable.addEventListener('click',async () => {
     enable.disabled=true;
-    try {await activatePush();await refresh();}catch(error){note.textContent=error.message;enable.disabled=false;}
+    try {await activatePush();await refresh();}catch{note.textContent='No se pudo activar este dispositivo. Las notificaciones internas siguen disponibles.';enable.disabled=false;}
   });
   disable.addEventListener('click',async () => {
     disable.disabled=true;
-    try {await deactivatePush();await refresh();}catch(error){note.textContent=error.message;}finally{disable.disabled=false;}
+    try {await deactivatePush();await refresh();}catch{note.textContent='No se pudo confirmar la desactivación. Intentá nuevamente.';}finally{disable.disabled=false;}
   });
   refresh();
 }

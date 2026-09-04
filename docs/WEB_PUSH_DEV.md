@@ -42,7 +42,7 @@ Fecha: 2026-09-03 Uruguay / 2026-09-04 UTC.
 | test:session | 10/10 |
 | test:recovery | 11/11; no se reenvió correo real |
 | test:pilot | 6/6, exclusivamente sintética |
-| test:push | 33/33 |
+| test:push | 34/34 |
 | tests/push-rls.sql | PASS; transacción revertida |
 | tests/push-http-live.mjs | 23/23, endpoints desplegados DEV |
 | test:session-live | 8/8 |
