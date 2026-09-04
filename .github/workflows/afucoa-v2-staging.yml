@@ -44,6 +44,9 @@ jobs:
       - name: Build and validate staging artifact
         run: pnpm test:staging
 
+      - name: Auth recovery and synthetic pilot regression tests
+        run: pnpm test:recovery && pnpm test:pilot
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

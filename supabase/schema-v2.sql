@@ -377,13 +377,30 @@ create index if not exists audit_created_idx on public.audit_log(created_at desc
 create table if not exists public.password_recovery_codes (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid not null references public.profiles(id) on delete cascade,
+  auth_user_id uuid,
   code_hash text not null,
   expires_at timestamptz not null,
   consumed_at timestamptz,
+  invalidated_at timestamptz,
   attempts integer not null default 0,
+  max_attempts integer not null default 5 check (max_attempts between 1 and 10),
+  delivery_status text not null default 'pending' check (delivery_status in ('pending','sent','failed')),
+  request_ip_hash text,
   created_at timestamptz not null default now()
 );
 create index if not exists password_recovery_profile_idx on public.password_recovery_codes(profile_id, created_at desc);
+create index if not exists password_recovery_active_profile_idx on public.password_recovery_codes(profile_id, created_at desc) where consumed_at is null and invalidated_at is null;
+
+create table if not exists public.password_recovery_rate_limits (
+  scope text not null,
+  subject_hash text not null,
+  window_started_at timestamptz not null default now(),
+  hit_count integer not null default 0,
+  blocked_until timestamptz,
+  updated_at timestamptz not null default now(),
+  primary key (scope, subject_hash)
+);
+create index if not exists password_recovery_rate_limits_updated_idx on public.password_recovery_rate_limits(updated_at);
 
 alter table public.profiles add column if not exists migration_source text;
 alter table public.profiles add column if not exists migration_external_id text;

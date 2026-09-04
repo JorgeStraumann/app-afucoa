@@ -12,6 +12,9 @@
     "preview:staging": "vite preview --host 0.0.0.0",
     "test:staging": "pnpm run build:staging && node scripts/check-staging-dist.mjs",
     "test:pilot": "node --test tests/pilot-import.test.mjs",
+    "test:recovery": "node --test tests/password-recovery.test.mjs tests/password-recovery-handlers.test.mjs",
+    "test:auth-roles": "node tests/auth-roles-live.mjs",
+    "test:recovery-http": "node tests/password-recovery-http-live.mjs",
     "test:rls": "node tests/rls-live-check.mjs",
     "test:integration": "node tests/supabase-integration-live.mjs"
   },

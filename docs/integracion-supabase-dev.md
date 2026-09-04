@@ -47,8 +47,12 @@ La cuenta admin se degradó temporalmente a `socio` para actuar como socio B. Al
 
 - `list_visible_proposals`
 - `fix_membership_token_ambiguity`
+- `profiles_id_default_uuid`
+- `secure_password_recovery`
+- `recovery_concurrency_hardening`
+- `recovery_lock_clock`
 
-Ambas migraciones están versionadas en `supabase/migrations/` y tienen permisos explícitos: ejecución solo para `authenticated`. La verificación de un QR permanece deliberadamente disponible a `anon` y devuelve únicamente nombre, ficha, estado y vencimiento.
+Las migraciones están versionadas en `supabase/migrations/` con permisos explícitos por operación. Las primitivas de recuperación son exclusivas del servidor. La verificación de un QR permanece deliberadamente disponible a `anon` y devuelve únicamente nombre, ficha, estado y vencimiento.
 
 ## Repetición
 
@@ -64,4 +68,4 @@ La prueba profunda crea datos marcados con el prefijo `codex-`. Se debe ejecutar
 
 ## Revisión de seguridad
 
-Supabase Advisor no informó errores nuevos después de las migraciones. Mantiene advertencias esperadas sobre RPC `SECURITY DEFINER` que son la frontera de negocio de la aplicación y tienen grants restringidos. `verify_membership_token` es la excepción pública intencional. También informa que la protección contra contraseñas filtradas está desactivada en Auth; conviene habilitarla antes de producción.
+Las RPC `SECURITY DEFINER` fueron revisadas individualmente; se conservaron porque forman la frontera de negocio y sus grants están restringidos. `verify_membership_token` es la excepción pública intencional y mínima. Las nuevas primitivas atómicas de recuperación son `SECURITY INVOKER` y solo `service_role` puede ejecutarlas. La protección contra contraseñas filtradas debe habilitarse obligatoriamente antes de producción.

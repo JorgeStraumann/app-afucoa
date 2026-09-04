@@ -18,10 +18,20 @@ export async function bootstrapSession() {
   }
 
   const authSession = await getAuthSession();
-  currentSession = authSession ? await buildRealSession(authSession) : null;
+  try {
+    currentSession = authSession ? await buildRealSession(authSession) : null;
+  } catch {
+    currentSession = null;
+    await authSignOut().catch(() => {});
+  }
   unsubscribeAuth?.();
   unsubscribeAuth = onAuthStateChange(async (session) => {
-    currentSession = session ? await buildRealSession(session) : null;
+    try {
+      currentSession = session ? await buildRealSession(session) : null;
+    } catch {
+      currentSession = null;
+      await authSignOut().catch(() => {});
+    }
     window.dispatchEvent(new CustomEvent('afucoa:session-changed'));
   });
   return currentSession;
@@ -31,7 +41,13 @@ export async function bootstrapSession() {
 export async function startRealSession(authResult) {
   const authSession = authResult?.session || authResult;
   if (!authSession) throw new Error('Supabase no devolvió una sesión válida.');
-  currentSession = await buildRealSession(authSession);
+  try {
+    currentSession = await buildRealSession(authSession);
+  } catch (error) {
+    currentSession = null;
+    await authSignOut().catch(() => {});
+    throw error;
+  }
   return currentSession;
 }
 
@@ -70,6 +86,9 @@ export async function endSession() {
 
 async function buildRealSession(authSession) {
   const profile = await fetchMyProfile();
+  if (!profile || profile.status !== 'activo') {
+    throw new Error('La cuenta no está habilitada. Contactá a AFUCOA.');
+  }
   return {
     demo: false,
     auth: authSession,

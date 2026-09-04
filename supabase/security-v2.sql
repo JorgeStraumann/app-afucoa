@@ -387,9 +387,11 @@ grant select on public.profiles, public.agreements, public.agreement_locations, 
 
 -- Incremento 09 ------------------------------------------------------------
 alter table public.password_recovery_codes enable row level security;
+alter table public.password_recovery_rate_limits enable row level security;
 -- Sin acceso directo desde anon/authenticated. Solo Edge Functions con service role.
 create policy password_recovery_no_direct_select on public.password_recovery_codes for select using (false);
 revoke all on public.password_recovery_codes from anon, authenticated;
+revoke all on public.password_recovery_rate_limits from anon, authenticated;
 
 create or replace function public.create_my_proposal(p_title text, p_description text)
 returns uuid language plpgsql security definer set search_path=public as $$

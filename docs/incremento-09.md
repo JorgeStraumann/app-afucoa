@@ -2,8 +2,9 @@
 
 ## Implementado
 - Recuperación de contraseña en dos pasos: solicitud de código y confirmación.
-- Edge Functions de referencia para recuperación; la primera requiere conectar un proveedor de correo transaccional antes de producción.
-- Tabla de códigos de recuperación con hash, caducidad, consumo e intentos.
+- Edge Functions completas para recuperación, con CORS restringido, respuesta neutra y adaptador server-side de Resend.
+- Códigos HMAC de 8 dígitos, caducidad de 10 minutos, consumo único, invalidación de anteriores y máximo de cinco intentos.
+- Rate limiting atómico por IP e identidad sin almacenar esos datos en claro.
 - RPC `create_my_proposal` y `support_proposal` con identidad del servidor y unicidad por base de datos.
 - Propuestas del socio conectables a Supabase.
 - Noticias/Comunicados/Agenda conectables a `content_items`.
@@ -26,9 +27,8 @@ No se migran contraseñas V1 salvo que exista un hash compatible y exista una ra
 - Validación sintética automatizada sin crear usuarios reales.
 
 ## Pendiente antes de usuarios reales
-- Integrar proveedor transaccional de correo para entregar códigos de recuperación.
-- Añadir rate limiting/CAPTCHA al endpoint público de recuperación.
-- Ejecutar `schema-v2.sql`, `security-v2.sql` y `storage-v2.sql` en desarrollo.
+- Configurar en Edge Function Secrets un remitente Resend verificado y un destinatario de prueba; no usar variables Vite/GitHub Pages.
+- DEV ya tiene esquema, seguridad, storage y migraciones aplicados; para otro entorno respetar la secuencia completa de migraciones.
 - Aprobar la lista nominal de 5–10 participantes y el canal seguro de entrega de credenciales temporales.
-- Habilitar protección de contraseñas filtradas y revisar SMTP/recuperación antes del inicio del piloto.
-- Conectar las mutaciones del panel Admin a RPC/Edge Functions auditadas.
+- Habilitar `Leaked Password Protection` y mantener la política de 12–72 caracteres antes del inicio del piloto.
+- Pilot 01 sigue suspendido: no ejecutar importaciones reales ni `--apply`.

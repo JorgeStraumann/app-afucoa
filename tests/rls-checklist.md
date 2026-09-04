@@ -19,13 +19,15 @@ Ejecutar en un proyecto Supabase de desarrollo con cuatro identidades: anon, soc
 
 Además probar: token QR vencido/revocado, usuario dado de baja, archivo con path ajeno, propuesta cerrada, sesión admin degradada a socio y recuperación con más de cinco intentos.
 
+La recuperación también debe cubrir: respuesta pública idéntica para cédula existente/inexistente, CORS desde GitHub Pages, invalidación del código anterior, código correcto, vencido, reutilizado, cinco intentos, rate limiting por IP/identidad y ausencia total de secretos o códigos en cliente/logs.
+
 ## Prueba automatizada
 
 `rls-live-check.mjs` ejecuta la matriz contra identidades reales y requiere las variables de entorno `AFUCOA_SUPABASE_URL`, `AFUCOA_PUBLISHABLE_KEY` y `AFUCOA_TEST_USERS`. Las credenciales nunca deben guardarse en el repositorio.
 
 `supabase-integration-live.mjs` amplía la matriz con flujos reales de contacto, borrador y envío de trámite, mensajes visibles e internos, carga y descarga privada, moderación y apoyos de propuestas, y rotación/verificación del QR. Requiere una segunda identidad con rol `socio`; en DEV se puede degradar temporalmente la cuenta admin y se debe restaurar en un bloque de limpieza aunque la prueba falle.
 
-## Última ejecución en DEV
+## Ejecución Beta en DEV
 
 Fecha: 1 de septiembre de 2026. Proyecto: `imiplnspvmsrsuikulwm`.
 
@@ -37,3 +39,7 @@ Fecha: 1 de septiembre de 2026. Proyecto: `imiplnspvmsrsuikulwm`.
 - Propuestas: moderación, apoyo único, cierre, autoría y total de apoyos aprobados.
 - QR: generación, validación anónima mínima y revocación del token anterior aprobadas.
 - Limpieza: fixtures, objetos privados y tokens temporales eliminados mediante la sesión administrativa y limpieza DEV; roles y contacto restaurados.
+
+## Etapa Auth — 3 de septiembre de 2026
+
+Se ejecutaron nuevamente matriz 40/40, integración 34/34 y login de los tres roles durante la etapa. Después de las migraciones finales de concurrencia de recuperación se repitieron los tests SQL específicos y HTTP (8/8), no la matriz general con contraseñas. Ver `docs/auth-recuperacion-resultados.md` para resultados, alcance y limitaciones. La entrega real por correo permanece pendiente de configurar el canal DEV.

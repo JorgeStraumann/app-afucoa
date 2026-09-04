@@ -33,6 +33,14 @@ if (!contents.includes(`${EXPECTED_PROJECT_REF}.supabase.co`)) fail('el bundle n
 if (/sb_secret_|sb_service_role_|"role"\s*:\s*"service_role"/i.test(contents)) {
   fail('el artefacto contiene una clave privilegiada o un rol privilegiado.');
 }
+if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|\bre_[A-Za-z0-9]{24,}/.test(contents)) {
+  fail('el artefacto contiene material privado o una clave de correo.');
+}
+for (const token of contents.matchAll(/eyJ[A-Za-z0-9_-]+\.([A-Za-z0-9_-]+)\.[A-Za-z0-9_-]+/g)) {
+  let payload;
+  try { payload = JSON.parse(Buffer.from(token[1], 'base64url').toString('utf8')); } catch { continue; }
+  if (payload.role === 'service_role') fail('el artefacto contiene un JWT privilegiado.');
+}
 if (files.some((file) => file.endsWith('.map'))) fail('el artefacto contiene source maps.');
 
 console.log(JSON.stringify({
