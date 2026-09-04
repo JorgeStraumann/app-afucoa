@@ -1,10 +1,16 @@
 import { requestPasswordRecovery, confirmPasswordRecovery, validateRecoveryPassword } from '../../services/password-service.js';
 
 export function renderRecovery() {
-  return `<main class="auth-page"><section class="auth-panel"><a href="#/login" class="back-link">← Volver al acceso</a><span class="eyebrow">Acceso AFUCOA</span><h1>Recuperar contraseña</h1><p>Ingresá tu cédula. Si la cuenta está habilitada, enviaremos un código al medio de contacto registrado.</p>
-    <form id="recovery-request-form" class="auth-form"><label class="field">Cédula<input name="document" inputmode="numeric" autocomplete="username" required placeholder="Sin puntos ni guiones"></label><button class="button primary" type="submit">Enviar código</button><p class="form-status" id="recovery-status" role="status" aria-live="polite"></p></form>
-    <form id="recovery-confirm-form" class="auth-form hidden"><label class="field">Código<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="8" maxlength="8" pattern="[0-9]{8}" placeholder="8 dígitos"></label><label class="field">Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="72" required aria-describedby="password-rules"></label><small id="password-rules">Entre 12 y 72 caracteres, con mayúscula, minúscula, número y símbolo.</small><label class="field">Repetir contraseña<input name="password2" type="password" autocomplete="new-password" minlength="12" maxlength="72" required></label><button class="button primary" type="submit">Cambiar contraseña</button><p class="form-status" id="confirm-status" role="status" aria-live="polite"></p></form>
-  </section><aside class="auth-visual"><div><span class="eyebrow gold-text">AFUCOA V2</span><h2>Recuperación segura</h2><p>El sistema no revela si una cédula existe y los códigos son temporales y de un solo uso.</p></div></aside></main>`;
+  return `<main class="login-page">
+    <section class="login-backdrop" aria-hidden="true"><div class="palace-silhouette"></div></section>
+    <section class="login-panel"><div class="login-card">
+      <a href="#/login" class="back-link">← Volver al acceso</a>
+      <div class="login-brand"><div class="brand-mark brand-mark-blue">A</div><div><strong>AFUCOA</strong><small>Portal del socio</small></div></div>
+      <div class="login-copy"><h1>Recuperar contraseña</h1><p>Ingresá tu cédula. Si la cuenta está habilitada, enviaremos un código al medio de contacto registrado.</p></div>
+      <form id="recovery-request-form" class="form-stack"><label>Cédula<input name="document" inputmode="numeric" autocomplete="username" required placeholder="Sin puntos ni guiones"></label><button class="button primary wide" type="submit">Enviar código</button><p class="muted" id="recovery-status" role="status" aria-live="polite"></p></form>
+      <form id="recovery-confirm-form" class="form-stack hidden"><label>Código<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="8" maxlength="8" pattern="[0-9]{8}" placeholder="8 dígitos"></label><label>Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="72" required aria-describedby="password-rules"></label><small id="password-rules" class="muted">Entre 12 y 72 caracteres, con mayúscula, minúscula, número y símbolo.</small><label>Repetir contraseña<input name="password2" type="password" autocomplete="new-password" minlength="12" maxlength="72" required></label><button class="button primary wide" type="submit">Cambiar contraseña</button><p class="muted" id="confirm-status" role="status" aria-live="polite"></p></form>
+      <p class="demo-note">El código vence en 10 minutos y puede usarse una sola vez.</p>
+    </div></section></main>`;
 }
 
 export function bindRecovery() {

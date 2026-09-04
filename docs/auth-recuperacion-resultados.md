@@ -9,6 +9,7 @@ Alcance: rama `afucoa-v2`, Supabase DEV `imiplnspvmsrsuikulwm`. Sin importacione
 - Bloqueo compartido por perfil, vinculación al Auth original, reloj posterior al bloqueo y límites IP/identidad/global.
 - Adaptador Resend server-side; errores de entrega invalidan el código. Si Auth falla después del consumo, se debe solicitar otro código.
 - Formulario de 8 dígitos, política de 12–72 caracteres, estados accesibles y corrección de callback bajo bloqueo de Auth.
+- La verificación visual pública detectó clases `auth-*` sin estilos. Recuperación reutiliza ahora `login-page`, `login-card` y `form-stack` del acceso aprobado, sin rediseñar el resto de la aplicación.
 - Perfil ausente/inactivo rechazado por la sesión; contexto SQL activo para RPC/RLS dependientes.
 - Auth DEV: altas públicas deshabilitadas, mínimo 12 caracteres y cuatro clases.
 - CI ejecuta recuperación y regresión sintética Pilot, además de build y revisión del artefacto.
