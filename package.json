@@ -13,6 +13,8 @@
     "test:staging": "pnpm run build:staging && node scripts/check-staging-dist.mjs",
     "test:pilot": "node --test tests/pilot-import.test.mjs",
     "test:recovery": "node --test tests/password-recovery.test.mjs tests/password-recovery-handlers.test.mjs",
+    "test:session": "node --test tests/session-regression.test.mjs",
+    "test:session-live": "node tests/session-regression-live.mjs",
     "test:auth-roles": "node tests/auth-roles-live.mjs",
     "test:recovery-http": "node tests/password-recovery-http-live.mjs",
     "test:rls": "node tests/rls-live-check.mjs",

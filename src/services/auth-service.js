@@ -37,13 +37,21 @@ export async function getAuthSession() {
 export function onAuthStateChange(callback) {
   if (!supabase) return () => {};
   let active = true;
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+  const timers = new Set();
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
     // Leave the Auth lock before making profile/sign-out requests.
-    setTimeout(() => {
-      if (active) Promise.resolve(callback(session)).catch(() => {});
+    const timer = setTimeout(() => {
+      timers.delete(timer);
+      if (active) Promise.resolve().then(() => callback(event, session)).catch(() => {});
     }, 0);
+    timers.add(timer);
   });
-  return () => { active = false; data.subscription.unsubscribe(); };
+  return () => {
+    active = false;
+    timers.forEach(clearTimeout);
+    timers.clear();
+    data.subscription.unsubscribe();
+  };
 }
 
 function mapAuthError(error) {
