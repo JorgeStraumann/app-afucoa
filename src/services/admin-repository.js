@@ -1,4 +1,5 @@
 import { appMode, requireSupabase } from './supabase.js';
+import { sendNotificationPush } from './push-service.js';
 import { adminMembers, adminRequests, adminAgreements, adminActivity } from './admin-mock-data.js';
 import { adminContent, adminDocuments, adminProposals, adminNotifications, auditEvents, adminSettings } from './admin-content-mock-data.js';
 
@@ -194,7 +195,12 @@ export async function createAdminNotification(input) {
       throw recipientError;
     }
   }
-  return notification;
+  // Internal notification/recipients are committed independently of optional push.
+  let push;
+  try {
+    push = await sendNotificationPush(notification.id);
+  } catch { push = {status:'unavailable'}; }
+  return { ...notification, push };
 }
 
 export async function getAdminSettings() {

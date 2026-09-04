@@ -30,7 +30,7 @@ if (!index.includes(`${EXPECTED_BASE}assets/`)) fail(`index.html no usa la base 
 if (!index.includes(`${EXPECTED_BASE}manifest.webmanifest`)) fail('el manifest no respeta la base pública.');
 if (manifest.start_url !== './') fail('manifest.start_url debe ser relativo.');
 if (!contents.includes(`${EXPECTED_PROJECT_REF}.supabase.co`)) fail('el bundle no apunta al proyecto DEV permitido.');
-if (/sb_secret_|sb_service_role_|"role"\s*:\s*"service_role"/i.test(contents)) {
+if (/sb_secret|service_role|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
   fail('el artefacto contiene una clave privilegiada o un rol privilegiado.');
 }
 if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|\bre_[A-Za-z0-9]{24,}/.test(contents)) {
@@ -42,6 +42,9 @@ for (const token of contents.matchAll(/eyJ[A-Za-z0-9_-]+\.([A-Za-z0-9_-]+)\.[A-Z
   if (payload.role === 'service_role') fail('el artefacto contiene un JWT privilegiado.');
 }
 if (files.some((file) => file.endsWith('.map'))) fail('el artefacto contiene source maps.');
+const worker = await readFile(path.join(DIST, 'push-sw.js'), 'utf8');
+if (!worker.includes("addEventListener('push'") || !worker.includes("addEventListener('notificationclick'")) fail('falta el Service Worker push.');
+if (!contents.includes(`${EXPECTED_BASE}`) || !contents.includes('push-sw.js')) fail('falta registro del Service Worker con base pública.');
 
 console.log(JSON.stringify({
   ok: true,

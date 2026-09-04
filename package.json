@@ -14,6 +14,8 @@
     "test:pilot": "node --test tests/pilot-import.test.mjs",
     "test:recovery": "node --test tests/password-recovery.test.mjs tests/password-recovery-handlers.test.mjs",
     "test:session": "node --test tests/session-regression.test.mjs",
+    "test:push": "node --test tests/push.test.mjs",
+    "test:push-http": "node tests/push-http-live.mjs",
     "test:session-live": "node tests/session-regression-live.mjs",
     "test:auth-roles": "node tests/auth-roles-live.mjs",
     "test:recovery-http": "node tests/password-recovery-http-live.mjs",
@@ -21,7 +23,8 @@
     "test:integration": "node tests/supabase-integration-live.mjs"
   },
   "devDependencies": {
-    "vite": "7.1.3"
+    "vite": "7.1.3",
+    "web-push": "3.6.7"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.57.4",

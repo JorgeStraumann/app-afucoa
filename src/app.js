@@ -19,10 +19,13 @@ import { registerRoute, setRouteChangeHandler, startRouter, navigate, renderCurr
 import { bootstrapSession, getSession, isAdminSession, refreshProfile, startDemoSession, startRealSession } from './store/session.js';
 import { signInWithDocument } from './services/auth-service.js';
 import { appMode } from './services/supabase.js';
+import { registerPushWorker } from './services/push-service.js';
 import { renderAdminDashboard, bindAdminDashboard, renderAdminMembers, bindAdminMembers, renderAdminRequests, bindAdminRequests, renderAdminAgreements, bindAdminAgreements } from './pages/admin/admin.js';
 import { renderAdminContent, bindAdminContent, renderAdminDocuments, bindAdminDocuments, renderAdminProposals, bindAdminProposals, renderAdminNotifications, bindAdminNotifications, renderAdminAudit, bindAdminAudit, renderAdminSettings, bindAdminSettings } from './pages/admin/admin-advanced.js';
 
 const app = document.querySelector('#app');
+// Installation alone never asks notification permission or creates a subscription.
+registerPushWorker().catch(() => {});
 
 registerRoute('/login', renderLogin, { public: true, bare: true, bind: bindLogin });
 registerRoute('/recuperar', renderRecovery, { public: true, bare: true, bind: bindRecovery });
