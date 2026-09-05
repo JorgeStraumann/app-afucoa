@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este flujo pertenece exclusivamente a AFUCOA V2. Pilot 01 continúa suspendido. El navegador usa solamente la URL y la publishable key; la resolución de identidad, el envío y el cambio de contraseña ocurren en Edge Functions. La parametrización multiambiente está versionada pero no fue desplegada en DEV ni PROD.
+Este flujo pertenece exclusivamente a AFUCOA V2. Pilot 01 continúa suspendido. El navegador usa solamente la URL y la publishable key; la resolución de identidad, el envío y el cambio de contraseña ocurren en Edge Functions. La parametrización multiambiente está versionada, desplegada y validada E2E únicamente en DEV; no fue desplegada en PROD.
 
 ## Login por cédula
 
@@ -52,7 +52,7 @@ La integración con Resend está terminada dentro de `request-password-recovery`
 
 La configuración compartida exige además `AFUCOA_ENV`, `AFUCOA_ALLOWED_ORIGINS`, `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. No existen origins por defecto. `RECOVERY_ALLOWED_ORIGINS` quedó reemplazada por la lista única compartida.
 
-Si Resend rechaza el envío, el código queda marcado `failed` e invalidado. El código nunca se devuelve al cliente ni se imprime en logs. En DEV, los tres perfiles de prueba actualmente no tienen correo de contacto; por eso las solicitudes públicas son neutras pero no generan un código entregable hasta configurar un destinatario de prueba.
+Si Resend rechaza el envío, el código queda marcado `failed` e invalidado. El código nunca se devuelve al cliente ni se imprime en logs. En la validación Fase 2C se usó un correo real autorizado asociado al usuario sintético DEV `10000001`; el valor del correo no se documenta.
 
 ## Política de contraseñas
 
@@ -68,7 +68,7 @@ Antes de producción debe habilitarse **Leaked Password Protection** en Supabase
 
 Se conservan POST server-to-server sin `Origin`: no reciben header CORS y siguen sujetos a validación de cuerpo, HMAC y límites IP/identidad/global. CORS no se trata como mecanismo de autenticación.
 
-El contrato completo, inventario PROD y variables están en `docs/EDGE_RUNTIME_CONFIG.md`. Antes de desplegar esta versión en DEV deben configurarse explícitamente las nuevas variables; esta fase no cambió secrets ni funciones remotas.
+El contrato completo, inventario PROD y variables están en `docs/EDGE_RUNTIME_CONFIG.md`. En DEV, `request-password-recovery` v23 y `confirm-password-recovery` v23 quedaron `ACTIVE` con `AFUCOA_ENV=dev` y `AFUCOA_ALLOWED_ORIGINS` explícita. Las variables Supabase, Resend y VAPID existentes permanecen server-side y sus valores no se documentan. PROD continúa sin despliegue.
 
 ## SECURITY DEFINER revisadas
 
@@ -94,4 +94,6 @@ Resultados y límites de verificación: `docs/auth-recuperacion-resultados.md`.
 
 Aplicar las tres migraciones de recuperación después del esquema base y las migraciones previas. Los SQL de referencia no sustituyen la secuencia de migraciones. Antes de usuarios reales debe verificarse operacionalmente la titularidad del correo de contacto; editar `profiles.email` no constituye una verificación del buzón.
 
-La prueba completa de entrega real requiere un remitente Resend verificado, `RESEND_API_KEY`, `RECOVERY_EMAIL_FROM` y un correo de contacto de prueba en un perfil DEV. Ninguno de esos valores debe guardarse en Git, Vite o GitHub Pages.
+La recuperación real DEV fue aprobada con el usuario sintético `10000001`: solicitud desde staging, correo recibido, código de ocho dígitos recibido y aceptado, cambio de contraseña y login posterior correctos. La evidencia DB fue `delivery_status=sent`, `consumed=true` e `invalidated=false`. No se documentan correo, código, contraseña ni secretos.
+
+Esta evidencia cierra la validación DEV, no la de producción. PROD requiere dominio/remitente, credenciales, origins, runtime y E2E propios; ningún valor DEV debe reutilizarse ni guardarse en Git, Vite o GitHub Pages.

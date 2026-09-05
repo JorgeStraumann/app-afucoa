@@ -17,7 +17,7 @@ Tipo de revisión: solo lectura y documentación
 Los dos riesgos técnicos más inmediatos son:
 
 1. `supabase/migrations/` ya contiene las 17 migraciones históricas y coincide por SHA-256 normalizado con DEV. Todavía no se ha demostrado la reconstrucción determinística porque este equipo no dispone de Supabase CLI ni Docker para el ensayo fresh-db.
-2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto en el código de Fase 2B mediante configuración compartida fail-closed. No fue desplegado: B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E PROD.
+2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto mediante configuración compartida fail-closed. La parametrización fue desplegada y validada E2E en DEV durante Fase 2C; B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E exclusivamente PROD.
 
 La protección contra contraseñas filtradas está deshabilitada en DEV. Es un riesgo aceptado únicamente porque DEV está en Free; es un **BLOCKER PROD**, requiere Supabase Pro o superior y no debe intentarse silenciar mediante SQL o cambios de frontend.
 
@@ -31,7 +31,7 @@ La auditoría incluyó:
 - ejecución local de las cuatro suites requeridas;
 - revisión de documentación oficial de Supabase, GitHub, Resend y navegadores.
 
-No se ejecutaron migraciones, SQL de escritura, despliegues, cambios de settings, rotaciones, llamadas de recuperación real ni pruebas LIVE con datos. Los settings no visibles desde el repositorio o desde endpoints públicos se consideran **pendientes de verificación**, no aprobados por inferencia.
+La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despliegues, cambios de settings, rotaciones, llamadas de recuperación real ni pruebas LIVE con datos. Este documento incorpora ahora la validación DEV posterior de Fase 2C descrita como evidencia operacional confirmada. El presente cierre fue exclusivamente documental y no ejecutó despliegues ni modificó Supabase.
 
 ## Blockers de producción
 
@@ -40,8 +40,8 @@ No se ejecutaron migraciones, SQL de escritura, despliegues, cambios de settings
 | B01 — **PARCIAL** | Cadena canónica recuperada, pero fresh-db aún no ejecutado | Requiere Supabase CLI + Docker local; no requiere tocar DEV | Las 17 versiones/nombres y checksums ya coinciden. Para cerrar: aplicar desde cero en una base local/desechable y comparar esquema, grants, RLS, buckets y funciones con DEV. |
 | B02 | Proyecto Supabase PROD separado y plan de producción no provisionados/validados | Supabase Pro o superior; desde USD 25/mes según tarifa vigente | Crear un proyecto nuevo, con organización/región/plan aprobados y sin usuarios, datos, claves ni secretos DEV. Confirmar responsables, acceso mínimo y facturación. |
 | B03 | Auth PROD no endurecido ni probado | Leaked Password Protection requiere Supabase Pro o superior | Configurar y evidenciar mínimo 12, cuatro clases, altas públicas cerradas, Leaked Password Protection habilitado, redirects exactos, sesiones y ciclo de altas/bajas. Resolver MFA para admin/superadmin o registrar una excepción de riesgo aprobada. |
-| B04 — **ABIERTO** | Recuperación de acceso PROD no está lista; hardcodes resueltos solo en código | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar secrets PROD, verificar dominio/remitente y titularidad de emails, y aprobar E2E real: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
-| B05 — **ABIERTO** | Web Push PROD no está lista; hardcodes resueltos solo en código | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar scope/origen final y completar E2E multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
+| B04 — **ABIERTO** | Recuperación parametrizada y validada E2E en DEV, pero PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar email/dominio/secrets PROD, verificar titularidad de emails y aprobar E2E real PROD: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
+| B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 | Dominio/hosting/frontend PROD no están definidos ni endurecidos | Dominio, DNS y posible hosting/CDN | Aprobar URL canónica HTTPS, base path, manifest, worker, redirects Auth, CORS y headers CSP/HSTS/Referrer/Permissions. Probar URL directa, refresh y actualización del worker. |
 | B07 | Pipeline de producción, promoción y protecciones no existen | GitHub puede cubrir parte sin costo si el repositorio/plan lo permite | Crear en otra fase un workflow PROD separado, environment protegido, aprobación humana, concurrencia, artefacto inmutable y rollback. Verificar branch rules en GitHub; no desplegar V2 desde `main` mientras `main` represente V1. |
 | B08 | Backups, restore, RPO y RTO PROD no están aprobados ni ensayados | Backups diarios en Pro; PITR es add-on y requiere Pro + compute compatible | Definir RPO/RTO, retención y responsables; habilitar backup acorde; ensayar restore en un proyecto aislado y documentar evidencia/tiempo. |
@@ -104,6 +104,7 @@ El manifiesto de despliegue PROD debe incluir únicamente `request-password-reco
 
 ### Estado validado en DEV
 
+- Las funciones parametrizadas `push-config` v9 y `send-notification-push` v12 quedaron `ACTIVE` en DEV con `AFUCOA_ENV=dev` y origins explícitos.
 - VAPID DEV está configurado server-side y el E2E real fue confirmado.
 - Logout conserva la suscripción; no ejecuta `unregister_my_push_subscription`.
 - Al cambiar de cuenta, la suscripción se reconcilia usando RPC que deriva la identidad del JWT; el frontend no elige `profile_id`.
@@ -111,13 +112,14 @@ El manifiesto de despliegue PROD debe incluir únicamente `request-password-reco
 - El payload cifrado contiene solo `target_path`, `profile_id` y `notification_id`, todos datos técnicos/UUID opacos. Título y body son genéricos; no hay PII.
 - Distintas notificaciones usan tags distintos; un retry de la misma conserva el tag y no se usa `renotify`.
 - Los endpoints 404/410 se desactivan, 5xx conservan el dispositivo y el ledger limita reintentos. Web Push no garantiza exactly-once.
+- Después del despliegue parametrizado, `10000001` cerró sesión sin perder push y recibió toast en Windows/Chrome al enviar una notificación administrativa. La evidencia server-side registró dos deliveries enviados, cero fallidos y cero inactivos porque existen dos endpoints web activos distintos para ese perfil. No fue una doble entrega al mismo endpoint: son dos suscripciones válidas y no deben limpiarse en este cierre.
 
 ### Requisitos PROD
 
 - Servir frontend, manifest y worker por HTTPS. Registrar el worker desde la ruta base final y comprobar que su scope cubra toda la aplicación.
 - Si el dominio final está en raíz, construir con `AFUCOA_PUBLIC_BASE=/` y comprobar `/push-sw.js`; si vive bajo subruta, scope/start_url/íconos deben usar la misma base.
 - Generar VAPID PROD y registrar su rotación. Rotar VAPID normalmente exige volver a suscribir dispositivos; planificar comunicación y ventana.
-- [x] Eliminar los defaults DEV de `_shared/push-http.ts` y centralizar origins/URL/clave en configuración fail-closed. Código listo en Fase 2B, todavía no desplegado.
+- [x] Eliminar los defaults DEV de `_shared/push-http.ts`, centralizar origins/URL/clave en configuración fail-closed y validar el despliegue E2E en DEV. PROD continúa pendiente.
 - Revalidar: permiso por gesto explícito, Chrome/Edge/Firefox, instalación iOS compatible, cierre de app, refresh, logout/login, cambio de cuenta, dispositivo inválido y kill switch.
 - Alertar por tasa de `failed`, 404/410, claims `sending` estancados, límite de lotes, timeout, ledger incompleto y discrepancia entre destinatarios internos y deliveries.
 - Definir retención/purga de endpoints inactivos y ledger, preservando auditoría mínima y privacidad.
@@ -125,6 +127,13 @@ El manifiesto de despliegue PROD debe incluir únicamente `request-password-reco
 Los límites actuales (20 dispositivos activos por perfil, 40 por invocación, hasta cinco lotes desde frontend, concurrencia 4, timeout 8 s y TTL 300 s) deben someterse a capacidad y abuso antes de PROD.
 
 ## 4. Email y recuperación
+
+### Estado validado en DEV
+
+- `request-password-recovery` v23 y `confirm-password-recovery` v23 quedaron `ACTIVE` con el runtime parametrizado.
+- `AFUCOA_ENV=dev` y `AFUCOA_ALLOWED_ORIGINS` explícita fueron configuradas; URL/clave server-side y Resend existentes fueron preservados sin exponer valores.
+- El usuario sintético DEV `10000001` completó solicitud desde staging, recepción del correo y del código de ocho dígitos, aceptación, cambio de contraseña y login posterior.
+- La evidencia DB registró `delivery_status=sent`, `consumed=true` e `invalidated=false`. No se documentan código ni contraseña.
 
 ### Requisitos PROD
 
@@ -272,7 +281,7 @@ Resumen de findings:
 
 - [x] Reconstruir la cadena canónica de 17 migraciones y documentar checksums/orden.
 - [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage. Pendiente por falta de CLI/Docker.
-- [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Código no desplegado.
+- [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Desplegado y validado E2E únicamente en DEV.
 - [x] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
 - [ ] Crear validadores de artefacto PROD que rechacen project ref/origen/base/secrets DEV.
 - [ ] Definir arquitectura de dominio/hosting, CSP/headers, workflow PROD y rollback, sin desplegar todavía.
@@ -353,4 +362,4 @@ No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no era
 
 ## 12. Restricciones preservadas
 
-Fase 2B modificó únicamente el código versionado de Edge Functions, sus tests/validadores y documentación. No desplegó funciones ni modificó Supabase DEV/PROD, Auth, secrets, VAPID, Resend remoto, DNS, Pages, `main`, V1, Pilot 01 o datos. B01 continúa PARCIAL; B04 y B05 continúan ABIERTOS.
+Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registra esa evidencia sin desplegar ni modificar Supabase, Auth, secrets, VAPID, Resend, DNS, Pages, `main`, V1, Pilot 01 o datos. B01 continúa **PARCIAL** por fresh-db pendiente; B04 y B05 continúan **ABIERTOS** por sus dependencias y validaciones PROD. AFUCOA V2 no está declarada lista para producción.

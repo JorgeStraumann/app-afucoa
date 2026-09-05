@@ -2,11 +2,11 @@
 
 Alcance: rama `afucoa-v2`, Supabase DEV `imiplnspvmsrsuikulwm`. Sin importaciones reales, sin cambios en main, V1 o producción.
 
-Actualización Fase 2B: la parametrización fail-closed y sus regresiones están versionadas localmente, pero no fueron desplegadas. La evidencia HTTP indicada como v12 corresponde a la versión DEV previa; no se repitieron tests LIVE ni se cambiaron secrets remotos.
+Actualización Fase 2C: la parametrización fail-closed de Fase 2B fue desplegada y validada E2E únicamente en DEV. Este cierre registra la evidencia confirmada sin volver a desplegar, modificar Supabase ni publicar valores de configuración o secretos.
 
 ## Cambios
 
-- Recuperación conserva las dos Edge Functions existentes, desplegadas en DEV como versión 12.
+- Recuperación conserva las dos Edge Functions existentes: `request-password-recovery` v23 y `confirm-password-recovery` v23, ambas `ACTIVE` en DEV.
 - CORS, cuerpos limitados, respuesta neutra, generación criptográfica, HMAC, vencimiento de 10 minutos, cinco intentos, invalidación y consumo atómicos.
 - Bloqueo compartido por perfil, vinculación al Auth original, reloj posterior al bloqueo y límites IP/identidad/global.
 - Adaptador Resend server-side; errores de entrega invalidan el código. Si Auth falla después del consumo, se debe solicitar otro código.
@@ -21,7 +21,8 @@ Actualización Fase 2B: la parametrización fail-closed y sus regresiones están
 | Prueba | Resultado | Alcance |
 |---|---|---|
 | Recuperación automática | 13/13 | Handlers reales, I/O Auth/correo simulado; correcto, incorrecto, vencido, reutilizado, límite, errores, CORS, fail-closed y server-to-server |
-| HTTP público DEV | 8/8 | Edge Functions reales v12; neutralidad, CORS, tablas privadas y registro público cerrado |
+| HTTP público DEV | 8/8 | Evidencia histórica de neutralidad, CORS, tablas privadas y registro público cerrado; complementada por E2E parametrizado de Fase 2C |
+| Recuperación email E2E DEV | OK | Funciones v23: solicitud staging, recepción real, código de 8 dígitos, cambio de contraseña y login posterior con usuario sintético `10000001` |
 | Máquina de estados SQL | OK | Base DEV real, rollback; incluye cinco intentos, identidad cambiada y envío pendiente |
 | Acceso SQL | OK | Base DEV real, rollback; permisos anon/authenticated y perfil inactivo |
 | Consumo concurrente SQL | OK | Dos confirmaciones simultáneas: exactamente una aceptada; fixture eliminado |
@@ -31,7 +32,7 @@ Actualización Fase 2B: la parametrización fail-closed y sus regresiones están
 | Pilot sintético | 6/6 | Sin participantes reales ni importación |
 | Build y artefacto staging | OK | Base `/app-afucoa/`, proyecto DEV, sin source maps ni secretos detectados |
 
-Los dos escenarios SQL y HTTP se repitieron después de la última migración. La matriz general no se presenta como repetida después de esa migración: sus cambios finales afectan exclusivamente la recuperación. No se verificó entrega de correo real ni recuperación completa contra un buzón real. Los ensayos positivos de actualización de contraseña en handlers usan un adaptador Auth simulado.
+Los dos escenarios SQL y HTTP se repitieron después de la última migración. La matriz general no se presenta como repetida después de esa migración: sus cambios finales afectan exclusivamente la recuperación. Posteriormente, Fase 2C confirmó la entrega de correo y recuperación completas contra un buzón real autorizado del usuario sintético DEV `10000001`. La evidencia DB fue `delivery_status=sent`, `consumed=true` e `invalidated=false`; no se documentan código, correo ni contraseña.
 
 Durante la ejecución previa de pruebas se rotaron contraseñas de los tres usuarios DEV. No se almacenaron en el repositorio; no se debe suponer que las contraseñas antiguas siguen vigentes ni que una entrega por portapapeles haya funcionado. En este cierre no se volvieron a rotar.
 
@@ -51,8 +52,8 @@ Sin avisos de nivel ERROR. Se conservan 15 avisos de funciones SECURITY DEFINER 
 
 Leaked Password Protection permanece deshabilitado en el plan Free: es un requisito previo a producción, no se contrató un plan ni se habilitó producción.
 
-## Única configuración manual pendiente
+## Estado después de Fase 2C
 
-Configurar el canal de correo de prueba DEV: remitente Resend de dominio verificado (`RESEND_API_KEY` y `RECOVERY_EMAIL_FROM` en Edge Function Secrets) y un buzón autorizado en el perfil DEV usado para la prueba. No pegar claves en chat, Vite, GitHub Pages ni archivos del repositorio. Los tres perfiles DEV no tenían correo de contacto y no había secretos personalizados al revisar el Dashboard.
+La configuración runtime DEV utiliza `AFUCOA_ENV=dev`, `AFUCOA_ALLOWED_ORIGINS` explícita y las variables Supabase provistas server-side. Resend existente fue preservado. No se publican valores ni se guardan claves en chat, Vite, GitHub Pages o repositorio.
 
-Después de esa configuración se debe validar recepción y recuperación end-to-end antes de declarar el acceso listo para personas reales. Pilot 01 sigue suspendido.
+La validación DEV quedó cerrada, pero no habilita usuarios reales ni producción. B04 permanece abierto hasta disponer de email, dominio, secrets, runtime y E2E exclusivamente PROD. Pilot 01 sigue suspendido.

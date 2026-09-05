@@ -1,6 +1,6 @@
 # AFUCOA V2 — configuración runtime de Edge Functions
 
-Estado: código versionado en `afucoa-v2`, todavía no desplegado
+Estado: código versionado en `afucoa-v2`, desplegado y validado E2E únicamente en AFUCOA V2 DEV; no desplegado en PROD
 
 Alcance: recuperación de acceso y Web Push
 
@@ -67,18 +67,26 @@ Los POST server-to-server sin header `Origin` se conservan. CORS es un control d
 
 `scripts/check-edge-runtime-config.mjs` falla si el inventario cambia, falta un entrypoint, aparece una función DEV/test, reaparecen hardcodes DEV fuera del validador de rechazo, existen fallbacks URL silenciosos o un handler deja de consumir la configuración compartida.
 
-## Despliegue futuro
+## Despliegue y validación real en DEV — Fase 2C
 
-Esta fase no despliega funciones ni cambia secrets. Antes de un despliegue autorizado en DEV:
+La parametrización de Fase 2B fue desplegada posteriormente solo en AFUCOA V2 DEV. Las cuatro funciones quedaron `ACTIVE`:
 
-1. configurar `AFUCOA_ENV=dev`;
-2. declarar de forma explícita todos y solo los origins DEV necesarios en `AFUCOA_ALLOWED_ORIGINS`;
-3. confirmar que `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` existen sin imprimir valores;
-4. conservar Resend/VAPID actuales sin moverlos al frontend;
-5. ejecutar `pnpm test:edge-config` y las suites LIVE autorizadas después del despliegue;
-6. probar CORS permitido/rechazado y E2E de recuperación/push.
+| Función | Versión DEV validada |
+| --- | ---: |
+| `request-password-recovery` | 23 |
+| `confirm-password-recovery` | 23 |
+| `push-config` | 9 |
+| `send-notification-push` | 12 |
 
-Para PROD se repite con proyecto, origins, credenciales, VAPID y correo exclusivamente PROD. Nunca se copia configuración DEV.
+El runtime DEV tiene `AFUCOA_ENV=dev` y una lista explícita en `AFUCOA_ALLOWED_ORIGINS`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` siguen provistas únicamente server-side; la configuración Resend y VAPID existente fue preservada. Este documento no publica valores de origins, claves, remitentes ni secretos.
+
+La recuperación real con el usuario sintético DEV `10000001` completó solicitud desde staging, recepción del correo, recepción y aceptación del código de ocho dígitos, cambio de contraseña y login con la contraseña nueva. La evidencia en base registró `delivery_status=sent`, `consumed=true` e `invalidated=false`. No se conserva aquí el código ni la contraseña.
+
+Web Push también fue revalidado después del despliegue: con `10000001` deslogueado, logout conservó las notificaciones y un envío administrativo produjo toast en Windows/Chrome. La última notificación generó dos deliveries enviados, cero fallidos y cero inactivos porque el perfil tenía dos endpoints web activos distintos. No fue una duplicación sobre el mismo endpoint; representa dos suscripciones válidas y el diseño admite múltiples dispositivos o contextos. No corresponde desactivar ni limpiar esas suscripciones como parte de este cierre documental.
+
+## Despliegue PROD futuro
+
+La validación DEV no habilita producción. Para PROD se debe repetir el proceso con proyecto, origins, credenciales, VAPID, dominio y correo exclusivamente PROD, y ejecutar nuevamente las pruebas E2E autorizadas. Nunca se copia configuración DEV.
 
 ## Verificación local
 

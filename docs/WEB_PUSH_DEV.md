@@ -13,7 +13,7 @@ Implementación sobre baseline `0adc63eb42ba93454c17599f4c02d5376791b2be`, exclu
 - `_shared/runtime-config.ts`: configuración explícita `dev|prod`, URL Supabase server-side y origins sin defaults; PROD rechaza HTTP, loopback, staging GitHub y project ref DEV. `_shared/push-http.ts` consume esa configuración para autenticación/CORS.
 - `_shared/push-policy.ts`: payload seguro, whitelist HTTPS de proveedores, cifrado aes128gcm/VAPID mediante web-push 3.6.7 fijado. Redirecciones bloqueadas y errores del proveedor nunca registrados.
 
-La parametrización de Fase 2B está versionada pero no desplegada. El despliegue DEV actual conserva su versión anterior hasta una fase expresamente autorizada y requerirá configurar `AFUCOA_ENV` y `AFUCOA_ALLOWED_ORIGINS` antes de publicar el código nuevo.
+La parametrización de Fase 2B está versionada, desplegada y validada E2E únicamente en DEV. `push-config` v9 y `send-notification-push` v12 quedaron `ACTIVE`; el runtime usa `AFUCOA_ENV=dev`, `AFUCOA_ALLOWED_ORIGINS` explícita y las variables Supabase server-side. VAPID existente fue preservado y no se publican valores de configuración ni secretos.
 
 ## Migraciones aplicadas y versionadas
 
@@ -77,6 +77,8 @@ VAPID DEV está configurado exclusivamente en Edge Function Secrets, sin publica
 El cierre posterior corrige que logout desactivaba el dispositivo. La validación real confirmó que logout conserva la suscripción, no ejecuta `unregister_my_push_subscription` y mantiene activo el dispositivo del usuario DEV `10000001` aun con la sesión cerrada. El único mecanismo de baja es el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
 
 Con `10000001` deslogueado, el admin DEV `10000002` envió una notificación: la entrega terminó con `status=sent` y apareció como toast en Windows/Chrome. Una segunda notificación distinta, enviada inmediatamente después, también terminó con `status=sent` y produjo un segundo toast visible. La validación confirma que distintas `notification_id` generan tags diferentes y no se reemplazan entre sí. Un retry de la misma `notification_id` conserva el mismo tag para deduplicación; no se usa `renotify`.
+
+Después del despliegue parametrizado se repitió la validación real con `10000001` deslogueado: una nueva notificación administrativa produjo correctamente los toast en Windows/Chrome. La evidencia server-side de la última notificación registró dos deliveries para `10000001`, ambos `sent`, con cero `failed` y cero `inactive`. Existen dos endpoints web activos distintos para ese perfil; por tanto, no fue una doble entrega al mismo endpoint sino un envío a dos suscripciones válidas. El diseño soporta múltiples dispositivos o contextos del navegador. No se desactivan ni limpian esas suscripciones como parte de Fase 2C.
 
 El payload Web Push cifrado no incluye título, body, cédula, nombre, email ni otra PII. Contiene únicamente datos técnicos mínimos: `target_path`, `profile_id` y `notification_id`, con UUID opacos. Web Push no garantiza entrega exactly-once: el ledger y el tag determinístico reducen duplicados, pero el proveedor, el navegador y el sistema operativo conservan semántica de entrega propia.
 
