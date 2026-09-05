@@ -19,7 +19,7 @@ La revalidación pública de la corrección se entrega con el SHA final y el wor
 
 ## Backend y seguridad
 
-push-config v1, send-notification-push v3 activos en DEV. HTTP 23/23: anónimo rechazado, socio sin permiso de envío, admin/superadmin autorizados, notification_id inexistente rechazado, notificación interna conservada ante push no configurado, sin destinatarios arbitrarios.
+push-config y send-notification-push activos en DEV. HTTP 23/23: anónimo rechazado, socio sin permiso de envío, admin/superadmin autorizados, notification_id inexistente rechazado, notificación interna conservada, sin destinatarios arbitrarios.
 
 Config responde enabled=false/publicKey=null. No se enviaron pushes externos ni se generó un par VAPID operativo. No se publicaron endpoints, claves de suscripción, tokens ni credenciales en evidencias.
 
