@@ -41,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate production operations contract (no activation)
+        run: pnpm test:prod-operations
+
       - name: Validate production hosting contract (no deploy)
         run: pnpm test:prod-hosting
 

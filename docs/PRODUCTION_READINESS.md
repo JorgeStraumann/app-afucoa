@@ -12,7 +12,7 @@ Tipo de revisión: solo lectura y documentación
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para producción.** La base funcional de DEV es sólida —28/28 tablas públicas con RLS, 40/40 pruebas RLS documentadas, 34/34 de integración documentadas, sesiones 11/11, Web Push 44/44 y navegación 5/5—, pero existen **10 blockers de lanzamiento**. B01 avanzó a estado **PARCIAL** en Fase 2A: la cadena canónica y sus checksums están recuperados, pero falta aplicarla sobre una base local vacía y comparar las estructuras resultantes.
+**AFUCOA V2 todavía no está habilitada para producción.** La base funcional de DEV es sólida —28/28 tablas públicas con RLS, 40/40 pruebas RLS documentadas, 34/34 de integración documentadas, sesiones 11/11, Web Push 44/44 y navegación 5/5—, pero existen **10 blockers de lanzamiento**. B01 sigue **PARCIAL**: la cadena canónica y sus checksums están recuperados, pero falta aplicarla sobre una base local vacía y comparar las estructuras resultantes. Fase 2F completa los contratos documentales de operación, monitoring, incidentes, backups/restore, retención, rotación y cutover; no activa infraestructura ni cierra blockers.
 
 Los dos riesgos técnicos más inmediatos son:
 
@@ -44,9 +44,9 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 | Dominio/hosting/frontend PROD no están definidos ni endurecidos | Dominio, DNS y posible hosting/CDN | Aprobar URL canónica HTTPS, base path, manifest, worker, redirects Auth, CORS y headers CSP/HSTS/Referrer/Permissions. Probar URL directa, refresh y actualización del worker. |
 | B07 | Pipeline de producción, promoción y protecciones no existen | GitHub puede cubrir parte sin costo si el repositorio/plan lo permite | Crear en otra fase un workflow PROD separado, environment protegido, aprobación humana, concurrencia, artefacto inmutable y rollback. Verificar branch rules en GitHub; no desplegar V2 desde `main` mientras `main` represente V1. |
-| B08 | Backups, restore, RPO y RTO PROD no están aprobados ni ensayados | Backups diarios en Pro; PITR es add-on y requiere Pro + compute compatible | Definir RPO/RTO, retención y responsables; habilitar backup acorde; ensayar restore en un proyecto aislado y documentar evidencia/tiempo. |
-| B09 | Monitoring y respuesta operativa incompletos | Puede comenzar gratis; servicio y retención pueden tener costo | Crear alertas/runbooks para Auth, DB, Storage, Edge, email y push; definir SLO, dueños, escalamiento, revisión de ledger y eventos atascados. |
-| B10 | Alta/cutover de personas reales no aprobados | Operación y soporte; Pilot 01 sigue suspendido | Mantener Pilot suspendido hasta aprobar consentimiento, validación de identidad/email, lote, reporte, rollback y soporte. Ejecutar primero piloto limitado y criterios go/no-go; no migrar contraseñas V1. |
+| B08 — **OPEN** | Contrato documental creado, pero backups/restore/RPO/RTO PROD no están operativos | Backups diarios en Pro; PITR es add-on y requiere Pro + compute compatible | Aprobar RPO/RTO, provisionar y evidenciar backups PROD de DB/Storage, y ejecutar el restore drill real aislado con tiempos observados. |
+| B09 — **OPEN** | Modelo, matriz, SLI/SLO y runbooks creados, pero monitoring no está operativo | Puede comenzar gratis; proveedor, integración y retención pueden tener costo | Elegir/integrar proveedor, obtener métricas PROD, activar alertas, calibrar thresholds y ensayar guardia/escalamiento. |
+| B10 — **OPEN** | Cutover gate documentado; alta/cutover de personas reales no aprobados | Operación y soporte; Pilot 01 permanece PARKED | Cerrar todos los blockers, aprobar datos/consentimiento/soporte y celebrar go/no-go. Reactivar Pilot solo mediante autorización posterior explícita; no migrar contraseñas V1. |
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
@@ -291,7 +291,12 @@ Resumen de findings:
 - [x] Documentar gobernanza GitHub requerida, manteniendo Settings y branches sin cambios. Ver `docs/GITHUB_PRODUCTION_GOVERNANCE.md`.
 - [ ] Provisionar dominio/hosting real y validar headers/cache/worker sobre HTTPS. B06 continúa abierto.
 - [ ] Crear workflow PROD real y activar rulesets/branch protection/Environment approval. B07 continúa abierto.
-- [ ] Crear runbooks, matriz de monitoring, RPO/RTO, retención y prueba de restore.
+- [x] Definir modelo de monitoring, matriz declarativa de 17 alertas, SLI/SLO provisionales y health checks sintéticos no destructivos. B09 permanece OPEN hasta integración, métricas, activación y calibración.
+- [x] Crear incident response y runbooks de frontend, Auth, DB/Storage, recovery, push, Edge, secrets y DNS/TLS.
+- [x] Proponer RPO/RTO con estado `PENDING AFUCOA APPROVAL`, estrategia separada de DB/Storage/Auth/config/secrets/artifacts y restore drill futuro de 12 pasos. B08 permanece OPEN.
+- [x] Crear borrador de retención sin purga automática, runbook de rotación y checklist de cutover. Todas las decisiones institucionales siguen pendientes.
+- [ ] Aprobar RPO/RTO, activar backups PROD y ejecutar restore drill real aislado.
+- [ ] Integrar proveedor de monitoring, activar/calibrar alertas y ensayar respuesta operativa.
 
 ### Fase 3 — infraestructura PROD vacía
 
@@ -370,4 +375,6 @@ No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no era
 
 ## 12. Restricciones preservadas
 
-Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. No crea workflow PROD activo, proveedor, dominio ni infraestructura, y no despliega PROD. No se modificaron Supabase, Auth, secrets, VAPID, Resend, DNS, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01 o datos. Los diez blockers siguen abiertos: B01 continúa **PARCIAL**, B06/B07 continúan **ABIERTOS** hasta aplicar y validar la infraestructura real, y B02–B05/B08–B10 no cambian. AFUCOA V2 no está declarada lista para producción.
+Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
+
+No se modificaron Supabase, Edge Functions, Auth, secrets, VAPID, Resend, DNS, dominio, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01, usuarios o datos. Los diez blockers siguen abiertos: B01 continúa **PARCIAL**; B02–B07 permanecen **OPEN**; B08 sigue **OPEN** por aprobación/backup/restore real; B09 sigue **OPEN** por proveedor/integración/métricas/alertas/calibración; B10 sigue **OPEN** y Pilot 01 permanece **PARKED**. AFUCOA V2 no está declarada lista para producción.

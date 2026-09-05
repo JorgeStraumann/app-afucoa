@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "status": "DESIGN ONLY / NOT ACTIVE",
+  "environment": "future-production",
+  "constraints": {
+    "destructive": false,
+    "usesRealUsers": false,
+    "createsBusinessData": false,
+    "sendsBulkNotifications": false,
+    "runsRecurringRealRecovery": false,
+    "pushesToRealPeople": false,
+    "syntheticIdentities": "Future PROD synthetic users must be purpose-built and distinct from every DEV identity."
+  },
+  "checks": [
+    {
+      "id": "public-https-shell",
+      "audience": "public",
+      "method": "GET",
+      "target": "canonical-origin",
+      "assertions": ["HTTPS response is 200", "certificate is valid", "HTML shell loads"],
+      "mutatesState": false
+    },
+    {
+      "id": "public-security-headers",
+      "audience": "public",
+      "method": "HEAD_OR_GET",
+      "target": "canonical-origin",
+      "assertions": ["CSP matches approved policy", "HSTS is present", "required security headers are present"],
+      "mutatesState": false
+    },
+    {
+      "id": "public-pwa-assets",
+      "audience": "public",
+      "method": "GET",
+      "target": "manifest-and-service-worker",
+      "assertions": ["manifest returns 200", "push-sw returns 200", "scope and base path match the canonical origin"],
+      "mutatesState": false
+    },
+    {
+      "id": "public-release-identity",
+      "audience": "public",
+      "method": "GET",
+      "target": "safe-release-metadata-if-exposed",
+      "assertions": ["deployed SHA matches approved release", "artifact digest matches release manifest", "no secret-bearing metadata is exposed"],
+      "mutatesState": false
+    },
+    {
+      "id": "synthetic-socio-login",
+      "audience": "authenticated-synthetic",
+      "method": "AUTH_AND_READ",
+      "target": "dedicated-production-synthetic-socio",
+      "assertions": ["login succeeds", "get_my_profile returns the synthetic profile", "session remains valid"],
+      "mutatesState": false
+    },
+    {
+      "id": "synthetic-socio-navigation",
+      "audience": "authenticated-synthetic",
+      "method": "BROWSER_READ_ONLY",
+      "target": "approved-minimal-navigation-set",
+      "assertions": ["navigation succeeds", "minimal authorized read succeeds", "admin navigation remains hidden and denied"],
+      "mutatesState": false
+    },
+    {
+      "id": "synthetic-admin-read-only",
+      "audience": "admin-synthetic",
+      "method": "AUTH_AND_READ",
+      "target": "dedicated-production-synthetic-admin",
+      "assertions": ["login succeeds", "admin shell is authorized", "approved aggregate read-only view succeeds"],
+      "mutatesState": false
+    }
+  ],
+  "forbiddenOperations": [
+    "Create or alter real users or business records",
+    "Send notifications or Web Push to real people",
+    "Run recurring password recovery against a real mailbox",
+    "Upload, replace or delete real files",
+    "Change Auth, RLS, secrets, DNS or runtime configuration"
+  ]
+}
