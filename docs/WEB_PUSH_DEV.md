@@ -4,7 +4,7 @@ Implementación sobre baseline `0adc63eb42ba93454c17599f4c02d5376791b2be`, exclu
 
 ## Diseño y archivos
 
-- `public/push-sw.js`: worker sin caché ni interceptación fetch, scope `/app-afucoa/`. El payload solo contiene una ruta hash validada. Título y cuerpo siempre genéricos, incluso si llega un payload con texto privado.
+- `public/push-sw.js`: worker sin caché ni interceptación fetch, scope `/app-afucoa/`. El payload cifrado contiene exclusivamente `target_path`, `profile_id` y el UUID opaco `notification_id`; no contiene título, cuerpo ni PII. Título y cuerpo siempre son genéricos, incluso si llega un payload con texto privado. El UUID validado produce un tag determinístico por notificación: dos notificaciones distintas generan avisos distintos y un retry de la misma conserva la deduplicación. Payloads legacy o IDs inválidos se muestran sin tag.
 - `src/services/push-service.js`: soporte, worker, permiso solo por clic, configuración pública, suscripción, alta/baja/touch RPC. Logout conserva la suscripción. Cada login/refresh toca la suscripción si mantiene dueño o la reasocia atómicamente si cambió la cuenta, antes de exponer la sesión de app.
 - `src/components/push-controls.js` y Mi Cuenta: cuatro estados, instrucciones discretas, botón deshabilitado si falta configuración o está apagado allowPush.
 - Admin mantiene notifications/notification_recipients aunque falle push. Muestra cantidades agregadas, sin endpoints ni claves. Máximo 40 dispositivos por llamada, concurrencia 4 y timeout de proveedor 8 segundos; hasta cinco lotes desde frontend. Un envío parcial se identifica como incidencia.
@@ -35,7 +35,7 @@ allowPush=false bloquea nuevas altas y envíos; el centro interno permanece disp
 
 ## Pruebas ejecutadas
 
-Fecha: 2026-09-03 Uruguay / 2026-09-04 UTC.
+Última ejecución completa: 2026-09-05 Uruguay.
 
 | Suite | Resultado |
 | --- | --- |
@@ -43,7 +43,7 @@ Fecha: 2026-09-03 Uruguay / 2026-09-04 UTC.
 | test:session | 11/11 |
 | test:recovery | 11/11; no se reenvió correo real |
 | test:pilot | 6/6, exclusivamente sintética |
-| test:push | 38/38 |
+| test:push | 44/44 |
 | test:navigation | 5/5 |
 | tests/push-rls.sql | PASS; transacción revertida |
 | tests/push-http-live.mjs | 23/23, endpoints desplegados DEV |
@@ -70,10 +70,12 @@ Las advertencias SECURITY DEFINER de las tres RPC push son intencionales y revis
 
 Jorge confirmó la prueba Web Push real end-to-end en DEV: Admin, notificación interna, recipient, Edge Function, proveedor y navegador/Windows. Los secretos VAPID continúan exclusivamente en Edge Function Secrets; nunca en VITE, GitHub ni el repositorio.
 
-El cierre posterior corrige que logout desactivaba el dispositivo. El único mecanismo de baja es ahora el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
+El cierre posterior corrige que logout desactivaba el dispositivo. Jorge confirmó sobre DEV que logout no ejecutó `unregister_my_push_subscription` y que el dispositivo permaneció activo. El único mecanismo de baja es ahora el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
+
+VAPID DEV está configurado y la entrega real end-to-end ya fue comprobada. Después del tag por `notification_id`, la única verificación física pendiente es confirmar nuevamente en Windows/Chrome que dos notificaciones internas sucesivas produzcan dos toasts.
 
 Chrome/Edge/Firefox compatibles requieren contexto HTTPS y soporte del sistema. iOS/iPadOS requiere una versión compatible y la app agregada a Inicio; el permiso debe solicitarse por gesto explícito. Navegadores embebidos o privados pueden carecer de PushManager. El sistema operativo/proveedor puede demorar o suprimir avisos. No se implementó modo offline ni caché privada.
 
 ## QA pública y SHA
 
-El resultado del workflow, SHA desplegado y comprobación de UI pública se registran en `WEB_PUSH_STAGING_QA.md` después del despliegue. La aprobación del código no equivale a recepción push real: esta última está bloqueada por la configuración VAPID.
+El resultado del workflow, SHA desplegado y comprobación pública se registran en `WEB_PUSH_STAGING_QA.md` después del despliegue.

@@ -13,7 +13,13 @@ export function allowedEndpoint(endpoint) {
   } catch {return false;}
 }
 export function genericPayload(notification,profileId) {
-  return JSON.stringify({target_path:safeTarget(notification.target_path),...(profileId?{profile_id:profileId}:{})});
+  const notificationId=typeof notification?.id==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(notification.id)
+    ? notification.id.toLowerCase() : null;
+  return JSON.stringify({
+    target_path:safeTarget(notification.target_path),
+    ...(profileId?{profile_id:profileId}:{}),
+    ...(notificationId?{notification_id:notificationId}:{}),
+  });
 }
 
 export async function dispatchPush({db,notification,targets,send}) {

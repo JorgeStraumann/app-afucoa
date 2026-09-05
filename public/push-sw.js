@@ -4,6 +4,9 @@ const internalTarget = value => {
   return /^#\/(?:notificaciones|tramites|carnet|convenios|noticias|documentos|propuestas|cuenta|solicitudes\/[0-9a-f-]{36})?$/.test(value)
     ? value : '#/notificaciones';
 };
+const notificationUuid = value => typeof value === 'string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  ? value.toLowerCase() : null;
 const ownerDb = () => new Promise((resolve,reject) => {
   const request=indexedDB.open('afucoa-push-state',1);
   request.onupgradeneeded=()=>request.result.createObjectStore('state');
@@ -22,8 +25,11 @@ self.addEventListener('push', event => {
   event.waitUntil((async()=>{
     const owner=await readOwner().catch(()=>null);
     if(!owner || payload.profile_id!==owner)return;
+    const notificationId=notificationUuid(payload.notification_id);
     return self.registration.showNotification('AFUCOA', {
-      body:'Tenés una nueva notificación en AFUCOA.',tag:'afucoa-notification',data:{target_path:internalTarget(payload.target_path)},
+      body:'Tenés una nueva notificación en AFUCOA.',
+      ...(notificationId?{tag:`afucoa-${notificationId}`}:{}),
+      data:{target_path:internalTarget(payload.target_path)},
     });
   })());
 });

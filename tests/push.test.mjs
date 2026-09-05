@@ -13,6 +13,7 @@ async function module(path,env,names) {
 const policy=await module('supabase/functions/_shared/push-policy.ts',{},['safeTarget','allowedEndpoint','preferenceFor','genericPayload','dispatchPush']);
 const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64,1)]).toString('base64url');
 const profileA='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',profileB='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const notificationA='11111111-1111-4111-8111-111111111111',notificationB='22222222-2222-4222-8222-222222222222';
 function fakeIndexedDB(seed) {
   const values=new Map(seed?[['profile',seed]]:[]);let created=Boolean(seed);
   return {open(){const request={};queueMicrotask(()=>{request.result={
@@ -83,8 +84,12 @@ test('SSRF: endpoints HTTPS exclusivamente en proveedores permitidos',()=>{
   assert.equal(policy.allowedEndpoint('https://web.push.apple.com/test'),true);
 });
 test('payload no contiene contenido privado de la notificación',()=>{
-  const payload=policy.genericPayload({title:'Nombre privado',body:'Cédula y expediente privados',target_path:'#/tramites'});
-  assert.deepEqual(JSON.parse(payload),{target_path:'#/tramites'});
+  const payload=policy.genericPayload({id:notificationA,title:'Nombre privado',body:'Cédula y expediente privados',target_path:'#/tramites'},profileA);
+  assert.deepEqual(JSON.parse(payload),{target_path:'#/tramites',profile_id:profileA,notification_id:notificationA});
+  assert.doesNotMatch(payload,/Nombre|Cédula|expediente|privado/i);
+});
+test('sender omite notification_id inválido en vez de enviarlo al dispositivo',()=>{
+  assert.deepEqual(JSON.parse(policy.genericPayload({id:'tag-inyectado',target_path:'#/'},profileA)),{target_path:'#/',profile_id:profileA});
 });
 
 function senderDb() {
@@ -113,22 +118,68 @@ for(const [role,expected] of [['socio',403],['admin',null],['superadmin',null]])
   assert.equal((await api.authenticate(new Request('https://dev.test',{headers:{authorization:'Bearer synthetic'}}),true)).error || null,expected);
 });
 
-async function worker(open,target='#/tramites') {
+async function worker(open,target='#/tramites',pushPayload={title:'Privado',body:'Privado',target_path:'#/tramites',profile_id:profileA,notification_id:notificationA}) {
   const events={},shown=[],navigation=[],focus=[];let opened;
   vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,indexedDB:fakeIndexedDB(profileA),self:{
     addEventListener:(name,fn)=>{events[name]=fn;},
     registration:{scope:'https://jorgestraumann.github.io/app-afucoa/',showNotification:async(title,options)=>shown.push({title,options})},
     clients:{matchAll:async()=>open?[{url:'https://jorgestraumann.github.io/app-afucoa/#/',navigate:async url=>navigation.push(url),focus:async()=>focus.push(true)}]:[],openWindow:async url=>{opened=url;}},
   }});
-  let work;events.push({data:{json:()=>({title:'Privado',body:'Privado',target_path:'#/tramites',profile_id:profileA})},waitUntil:promise=>{work=promise;}});await work;
+  let work;events.push({data:{json:()=>pushPayload},waitUntil:promise=>{work=promise;}});await work;
   assert.equal(shown[0].title,'AFUCOA');assert.equal(shown[0].options.body,'Tenés una nueva notificación en AFUCOA.');
   events.notificationclick({notification:{close(){},data:{target_path:target}},waitUntil:promise=>{work=promise;}});await work;
-  return {opened,navigation,focus};
+  return {opened,navigation,focus,shown};
 }
+async function workerPushes(payloads,owner=profileA) {
+  const events={},shown=[];
+  vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,indexedDB:fakeIndexedDB(owner),self:{
+    addEventListener:(name,fn)=>events[name]=fn,
+    registration:{scope:'https://jorgestraumann.github.io/app-afucoa/',showNotification:async(title,options)=>shown.push({title,options})},
+    clients:{claim:async()=>{}},
+  }});
+  for(const payload of payloads) {
+    let work;events.push({data:{json:()=>payload},waitUntil:value=>work=value});await work;
+  }
+  return shown;
+}
+test('notificaciones distintas generan tags distintos y un retry conserva el tag',async()=>{
+  const shown=await workerPushes([
+    {profile_id:profileA,notification_id:notificationA,target_path:'#/notificaciones'},
+    {profile_id:profileA,notification_id:notificationB,target_path:'#/notificaciones'},
+    {profile_id:profileA,notification_id:notificationA,target_path:'#/notificaciones'},
+  ]);
+  assert.equal(shown.length,3);
+  assert.equal(shown[0].options.tag,`afucoa-${notificationA}`);
+  assert.equal(shown[1].options.tag,`afucoa-${notificationB}`);
+  assert.notEqual(shown[0].options.tag,shown[1].options.tag);
+  assert.equal(shown[0].options.tag,shown[2].options.tag);
+  assert.equal(shown[0].options.renotify,undefined);
+});
+test('payload legacy sin notification_id muestra aviso sin tag global persistente',async()=>{
+  const shown=await workerPushes([
+    {profile_id:profileA,target_path:'#/notificaciones'},
+    {profile_id:profileA,target_path:'#/notificaciones'},
+  ]);
+  assert.equal(shown.length,2);
+  assert.equal(Object.hasOwn(shown[0].options,'tag'),false);
+  assert.equal(Object.hasOwn(shown[1].options,'tag'),false);
+});
+test('notification_id inválido no puede inyectar un tag arbitrario',async()=>{
+  const shown=await workerPushes([{profile_id:profileA,notification_id:'afucoa-notification<script>',target_path:'#/'}]);
+  assert.equal(shown.length,1);assert.equal(Object.hasOwn(shown[0].options,'tag'),false);
+});
+test('Service Worker exige profile_id',async()=>{
+  assert.equal((await workerPushes([{notification_id:notificationA,target_path:'#/'}])).length,0);
+});
+test('Service Worker mantiene texto genérico y normaliza target hostil',async()=>{
+  const shown=await workerPushes([{profile_id:profileA,notification_id:notificationA,title:'PII',body:'PII',target_path:'https://evil.test/'}]);
+  assert.equal(shown[0].title,'AFUCOA');assert.equal(shown[0].options.body,'Tenés una nueva notificación en AFUCOA.');
+  assert.equal(shown[0].options.data.target_path,'#/notificaciones');
+});
 test('Service Worker descarta push de la cuenta anterior',async()=>{
   const events={},shown=[];
   vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,indexedDB:fakeIndexedDB(profileB),self:{addEventListener:(name,fn)=>events[name]=fn,registration:{scope:'https://jorgestraumann.github.io/app-afucoa/',showNotification:async()=>shown.push(true)},clients:{claim:async()=>{}}}});
-  let work;events.push({data:{json:()=>({profile_id:profileA,target_path:'#/'})},waitUntil:value=>work=value});await work;assert.equal(shown.length,0);
+  let work;events.push({data:{json:()=>({profile_id:profileA,notification_id:notificationA,target_path:'#/'})},waitUntil:value=>work=value});await work;assert.equal(shown.length,0);
 });
 test('S click enfoca y navega ventana AFUCOA existente',async()=>{const f=await worker(true);assert.equal(f.focus.length,1);assert.equal(f.navigation[0],'https://jorgestraumann.github.io/app-afucoa/#/tramites');assert.equal(f.opened,undefined);});
 test('T click abre AFUCOA cerrada bajo la base correcta',async()=>assert.equal((await worker(false)).opened,'https://jorgestraumann.github.io/app-afucoa/#/tramites'));
@@ -158,7 +209,7 @@ test('push falla sin propagar excepción a la notificación interna',async()=>{
 });
 test('cifrado real aes128gcm y VAPID con claves efímeras solo en memoria',()=>{
   const vapid=webpush.generateVAPIDKeys(),ecdh=createECDH('prime256v1');ecdh.generateKeys();
-  const details=webpush.generateRequestDetails({endpoint:'https://fcm.googleapis.com/test',keys:{p256dh:ecdh.getPublicKey().toString('base64url'),auth:Buffer.alloc(16,1).toString('base64url')}},policy.genericPayload({target_path:'#/notificaciones'}),{
+  const details=webpush.generateRequestDetails({endpoint:'https://fcm.googleapis.com/test',keys:{p256dh:ecdh.getPublicKey().toString('base64url'),auth:Buffer.alloc(16,1).toString('base64url')}},policy.genericPayload({id:notificationA,target_path:'#/notificaciones'},profileA),{
     vapidDetails:{...vapid,subject:'https://jorgestraumann.github.io/app-afucoa/'},contentEncoding:'aes128gcm',TTL:300,
   });
   assert.equal(details.headers['Content-Encoding'],'aes128gcm');assert.ok(details.body.length>0);assert.ok(details.headers.Authorization);
