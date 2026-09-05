@@ -13,6 +13,8 @@
     "preview:staging": "vite preview --host 0.0.0.0",
     "test:staging": "pnpm run test:migrations && pnpm run test:edge-config && pnpm run test:live-auth-isolation && pnpm run build:staging && node scripts/check-staging-dist.mjs",
     "test:prod-artifact": "node --test tests/production-env.test.mjs && node scripts/run-synthetic-production-build.mjs",
+    "test:prod-hosting": "node --test tests/production-hosting.test.mjs tests/production-release-manifest.test.mjs",
+    "release:manifest": "node scripts/create-production-release-manifest.mjs",
     "test:migrations": "node scripts/check-migration-chain.mjs",
     "test:edge-config": "node --test tests/edge-runtime-config.test.mjs && node scripts/check-edge-runtime-config.mjs",
     "test:pilot": "node --test tests/pilot-import.test.mjs",

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "environment": "production-only",
+  "applyToStaging": false,
+  "originVariable": "AFUCOA_PROD_ORIGIN",
+  "supabaseOriginPlaceholder": "{{SUPABASE_PROD_ORIGIN}}",
+  "publicBasePlaceholder": "{{AFUCOA_PUBLIC_BASE}}",
+  "inlineStyleExceptions": [],
+  "headers": {
+    "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' {{SUPABASE_PROD_ORIGIN}}; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
+    "X-Frame-Options": "DENY"
+  },
+  "cacheRules": [
+    {
+      "id": "html-shell",
+      "match": ["{{AFUCOA_PUBLIC_BASE}}", "{{AFUCOA_PUBLIC_BASE}}index.html"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    },
+    {
+      "id": "service-worker",
+      "match": ["{{AFUCOA_PUBLIC_BASE}}push-sw.js"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Service-Worker-Allowed": "{{AFUCOA_PUBLIC_BASE}}"
+      }
+    },
+    {
+      "id": "web-manifest",
+      "match": ["{{AFUCOA_PUBLIC_BASE}}manifest.webmanifest"],
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "id": "hashed-assets",
+      "match": ["{{AFUCOA_PUBLIC_BASE}}assets/*"],
+      "requiresContentHash": true,
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
+  ]
+}

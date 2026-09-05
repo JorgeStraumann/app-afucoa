@@ -1,0 +1,102 @@
+# TEMPLATE - NOT EXECUTED BY GITHUB ACTIONS.
+# This file is intentionally outside .github/workflows/. It is an architecture
+# contract, not an active deployment workflow.
+
+name: TEMPLATE AFUCOA V2 production promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      approved_sha:
+        description: Immutable 40-character commit SHA approved for release
+        required: true
+      rollback_release_manifest:
+        description: Previously approved manifest to restore if smoke tests fail
+        required: true
+
+concurrency:
+  group: afucoa-v2-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the explicit approved SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.approved_sha }}
+
+      - name: Verify checkout identity
+        run: test "$(git rev-parse HEAD)" = "${{ inputs.approved_sha }}"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up pinned Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install immutable dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run complete non-LIVE test suite
+        run: pnpm test:prod-hosting && pnpm test:prod-artifact && pnpm test:edge-config && pnpm test:migrations && pnpm test:recovery && pnpm test:push && pnpm test:session && pnpm test:navigation
+
+      - name: Build and validate PROD artifact
+        run: pnpm build:prod
+        env:
+          VITE_AFUCOA_MODE: supabase
+          VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_AUTH_ALIAS_DOMAIN: ${{ vars.PROD_AUTH_ALIAS_DOMAIN }}
+          AFUCOA_PUBLIC_BASE: ${{ vars.PROD_PUBLIC_BASE }}
+
+      - name: Create immutable release manifest outside dist
+        run: pnpm release:manifest -- --output release/production-release.json
+        env:
+          VITE_AFUCOA_MODE: supabase
+          VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_AUTH_ALIAS_DOMAIN: ${{ vars.PROD_AUTH_ALIAS_DOMAIN }}
+          AFUCOA_PUBLIC_BASE: ${{ vars.PROD_PUBLIC_BASE }}
+
+      - name: Upload immutable candidate and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: afucoa-v2-production-${{ inputs.approved_sha }}
+          path: |
+            dist
+            release/production-release.json
+
+  approval-gate:
+    needs: verify-and-package
+    environment: production-approval
+    runs-on: ubuntu-latest
+    steps:
+      - name: Human approval gate provided by protected environment
+        run: echo "Approved candidate metadata only; provider not selected in this template."
+
+  deploy-and-smoke:
+    needs: approval-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the exact approved artifact; never rebuild
+        uses: actions/download-artifact@v4
+        with:
+          name: afucoa-v2-production-${{ inputs.approved_sha }}
+
+      - name: Provider-neutral deploy adapter placeholder
+        run: echo "Replace with the selected provider's pinned deploy action or audited CLI."
+
+      - name: Smoke tests against AFUCOA_PROD_ORIGIN
+        run: echo "Verify HTTPS, headers, cache, routes, manifest, worker, Auth and synthetic role access."
+
+      - name: Rollback reference on failed smoke
+        if: failure()
+        run: echo "Redeploy the immutable artifact named by inputs.rollback_release_manifest; never rebuild the old commit."
