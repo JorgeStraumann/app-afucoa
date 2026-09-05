@@ -41,7 +41,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate synthetic production artifact (no deploy)
+        run: pnpm test:prod-artifact
+
       - name: Build and validate staging artifact
+        # This rebuilds dist with the DEV staging contract after the synthetic
+        # production check. Only this final staging dist is uploaded below.
         run: pnpm test:staging
 
       - name: Auth recovery and synthetic pilot regression tests

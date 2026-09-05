@@ -283,7 +283,7 @@ Resumen de findings:
 - [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage. Pendiente por falta de CLI/Docker.
 - [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Desplegado y validado E2E únicamente en DEV.
 - [x] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
-- [ ] Crear validadores de artefacto PROD que rechacen project ref/origen/base/secrets DEV.
+- [x] Crear validadores y build sintético de artefacto PROD que rechacen project ref/origen/base/secrets DEV, sin deploy. Ver `docs/PRODUCTION_BUILD.md`.
 - [ ] Definir arquitectura de dominio/hosting, CSP/headers, workflow PROD y rollback, sin desplegar todavía.
 - [ ] Crear runbooks, matriz de monitoring, RPO/RTO, retención y prueba de restore.
 
@@ -350,6 +350,7 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 
 | Comando | Resultado | Observación |
 | --- | --- | --- |
+| `pnpm test:prod-artifact` | PASS | Build PROD sintético sin red; base `/`; 0 referencias DEV, 0 source maps y 0 material privilegiado. Casos negativos fail-closed cubiertos. |
 | `pnpm test:edge-config` | 12/12 PASS + check estático PASS | Fail-closed, CORS exacto, restricciones PROD/DEV, secreto no enumerable y 4 funciones PROD permitidas. |
 | `pnpm test:migrations` | 17/17 PASS | Versiones/nombres/orden/checksums; 0 obsoletas; 3 buckets esperados; 0 objetos Storage copiados. |
 | `pnpm test:recovery` | 13/13 PASS | Neutralidad, HMAC, expiración/reuso/intentos, rate limits, CORS, fail-closed y POST server-to-server. |
@@ -362,4 +363,4 @@ No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no era
 
 ## 12. Restricciones preservadas
 
-Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registra esa evidencia sin desplegar ni modificar Supabase, Auth, secrets, VAPID, Resend, DNS, Pages, `main`, V1, Pilot 01 o datos. B01 continúa **PARCIAL** por fresh-db pendiente; B04 y B05 continúan **ABIERTOS** por sus dependencias y validaciones PROD. AFUCOA V2 no está declarada lista para producción.
+Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agrega exclusivamente una ruta local/CI de build PROD sintético y validación de artefacto; no crea workflow ni infraestructura PROD y no despliega ese artefacto. No se modificaron Supabase, Auth, secrets, VAPID, Resend, DNS, configuración Pages de producción, `main`, V1, Pilot 01 o datos. Los diez blockers siguen abiertos: B01 continúa **PARCIAL** y B02–B10 no cambian de estado. AFUCOA V2 no está declarada lista para producción.
