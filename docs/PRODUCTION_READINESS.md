@@ -6,20 +6,20 @@ Rama auditada: `afucoa-v2`
 
 Baseline al iniciar la auditoría: `1044fcd91eb35abcfa9346d295e16cfb4be7141e`
 
-Entorno observado: Supabase `AFUCOA V2 DEV` (`imiplnspvmsrsuikulwm`) y staging público
+Entornos documentados: Supabase `AFUCOA V2 DEV` (`imiplnspvmsrsuikulwm`), staging público y PROD aislado (`rywdochyzhgfaymrmxek`)
 
-Tipo de revisión: solo lectura y documentación
+Tipo de documento: auditoría viva de readiness; Fase 3B aplicó únicamente configuración Auth al proyecto PROD vacío
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para producción.** Se controlan diez gates y quedan **nueve blockers abiertos**. En Fase 3A, B01 quedó **CLOSED**: las 17 migraciones canónicas se aplicaron sin intervención desde una base `public` vacía al proyecto PROD aislado, el historial remoto conserva exactamente las versiones originales y la estructura coincide con el baseline esperado. B02 pasa a **PARTIAL** porque proyecto, organización Pro, región y separación DEV/PROD están confirmados; faltan gobernanza de accesos, responsables/facturación y validaciones operativas.
+**AFUCOA V2 todavía no está habilitada para producción.** Se controlan diez gates y quedan **nueve gates no cerrados**. B01 está **CLOSED**. B02 permanece **PARTIAL** por gobernanza pendiente. En Fase 3B, B03 pasó a **PARTIAL**: signup público cerrado, política de 12 caracteres/cuatro clases y Leaked Password Protection quedaron aplicados en PROD; todavía faltan Site URL/redirects finales, decisión y enforcement de MFA privilegiado y el ciclo operativo de cuentas.
 
 Los riesgos técnicos más inmediatos son:
 
-1. El bootstrap canónico quedó demostrado, pero PROD todavía no tiene Auth endurecido, funciones, secrets, proveedores, dominio, hosting, monitoring ni restore probado.
+1. El bootstrap y el hardening base de Auth quedaron demostrados, pero PROD todavía no tiene Edge Functions, secrets, proveedores operativos, dominio, hosting, monitoring ni restore probado.
 2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto mediante configuración compartida fail-closed. La parametrización fue desplegada y validada E2E en DEV durante Fase 2C; B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E exclusivamente PROD.
 
-La protección contra contraseñas filtradas está deshabilitada en DEV. Es un riesgo aceptado únicamente porque DEV está en Free; es un **BLOCKER PROD**, requiere Supabase Pro o superior y no debe intentarse silenciar mediante SQL o cambios de frontend.
+La protección contra contraseñas filtradas continúa deshabilitada en DEV, riesgo aceptado únicamente porque DEV está en Free. En PROD Pro quedó habilitada en Fase 3B; no se intentó silenciar el warning DEV mediante SQL ni cambios de frontend.
 
 ## Alcance y evidencia
 
@@ -31,7 +31,7 @@ La auditoría incluyó:
 - ejecución local de las cuatro suites requeridas;
 - revisión de documentación oficial de Supabase, GitHub, Resend y navegadores.
 
-La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despliegues, cambios de settings, rotaciones, llamadas de recuperación real ni pruebas LIVE con datos. Este documento incorpora ahora la validación DEV posterior de Fase 2C descrita como evidencia operacional confirmada. El presente cierre fue exclusivamente documental y no ejecutó despliegues ni modificó Supabase.
+La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despliegues, cambios de settings, rotaciones, llamadas de recuperación real ni pruebas LIVE con datos. Este documento incorpora la validación DEV posterior de Fase 2C, el bootstrap PROD de Fase 3A y el hardening Auth PROD de Fase 3B. La evidencia específica de 3B está en `docs/PROD_AUTH_HARDENING.md`.
 
 ## Blockers de producción
 
@@ -39,7 +39,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | --- | --- | --- | --- |
 | B01 — **CLOSED** | Bootstrap canónico reproducible | Completado con Supabase CLI 2.116.0, sin Docker | 17/17 aplicadas desde base vacía; historial exacto; 28 tablas con RLS, 46 policies públicas, 11 Storage policies, 17 funciones definer y 3 buckets coinciden. Evidencia: `docs/PROD_BOOTSTRAP.md`. |
 | B02 — **PARTIAL** | Proyecto PROD separado existe, pero su gobernanza operativa no está cerrada | Organización `AFUCOA PROD` en Pro; región `sa-east-1` | Proyecto/ref, plan, región y aislamiento confirmados. Falta aprobar responsables, acceso mínimo/facturación y completar controles operativos del proyecto. |
-| B03 | Auth PROD no endurecido ni probado | Leaked Password Protection requiere Supabase Pro o superior | Configurar y evidenciar mínimo 12, cuatro clases, altas públicas cerradas, Leaked Password Protection habilitado, redirects exactos, sesiones y ciclo de altas/bajas. Resolver MFA para admin/superadmin o registrar una excepción de riesgo aprobada. |
+| B03 — **PARTIAL** | Hardening base Auth aplicado; dominio/redirects, MFA privilegiado y ciclo operativo pendientes | Leaked Password Protection ya está habilitada con el plan Pro | Mínimo 12, cuatro clases, signup público cerrado y HIBP están evidenciados. Para cerrar: Site URL/redirects exactos del dominio aprobado, decisión/enforcement MFA para admin/superadmin, altas/bajas/recuperación y pruebas de sesión en preproducción. Evidencia: `docs/PROD_AUTH_HARDENING.md`. |
 | B04 — **ABIERTO** | Recuperación parametrizada y validada E2E en DEV, pero PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar email/dominio/secrets PROD, verificar titularidad de emails y aprobar E2E real PROD: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
 | B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 | Dominio/hosting/frontend PROD no están definidos ni endurecidos | Dominio, DNS y posible hosting/CDN | Aprobar URL canónica HTTPS, base path, manifest, worker, redirects Auth, CORS y headers CSP/HSTS/Referrer/Permissions. Probar URL directa, refresh y actualización del worker. |
@@ -57,6 +57,10 @@ La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor.
 - El login normaliza la cédula y usa el alias Auth `<cedula>@auth.afucoa.local`; el correo de contacto no es el identificador de Auth.
 - La recuperación exige entre 12 y 72 caracteres, con mayúscula, minúscula, número y símbolo, tanto en frontend como en Edge Function.
 - La documentación DEV registra mínimo 12, las cuatro clases y altas públicas deshabilitadas en Auth. Estos settings del Dashboard no son parte de las migraciones y deben verificarse nuevamente en PROD.
+- En PROD, Fase 3B configuró mínimo 12, las cuatro clases, Leaked Password Protection, signup público cerrado y email/password reservado para login y altas administrativas server-side. Teléfono, anónimo, OAuth/social y SAML permanecen deshabilitados.
+- La prueba pública con una identidad sintética `example.invalid` fue rechazada con HTTP 422; no creó usuario, perfil ni email. PROD terminó con 0 usuarios Auth y 0 profiles.
+- `mailer_autoconfirm=false` y el rechazo de emails no verificados se conservaron. Las futuras altas administrativas deberán confirmar explícitamente la identidad Auth; la titularidad del correo de contacto se valida por separado antes de recuperación.
+- `Site URL=http://localhost:3000` permanece **TEMPORARY / NOT APPROVED** y la allowlist está vacía. No se reutilizó staging, DEV ni `/app-afucoa/`.
 - `request-password-recovery` mantiene una respuesta pública neutra. El código es de ocho dígitos, HMAC-SHA-256, vence en 10 minutos, se invalida al emitir uno nuevo, tiene cinco intentos y uso único.
 - Los rate limits actuales cubren IP, identidad, operación global y código. Los límites DEV son una base, no una capacidad de producción aprobada.
 - DEV mantiene desplegada `dev-seed-test-users`, una función auxiliar que no está versionada en esta rama. Es exclusivamente DEV y debe quedar expresamente excluida del inventario/despliegue PROD.
@@ -68,8 +72,8 @@ La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor.
 
 ### Requisitos de salida
 
-- Habilitar **Leaked Password Protection** en Auth PROD. Supabase documenta esta comprobación como disponible en Pro y superiores. DEV Free conserva el warning de forma consciente; no se elimina con SQL ni con código de aplicación.
-- Revalidar en el Dashboard PROD la política de contraseña, signup cerrado, redirects, expiración/refresh de sesión y protección contra abuso.
+- [x] Habilitar **Leaked Password Protection** en Auth PROD Pro y aplicar mínimo 12/cuatro clases/signup cerrado. DEV Free conserva el warning de forma consciente; no se elimina con SQL ni con código de aplicación.
+- [ ] Reemplazar el Site URL temporal y configurar redirects exactos cuando exista un dominio final aprobado; revalidar expiración/refresh de sesión y protección contra abuso en el contexto final.
 - Definir el segundo factor para cuentas privilegiadas. La recomendación es MFA obligatorio para admin/superadmin; si no se implementa antes del go-live, se necesita una excepción de riesgo explícita con controles compensatorios y fecha de remediación.
 - Definir alta, baja, reemplazo de correo, pérdida de acceso, baja de funcionarios y revocación de sesiones. Un `profiles.status = inactivo` protege las RPC contextuales, pero el runbook debe cubrir también sesiones Auth activas.
 - Ejecutar RLS e integración contra un proyecto PROD vacío/preproducción con identidades sintéticas, nunca con socios reales ni con sesiones compartidas.
@@ -302,7 +306,8 @@ Resumen de findings:
 
 - [x] Provisionar Supabase PROD Pro separado y confirmar región/aislamiento. Accesos mínimos, responsables y billing alerts siguen pendientes en B02.
 - [x] Aplicar la cadena aprobada a PROD vacío y validar estructura/historial sin usuarios ni datos. Smoke/RLS con usuarios sintéticos quedan para una fase posterior.
-- [ ] Configurar Auth PROD: política, signup cerrado, leaked password protection, redirects y decisión MFA.
+- [x] Configurar el hardening base Auth PROD: política de 12/cuatro clases, signup cerrado y Leaked Password Protection.
+- [ ] Completar Auth PROD: Site URL/redirects exactos, decisión/enforcement MFA privilegiado, recuperación y ciclo operativo de altas/bajas.
 - [ ] Crear VAPID PROD y secrets Edge PROD; desplegar funciones parametrizadas.
 - [ ] Configurar proveedor/email PROD, dominio, SPF/DKIM/DMARC y alertas.
 - [ ] Configurar backup/PITR según RPO/RTO y ensayar restore.
@@ -341,7 +346,7 @@ Algunas funciones de GitHub Environments/protecciones dependen de visibilidad y 
 
 ### Requiere Supabase Pro o superior
 
-- **Leaked Password Protection**, obligatoria para el go-live;
+- **Leaked Password Protection**, ya habilitada en PROD Pro y obligatoria para conservar el gate;
 - backups diarios administrados y retención de producción;
 - un proyecto PROD en plan adecuado a disponibilidad/capacidad, sin pausas propias de Free;
 - PITR si el RPO lo exige: es un add-on adicional sobre Pro y requiere compute compatible;
@@ -361,6 +366,7 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 
 | Comando | Resultado | Observación |
 | --- | --- | --- |
+| `pnpm test:prod-operations` | 6/6 PASS + contrato PASS | 18 archivos operativos, 17 alertas y 7 smoke checks no destructivos. |
 | `pnpm test:prod-hosting` | PASS | CSP/headers/cache PROD, ausencia de referencias DEV, template inactivo y release manifest determinístico/sin secretos. |
 | `pnpm test:prod-artifact` | PASS | Build PROD sintético sin red; base `/`; 0 referencias DEV, 0 source maps y 0 material privilegiado. Casos negativos fail-closed cubiertos. |
 | `pnpm test:edge-config` | 12/12 PASS + check estático PASS | Fail-closed, CORS exacto, restricciones PROD/DEV, secreto no enumerable y 4 funciones PROD permitidas. |
@@ -371,10 +377,10 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 | `pnpm test:push` | 44/44 PASS | Suscripción, logout/login, cambio de cuenta, payload, worker, tags, provider policy, lotes y cifrado. |
 | `pnpm test:navigation` | 5/5 PASS | Visibilidad y protección Admin; logout conserva push y baja explícita desactiva. |
 
-No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no eran parte de los cuatro comandos solicitados. La evidencia versionada más reciente conserva RLS 40/40 e integración 34/34; deben repetirse contra infraestructura vacía/preproducción antes de un go-live.
+No se ejecutaron suites LIVE de login/RLS/integración porque PROD no tiene usuarios y esta fase prohíbe crearlos. La única llamada Auth pública fue el probe sintético `example.invalid` de signup cerrado: fue rechazado y dejó 0 usuarios/0 profiles. La evidencia versionada más reciente conserva RLS 40/40 e integración 34/34; deben repetirse contra infraestructura vacía/preproducción con identidades sintéticas aprobadas antes de un go-live.
 
 ## 12. Restricciones preservadas
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas: 28 tablas públicas con RLS, funciones/policies/índices esperados y tres buckets sin objetos. No se modificaron Edge Functions, Auth, secrets, VAPID, Resend, DNS, dominio, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01, usuarios ni datos reales. B01 está **CLOSED**; B02 está **PARTIAL**; B03–B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada lista para producción.
+Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas. Fase 3B cambió únicamente Auth PROD: política fuerte, HIBP y cierre de signup público; no creó usuarios ni perfiles. No se modificaron migraciones, Edge Functions, secrets, VAPID, Resend, DNS, dominio, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01 ni datos reales. B01 está **CLOSED**; B02 y B03 están **PARTIAL**; B04–B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada lista para producción.
