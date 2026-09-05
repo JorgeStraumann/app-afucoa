@@ -6,6 +6,8 @@ Alcance: recuperación de acceso y Web Push
 
 Implementación compartida: `supabase/functions/_shared/runtime-config.ts`
 
+Origin PROD aprobado para el frontend y para la futura allowlist server-side: `https://afucoa-v2-prod.pages.dev`. Esta fase no despliega Edge Functions ni cambia sus secrets; cuando se habilite el runtime PROD, `AFUCOA_ALLOWED_ORIGINS` deberá contener exactamente ese origin y ningún preview, GitHub Pages, localhost u origin DEV.
+
 ## Objetivo
 
 Las cuatro Edge Functions admitidas para producción consumen una configuración explícita por ambiente y fallan cerradas cuando es inválida. El código ejecutable ya no usa la URL de DEV ni orígenes de staging/localhost como defaults.
@@ -86,7 +88,7 @@ Web Push también fue revalidado después del despliegue: con `10000001` deslogu
 
 ## Despliegue PROD futuro
 
-La validación DEV no habilita producción. Para PROD se debe repetir el proceso con proyecto, origins, credenciales, VAPID, dominio y correo exclusivamente PROD, y ejecutar nuevamente las pruebas E2E autorizadas. Nunca se copia configuración DEV.
+El frontend PROD ya usa el origin canónico `https://afucoa-v2-prod.pages.dev`, pero la validación DEV no habilita todavía las funciones en producción. Cuando se autorice ese despliegue se debe repetir el proceso con proyecto, origin, credenciales, VAPID y correo exclusivamente PROD, y ejecutar nuevamente las pruebas E2E autorizadas. Nunca se copia configuración DEV.
 
 ## Verificación local
 

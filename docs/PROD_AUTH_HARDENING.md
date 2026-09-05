@@ -2,7 +2,7 @@
 
 Fecha: 5 de septiembre de 2026 (America/Montevideo)
 
-Estado: hardening base de Auth completado; **AFUCOA V2 no está habilitada para producción**.
+Estado: hardening base de Auth y URL canónica configurados; **AFUCOA V2 no está habilitada completamente para producción**.
 
 ## Destino y alcance
 
@@ -65,12 +65,12 @@ El alias Auth de cédula no representa el correo de contacto del socio. Antes de
 
 ## Site URL y redirect URLs
 
-- `Site URL` permanece en `http://localhost:3000`, valor predeterminado **TEMPORARY / NOT APPROVED**.
-- La allowlist de redirects permanece vacía.
-- No se inventó un dominio final ni se reutilizó staging, DEV o `/app-afucoa/`.
-- Cuando AFUCOA apruebe el dominio HTTPS final, B03 exige reemplazar el valor temporal y registrar únicamente redirects exactos, sin comodines amplios.
+- `Site URL` quedó configurada exactamente como `https://afucoa-v2-prod.pages.dev`.
+- La allowlist de redirects permanece vacía porque el frontend actual usa login por contraseña y recuperación mediante Edge Function propia; no necesita OAuth ni callback de Auth.
+- No se agregaron localhost, GitHub Pages, preview, deployment hash, DEV ni comodines amplios.
+- El origin canónico y su TLS/HSTS fueron verificados antes de actualizar Auth.
 
-Por este pendiente, B03 no puede cerrarse.
+B03 permanece **PARTIAL** por MFA privilegiado, ciclo operativo de cuentas y recovery PROD; la URL ya no es un pendiente.
 
 ## MFA
 
@@ -114,10 +114,13 @@ No fue necesario ejecutar cleanup porque no se creó ninguna identidad.
 - Usuarios Auth PROD: **0**.
 - Profiles PROD: **0**.
 - Pilot 01: **PARKED**.
-- Site URL y redirects: pendientes de dominio final aprobado.
+- Site URL: `https://afucoa-v2-prod.pages.dev`.
+- Redirect URLs: allowlist vacía por diseño actual.
 - B02: **PARTIAL**.
 - B03: **PARTIAL**.
-- B04–B10: **OPEN**.
+- B04–B05: **OPEN**.
+- B06: **CLOSED** para el origin canónico Pages.dev; ver `docs/PROD_CANONICAL_ORIGIN.md`.
+- B07–B10: **OPEN**.
 
 ## Validación local
 

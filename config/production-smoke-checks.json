@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "status": "DESIGN ONLY / NOT ACTIVE",
   "environment": "future-production",
+  "canonicalOrigin": "https://afucoa-v2-prod.pages.dev",
   "constraints": {
     "destructive": false,
     "usesRealUsers": false,
