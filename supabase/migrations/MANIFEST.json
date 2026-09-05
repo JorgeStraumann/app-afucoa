@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "projectRef": "imiplnspvmsrsuikulwm",
+    "table": "supabase_migrations.schema_migrations",
+    "capturedAt": "2026-09-05",
+    "mode": "read-only"
+  },
+  "checksum": {
+    "algorithm": "sha256",
+    "encoding": "utf8",
+    "normalization": "Convert CRLF and CR to LF, remove trailing line breaks, then append exactly one LF. Preserve all other bytes."
+  },
+  "migrations": [
+    {
+      "version": "20260901012911",
+      "name": "afucoa_v2_schema",
+      "file": "20260901012911_afucoa_v2_schema.sql",
+      "sha256": "8255cc68fc1f72700c11a73b4bcedd55846d8e7bac9260f2c7bfc6ca36fd4501"
+    },
+    {
+      "version": "20260901013024",
+      "name": "afucoa_v2_security_core_fixed",
+      "file": "20260901013024_afucoa_v2_security_core_fixed.sql",
+      "sha256": "c1e939386bbce87103f18b170e4e2131833c6d8c5f6d6d14df281d069c394939"
+    },
+    {
+      "version": "20260901013043",
+      "name": "afucoa_v2_security_rls_part1",
+      "file": "20260901013043_afucoa_v2_security_rls_part1.sql",
+      "sha256": "18df32c4f9d65144e24e30f90cfd3700d7c19ee7597a4f98e63b79bb31704e87"
+    },
+    {
+      "version": "20260901013059",
+      "name": "afucoa_v2_security_rls_part2",
+      "file": "20260901013059_afucoa_v2_security_rls_part2.sql",
+      "sha256": "763309630fd234daf2a85c4fbc754dde5f1c32567fe48e1ccbaa19f1f29f76c5"
+    },
+    {
+      "version": "20260901013115",
+      "name": "afucoa_v2_storage",
+      "file": "20260901013115_afucoa_v2_storage.sql",
+      "sha256": "781f82b288a64cd8e231ea5c406b5924acec858c66f9959d56dd837331c04542"
+    },
+    {
+      "version": "20260901013137",
+      "name": "afucoa_v2_admin_backend",
+      "file": "20260901013137_afucoa_v2_admin_backend.sql",
+      "sha256": "6f545a0455b34a38080932156dbda49d03a9a015de918574397bdde00c0eacc1"
+    },
+    {
+      "version": "20260901013205",
+      "name": "afucoa_v2_security_hardening_01",
+      "file": "20260901013205_afucoa_v2_security_hardening_01.sql",
+      "sha256": "ce284bc9446a3fc1d79e92a4c93313cc98629d1386d9b3a1c73708357a855a8a"
+    },
+    {
+      "version": "20260901013226",
+      "name": "afucoa_v2_performance_hardening_01",
+      "file": "20260901013226_afucoa_v2_performance_hardening_01.sql",
+      "sha256": "ba5253441d28cbee16274d375200726bf98c4e3efcb2ad3d75f5e26c27ec44e4"
+    },
+    {
+      "version": "20260901020856",
+      "name": "list_visible_proposals",
+      "file": "20260901020856_list_visible_proposals.sql",
+      "sha256": "2074fde921b814647582516a416a0f744c606d334160baef7d128d40fdb60be1"
+    },
+    {
+      "version": "20260901021400",
+      "name": "fix_membership_token_ambiguity",
+      "file": "20260901021400_fix_membership_token_ambiguity.sql",
+      "sha256": "bc5dc896ee7ef42a3f1705cba05882562d26e6969e8018b26bf82bb447abc22d"
+    },
+    {
+      "version": "20260902013551",
+      "name": "profiles_id_default_uuid",
+      "file": "20260902013551_profiles_id_default_uuid.sql",
+      "sha256": "e473f2315d482e50fde334e52a62bf8422fc1348972d9acd18dd72964c57a934"
+    },
+    {
+      "version": "20260903200438",
+      "name": "secure_password_recovery",
+      "file": "20260903200438_secure_password_recovery.sql",
+      "sha256": "76484da492e4a1b9e8c05360ca4e1be3e2e7e10fa99eaf506242b355125af3f2"
+    },
+    {
+      "version": "20260904001121",
+      "name": "recovery_concurrency_hardening",
+      "file": "20260904001121_recovery_concurrency_hardening.sql",
+      "sha256": "a73f062bed82e24da6991147f6360a4fd65725248124491af4ad2376b2d3da75"
+    },
+    {
+      "version": "20260904002017",
+      "name": "recovery_lock_clock",
+      "file": "20260904002017_recovery_lock_clock.sql",
+      "sha256": "d24ef9566d8a51bba8177a3962fb05309e860dd1ce5fe41c0152f848411d6383"
+    },
+    {
+      "version": "20260904023548",
+      "name": "web_push_dev",
+      "file": "20260904023548_web_push_dev.sql",
+      "sha256": "d38df562b5ef4809a0a8c2c0940972afb4b022273857851127ac68d57ec3b6bd"
+    },
+    {
+      "version": "20260904024725",
+      "name": "web_push_active_device_limit",
+      "file": "20260904024725_web_push_active_device_limit.sql",
+      "sha256": "266bcacf94c4659725a40b9d77d8ba2dc5918bcbb0c3aca5cfe7e1996871318f"
+    },
+    {
+      "version": "20260905002735",
+      "name": "reconcile_existing_push_subscription",
+      "file": "20260905002735_reconcile_existing_push_subscription.sql",
+      "sha256": "4bd1b8a1dc4e1aa590986f434bfbb4997c975b476cabbbf4ba8f4379e74392c1"
+    }
+  ]
+}

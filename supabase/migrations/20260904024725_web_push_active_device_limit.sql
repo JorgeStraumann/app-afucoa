@@ -1,5 +1,3 @@
--- Count active devices only: logout/unsubscribe must not exhaust a lifetime quota.
--- Serialize concurrent registrations per profile as well as per endpoint.
 create or replace function public.register_my_push_subscription(p_endpoint text,p_p256dh text,p_auth text,p_platform text default 'web')
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare v_profile uuid := public.current_profile_id(); v_id uuid;

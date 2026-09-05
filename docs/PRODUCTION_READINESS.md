@@ -12,11 +12,11 @@ Tipo de revisión: solo lectura y documentación
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para producción.** La base funcional de DEV es sólida —28/28 tablas públicas con RLS, 40/40 pruebas RLS documentadas, 34/34 de integración documentadas, sesiones 11/11, Web Push 44/44 y navegación 5/5—, pero existen **10 blockers de lanzamiento**. Ninguno requiere alterar DEV para ser identificado y ninguno fue corregido en esta fase.
+**AFUCOA V2 todavía no está habilitada para producción.** La base funcional de DEV es sólida —28/28 tablas públicas con RLS, 40/40 pruebas RLS documentadas, 34/34 de integración documentadas, sesiones 11/11, Web Push 44/44 y navegación 5/5—, pero existen **10 blockers de lanzamiento**. B01 avanzó a estado **PARCIAL** en Fase 2A: la cadena canónica y sus checksums están recuperados, pero falta aplicarla sobre una base local vacía y comparar las estructuras resultantes.
 
 Los dos riesgos técnicos más inmediatos son:
 
-1. `supabase/migrations/` no contiene hoy la cadena inicial completa que ya existe en DEV; por lo tanto, no se ha demostrado que un proyecto PROD vacío pueda reconstruirse de forma determinística.
+1. `supabase/migrations/` ya contiene las 17 migraciones históricas y coincide por SHA-256 normalizado con DEV. Todavía no se ha demostrado la reconstrucción determinística porque este equipo no dispone de Supabase CLI ni Docker para el ensayo fresh-db.
 2. Las Edge Functions de recuperación y Web Push contienen vínculos explícitos al project ref y a los orígenes de DEV/staging. Antes de desplegarlas en PROD deben parametrizarse y validarse sin aceptar DEV como fallback de producción.
 
 La protección contra contraseñas filtradas está deshabilitada en DEV. Es un riesgo aceptado únicamente porque DEV está en Free; es un **BLOCKER PROD**, requiere Supabase Pro o superior y no debe intentarse silenciar mediante SQL o cambios de frontend.
@@ -37,7 +37,7 @@ No se ejecutaron migraciones, SQL de escritura, despliegues, cambios de settings
 
 | ID | Blocker | Dependencia/costo | Criterio de cierre |
 | --- | --- | --- | --- |
-| B01 | Cadena de migraciones no reproducible | Trabajo técnico; puede hacerse sin pagar | Reconstruir la secuencia canónica completa, conciliar nombres/checksums con DEV y levantar un proyecto desechable desde cero con esquema, grants, RLS, buckets y funciones esperadas. No copiar un dump ad hoc como sustituto de migraciones. |
+| B01 — **PARCIAL** | Cadena canónica recuperada, pero fresh-db aún no ejecutado | Requiere Supabase CLI + Docker local; no requiere tocar DEV | Las 17 versiones/nombres y checksums ya coinciden. Para cerrar: aplicar desde cero en una base local/desechable y comparar esquema, grants, RLS, buckets y funciones con DEV. |
 | B02 | Proyecto Supabase PROD separado y plan de producción no provisionados/validados | Supabase Pro o superior; desde USD 25/mes según tarifa vigente | Crear un proyecto nuevo, con organización/región/plan aprobados y sin usuarios, datos, claves ni secretos DEV. Confirmar responsables, acceso mínimo y facturación. |
 | B03 | Auth PROD no endurecido ni probado | Leaked Password Protection requiere Supabase Pro o superior | Configurar y evidenciar mínimo 12, cuatro clases, altas públicas cerradas, Leaked Password Protection habilitado, redirects exactos, sesiones y ciclo de altas/bajas. Resolver MFA para admin/superadmin o registrar una excepción de riesgo aprobada. |
 | B04 | Recuperación de acceso PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Quitar dependencia DEV del código/configuración, usar secretos PROD, verificar dominio/remitente y titularidad de emails, y aprobar E2E real: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
@@ -179,7 +179,9 @@ GitHub documenta que los environments pueden restringir ramas, requerir aprobaci
 
 - No se encontraron foreign keys públicas sin índice utilizable.
 - El Advisor de rendimiento marca índices sin uso y políticas permisivas múltiples; se detallan más abajo. No se deben eliminar índices usando métricas de un entorno DEV pequeño.
-- La cadena local contiene migraciones desde `202608310001_*` y luego `20260902013551_*`, pero el historial remoto comienza con nueve pasos `20260901012911` a `20260901021400` que no tienen una representación uno-a-uno en `supabase/migrations/`. Los SQL monolíticos `schema-v2.sql`, `security-v2.sql`, `storage-v2.sql` y `admin-v2.sql` son referencias útiles, pero no sustituyen una cadena canónica ensayada.
+- La cadena local contiene ahora las 17 versiones/nombres canónicos observados en DEV. `MANIFEST.json` conserva los SHA-256 normalizados obtenidos de `supabase_migrations.schema_migrations.statements[]`, y `pnpm test:migrations` informa 17/17. Las dos versiones obsoletas `20260831*` fueron retiradas.
+- La igualdad comprobada es de SQL normalizado: CRLF/CR a LF y exactamente un LF terminal; no se afirma igualdad byte-a-byte con la representación interna de Supabase.
+- No se pudo ejecutar un fresh-db ni comparar las estructuras resultantes porque Supabase CLI, Docker y Podman no están disponibles. Los SQL monolíticos continúan siendo referencia, no sustituto de esa prueba.
 
 ### Requisitos PROD
 
@@ -268,8 +270,8 @@ Resumen de findings:
 
 ### Fase 2 — preparación técnica sin producción
 
-- [ ] Reconstruir la cadena canónica de migraciones y documentar checksums/orden.
-- [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage.
+- [x] Reconstruir la cadena canónica de 17 migraciones y documentar checksums/orden.
+- [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage. Pendiente por falta de CLI/Docker.
 - [ ] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes.
 - [ ] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
 - [ ] Crear validadores de artefacto PROD que rechacen project ref/origen/base/secrets DEV.
@@ -339,6 +341,7 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 
 | Comando | Resultado | Observación |
 | --- | --- | --- |
+| `pnpm test:migrations` | 17/17 PASS | Versiones/nombres/orden/checksums; 0 obsoletas; 3 buckets esperados; 0 objetos Storage copiados. |
 | `pnpm test:staging` | PASS | Incluyó guard de Auth LIVE; build 163 módulos; 5 archivos; 0 source maps; clave publishable configurada; 0 clave privilegiada detectada. |
 | `pnpm test:session` | 11/11 PASS | Concurrencia, errores transitorios, perfil ausente/inactivo, refresh, restauración, cambio de identidad y logout manual. |
 | `pnpm test:push` | 44/44 PASS | Suscripción, logout/login, cambio de cuenta, payload, worker, tags, provider policy, lotes y cifrado. |
