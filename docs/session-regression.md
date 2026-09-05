@@ -17,9 +17,11 @@
 
 ## Regresión automatizada
 
-`pnpm test:session`: 10 escenarios sobre los módulos de producción con dependencias simuladas: carrera, error transitorio/persistente, ausente, inactivo, logout tardío, refresh, cambio de identidad, restauración y wrapper de eventos.
+`pnpm test:session`: 11 escenarios sobre los módulos de producción con dependencias simuladas: carrera, error transitorio/persistente, ausente, inactivo, logout tardío, refresh, cambio de identidad, restauración y wrapper de eventos.
 
-`pnpm test:session-live`: 8/8 contra DEV con los mismos módulos de producción y Supabase real: login socio `10000001`, sesión persistente, perfil, contacto, QR, RPC entre pantallas, refresh real y logout manual. Todas las RPC devolvieron HTTP 200; el único logout fue manual (204). El contacto sintético se restauró al finalizar. El QR de prueba conserva su vencimiento normal de cinco minutos.
+`pnpm test:session-live`: 8/8 contra DEV con los mismos módulos de producción y Supabase real: login socio `10000001`, sesión persistente, perfil, contacto, QR, RPC entre pantallas, refresh real y logout manual. Todas las RPC devolvieron HTTP 200; el único logout fue manual y aislado con `{ scope: 'local' }`. El contacto sintético se restauró al finalizar. El QR de prueba conserva su vencimiento normal de cinco minutos.
+
+Todos los tests LIVE que autentican las cuentas DEV compartidas hacen cleanup en `finally` mediante logout local. Nunca deben usar `auth.signOut()` sin scope: eso podría revocar sesiones manuales abiertas en otros navegadores. `pnpm test:live-auth-isolation`, incluido al inicio de `pnpm test:staging`, bloquea esa regresión sin modificar la semántica de logout de la aplicación real.
 
 Variables efímeras del proceso: `AFUCOA_SUPABASE_URL`, `AFUCOA_PUBLISHABLE_KEY`, `AFUCOA_SOCIO_DEV_PASSWORD`. Nunca guardar contraseñas en Git, archivos o CI. El reporte imprime solo nombres de pruebas y paths/status HTTP, nunca headers, cuerpos ni tokens.
 

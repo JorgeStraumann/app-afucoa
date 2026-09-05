@@ -16,15 +16,18 @@ if (!url || !key || cases.some(([, user]) => !user?.email || !user?.password)) {
 const results = [];
 for (const [expectedRole, user] of cases) {
   const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  const login = await client.auth.signInWithPassword({ email: user.email, password: user.password });
-  const profile = login.error ? null : await client.rpc('get_my_profile');
-  const row = Array.isArray(profile?.data) ? profile.data[0] : profile?.data;
-  results.push({
-    role: expectedRole,
-    login: !login.error && Boolean(login.data.session),
-    profile: !profile?.error && row?.role === expectedRole,
-  });
-  await client.auth.signOut();
+  try {
+    const login = await client.auth.signInWithPassword({ email: user.email, password: user.password });
+    const profile = login.error ? null : await client.rpc('get_my_profile');
+    const row = Array.isArray(profile?.data) ? profile.data[0] : profile?.data;
+    results.push({
+      role: expectedRole,
+      login: !login.error && Boolean(login.data.session),
+      profile: !profile?.error && row?.role === expectedRole,
+    });
+  } finally {
+    await client.auth.signOut({ scope: 'local' });
+  }
 }
 
 const passed = results.every((result) => result.login && result.profile);

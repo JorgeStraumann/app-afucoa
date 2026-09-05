@@ -6,11 +6,13 @@ const users = JSON.parse(process.env.AFUCOA_TEST_USERS);
 const expiredQrToken = process.env.AFUCOA_EXPIRED_QR_TOKEN || 'expired-token-not-present';
 
 const results = [];
+const authenticatedClients = [];
 const check = (name, pass, detail = '') => results.push({ name, pass: Boolean(pass), detail });
 const client = () => createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
 async function login(user) {
   const c = client();
+  authenticatedClients.push(c);
   const { error } = await c.auth.signInWithPassword({ email: user.email, password: user.password });
   if (error) throw error;
   return c;
@@ -21,6 +23,7 @@ async function visibleCount(c, table, column, value) {
   return { count: count ?? 0, error };
 }
 
+async function run() {
 const anon = client();
 const socioA = await login(users.socioA);
 const socioB = await login(users.socioB);
@@ -128,6 +131,12 @@ if (createdFilePath) {
   await admin.storage.from('request-files').remove([createdFilePath]);
   await admin.from('request_files').delete().eq('id', fileData.id);
 }
-for (const c of [socioA, socioB, admin]) await c.auth.signOut();
 console.log(JSON.stringify({ passed: results.filter(r => r.pass).length, failed: results.filter(r => !r.pass).length, results }, null, 2));
 if (results.some(r => !r.pass)) process.exitCode = 1;
+}
+
+try {
+  await run();
+} finally {
+  for (const c of authenticatedClients) await c.auth.signOut({ scope: 'local' });
+}

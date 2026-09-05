@@ -19,7 +19,12 @@ const client=createClient(url,key,{
   }},
 });
 const auth=await loadAuth(client), profiles=await loadProfile(client);
-const session=await loadSession({...auth,...profiles,authSignOut:auth.signOut});
+const signOutScopes=[];
+const isolatedSignOut=async () => {
+  signOutScopes.push('local');
+  return client.auth.signOut({scope:'local'});
+};
+const session=await loadSession({...auth,...profiles,authSignOut:isolatedSignOut});
 const check=(name,condition) => { assert.ok(condition,name); results.push(name); };
 let original, contactChanged=false, manualLogout=false;
 try {
@@ -50,7 +55,7 @@ try {
   assert.equal(await profiles.updateMyContact({email:original.email,phone:original.phone}),true);
   contactChanged=false;
   await session.endSession(); manualLogout=true;
-  check('7. Logout manual',session.getSession()===null && await auth.getAuthSession()===null);
+  check('7. Logout manual aislado',session.getSession()===null && await auth.getAuthSession()===null && signOutScopes.length===1 && signOutScopes.every(scope=>scope==='local'));
   console.log(JSON.stringify({project:'imiplnspvmsrsuikulwm',passed:results.length,failed:0,results,requests},null,2));
 } finally {
   if(contactChanged && original) {

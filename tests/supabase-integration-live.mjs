@@ -9,11 +9,13 @@ if (!url || !key || !users.socioA || !users.socioB || !users.admin) {
 
 const marker = `codex-${Date.now()}`;
 const results = [];
+const authenticatedClients = [];
 const check = (name, pass, detail = '') => results.push({ name, pass: Boolean(pass), detail });
 const client = () => createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
 async function login(user) {
   const db = client();
+  authenticatedClients.push(db);
   const { data, error } = await db.auth.signInWithPassword({ email: user.email, password: user.password });
   if (error) throw error;
   check(`Login ${user.label}`, Boolean(data.session), data.user?.id || 'sin sesión');
@@ -31,6 +33,7 @@ async function count(db, table, column, value) {
   return { count: result.count ?? 0, error: result.error };
 }
 
+async function run() {
 const anon = client();
 const socioA = await login({ ...users.socioA, label: 'socio A' });
 const socioB = await login({ ...users.socioB, label: 'socio B' });
@@ -142,7 +145,6 @@ const [oldToken, newToken] = await Promise.all([
 check('Nuevo QR revoca el anterior', !oldToken.error && oldToken.data?.length === 0 && !newToken.error && newToken.data?.length === 1, `old=${oldToken.data?.length ?? 0} new=${newToken.data?.length ?? 0}`);
 
 await admin.storage.from('request-files').remove([storagePath]);
-for (const db of [socioA, socioB, admin]) await db.auth.signOut();
 
 const output = {
   marker,
@@ -153,3 +155,10 @@ const output = {
 };
 console.log(JSON.stringify(output, null, 2));
 if (output.failed) process.exitCode = 1;
+}
+
+try {
+  await run();
+} finally {
+  for (const db of authenticatedClients) await db.auth.signOut({ scope: 'local' });
+}
