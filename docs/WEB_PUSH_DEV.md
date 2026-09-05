@@ -57,7 +57,7 @@ Las suites HTTP utilizaron credenciales transitorias exclusivamente para las tre
 
 ## Seguridad y Advisor
 
-El build se escanea por nombres de secretos, sb_secret, service_role, PEM y JWT privilegiados. Frontend solo recibe la publishable key DEV y, cuando se configure, la VAPID pública.
+El build se escanea por nombres de secretos, sb_secret, service_role, PEM y JWT privilegiados. Frontend solo recibe la publishable key DEV y la clave VAPID pública.
 
 Las advertencias SECURITY DEFINER de las tres RPC push son intencionales y revisadas: identidad derivada del JWT y columnas privadas no expuestas. Ledger con RLS sin policies es intencionalmente server-only, igual que rate limits de recuperación. Los índices FK nuevos sin uso aún se conservan. No se debilita seguridad para eliminar avisos.
 
@@ -68,11 +68,13 @@ Las advertencias SECURITY DEFINER de las tres RPC push son intencionales y revis
 
 ## Estado operativo y límites
 
-Jorge confirmó la prueba Web Push real end-to-end en DEV: Admin, notificación interna, recipient, Edge Function, proveedor y navegador/Windows. Los secretos VAPID continúan exclusivamente en Edge Function Secrets; nunca en VITE, GitHub ni el repositorio.
+VAPID DEV está configurado exclusivamente en Edge Function Secrets, sin publicar sus valores. Jorge confirmó la prueba Web Push real end-to-end en DEV: Admin, notificación interna, recipient, Edge Function, proveedor y navegador/Windows. Los secretos VAPID nunca se incorporaron a VITE, GitHub ni el repositorio.
 
-El cierre posterior corrige que logout desactivaba el dispositivo. Jorge confirmó sobre DEV que logout no ejecutó `unregister_my_push_subscription` y que el dispositivo permaneció activo. El único mecanismo de baja es ahora el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
+El cierre posterior corrige que logout desactivaba el dispositivo. La validación real confirmó que logout conserva la suscripción, no ejecuta `unregister_my_push_subscription` y mantiene activo el dispositivo del usuario DEV `10000001` aun con la sesión cerrada. El único mecanismo de baja es el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
 
-VAPID DEV está configurado y la entrega real end-to-end ya fue comprobada. Después del tag por `notification_id`, la única verificación física pendiente es confirmar nuevamente en Windows/Chrome que dos notificaciones internas sucesivas produzcan dos toasts.
+Con `10000001` deslogueado, el admin DEV `10000002` envió una notificación: la entrega terminó con `status=sent` y apareció como toast en Windows/Chrome. Una segunda notificación distinta, enviada inmediatamente después, también terminó con `status=sent` y produjo un segundo toast visible. La validación confirma que distintas `notification_id` generan tags diferentes y no se reemplazan entre sí. Un retry de la misma `notification_id` conserva el mismo tag para deduplicación; no se usa `renotify`.
+
+El payload Web Push cifrado no incluye título, body, cédula, nombre, email ni otra PII. Contiene únicamente datos técnicos mínimos: `target_path`, `profile_id` y `notification_id`, con UUID opacos. Web Push no garantiza entrega exactly-once: el ledger y el tag determinístico reducen duplicados, pero el proveedor, el navegador y el sistema operativo conservan semántica de entrega propia.
 
 Chrome/Edge/Firefox compatibles requieren contexto HTTPS y soporte del sistema. iOS/iPadOS requiere una versión compatible y la app agregada a Inicio; el permiso debe solicitarse por gesto explícito. Navegadores embebidos o privados pueden carecer de PushManager. El sistema operativo/proveedor puede demorar o suprimir avisos. No se implementó modo offline ni caché privada.
 
