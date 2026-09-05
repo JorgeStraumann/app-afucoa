@@ -7,9 +7,12 @@ import { stripTypeScriptTypes } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import { webcrypto } from 'node:crypto';
 
+const runtimeConfigSource = (await readFile(
+  new URL('../supabase/functions/_shared/runtime-config.ts', import.meta.url), 'utf8',
+)).replace(/^export /gm, '');
 const sources = Object.fromEntries(await Promise.all(['request', 'confirm'].map(async (name) => {
   const source = await readFile(new URL(`../supabase/functions/${name}-password-recovery/index.ts`, import.meta.url), 'utf8');
-  return [name, stripTypeScriptTypes(source.replace(/^import .*\n/, ''), { mode: 'strip' })];
+  return [name, stripTypeScriptTypes(`${runtimeConfigSource}\n${source.replace(/^import .*\r?\n/gm, '')}`, { mode: 'strip' })];
 })));
 const password = 'Ficticia-Solo-Test-2026!';
 const origin = 'https://jorgestraumann.github.io';
@@ -17,7 +20,8 @@ const origin = 'https://jorgestraumann.github.io';
 function fixture(options = {}) {
   const profile = { id: 'profile-dev', auth_user_id: 'auth-dev', document_number: '10000001', status: 'activo', email: 'dev@example.test', ...options.profile };
   const rows = [], mail = [], changes = [], logs = [], pending = [], counters = new Map();
-  const env = { SUPABASE_URL: 'https://imiplnspvmsrsuikulwm.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'only-a-synthetic-test-secret',
+  const env = { AFUCOA_ENV: 'dev', AFUCOA_ALLOWED_ORIGINS: origin,
+    SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'only-a-synthetic-test-secret',
     RESEND_API_KEY: 'only-a-synthetic-provider-key', RECOVERY_EMAIL_FROM: 'AFUCOA <test@example.test>', ...options.env };
   const client = {
     from(table) {
@@ -74,7 +78,7 @@ function fixture(options = {}) {
   const handlers = {};
   for (const name of ['request', 'confirm']) {
     const context = vm.createContext({
-      createClient: () => client, crypto: webcrypto, Request, Response, TextEncoder, TextDecoder, AbortController,
+      createClient: () => client, crypto: webcrypto, URL, Request, Response, TextEncoder, TextDecoder, AbortController,
       setTimeout: (fn, ms) => { if (ms < 10_000) fn(); return 0; }, clearTimeout() {},
       console: { error: value => logs.push(value) },
       Deno: { env: { get: key => env[key] }, serve: fn => { handlers[name] = fn; } },
@@ -164,10 +168,42 @@ test('CORS, cuerpo inválido y política de contraseña', async () => {
   for(const name of ['request','confirm']) {
     const response=await f.handlers[name](new Request('https://example.test',{method:'OPTIONS',headers:{origin}}));
     assert.equal(response.status,204); assert.equal(response.headers.get('access-control-allow-origin'),origin);
-    assert.equal((await f.call(name,{}, {origin:'https://evil.invalid'})).status,403);
+    assert.equal(response.headers.get('vary'),'Origin');
+    const rejected=await f.call(name,{}, {origin:'https://evil.invalid'});
+    assert.equal(rejected.status,403);assert.equal(rejected.headers.get('access-control-allow-origin'),null);
+    const missingOrigin=await f.handlers[name](new Request('https://example.test',{method:'OPTIONS'}));
+    assert.equal(missingOrigin.status,403);
   }
   const {code}=await f.issue();
   assert.equal((await f.call('confirm',{document_number:'10000001',code,new_password:'weak'})).status,400);
   assert.equal(f.changes.length,0);
   assert.equal((await f.call('request',{document_number:'x'.repeat(5000)})).status,200);
+});
+
+test('configuración inválida falla cerrada sin filtrar secretos', async () => {
+  for (const env of [
+    { AFUCOA_ENV: undefined },
+    { AFUCOA_ALLOWED_ORIGINS: undefined },
+    { SUPABASE_URL: undefined },
+    { SUPABASE_SERVICE_ROLE_KEY: undefined },
+  ]) {
+    const f=fixture({env});
+    for (const name of ['request','confirm']) {
+      const response=await f.call(name,{document_number:'10000001'});
+      assert.equal(response.status,503);
+      assert.deepEqual(response.body,{error:'temporarily_unavailable'});
+      assert.doesNotMatch(JSON.stringify(response.body),/synthetic-test-secret|synthetic-provider-key/);
+    }
+    assert.equal(f.mail.length,0);
+  }
+});
+
+test('POST server-to-server sin Origin conserva el contrato y los límites', async () => {
+  const f=fixture();
+  const response=await f.handlers.request(new Request('https://example.test',{
+    method:'POST','headers':{'content-type':'application/json'},body:JSON.stringify({document_number:'10000001'}),
+  }));
+  await response.json();
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('access-control-allow-origin'),null);
 });

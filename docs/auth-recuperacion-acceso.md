@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este flujo pertenece exclusivamente a AFUCOA V2 y al proyecto DEV `imiplnspvmsrsuikulwm`. Pilot 01 continúa suspendido. El navegador usa solamente la URL y la publishable key; la resolución de identidad, el envío y el cambio de contraseña ocurren en Edge Functions.
+Este flujo pertenece exclusivamente a AFUCOA V2. Pilot 01 continúa suspendido. El navegador usa solamente la URL y la publishable key; la resolución de identidad, el envío y el cambio de contraseña ocurren en Edge Functions. La parametrización multiambiente está versionada pero no fue desplegada en DEV ni PROD.
 
 ## Login por cédula
 
@@ -49,7 +49,8 @@ La integración con Resend está terminada dentro de `request-password-recovery`
 
 - `RESEND_API_KEY`
 - `RECOVERY_EMAIL_FROM`, con formato de remitente aceptado por Resend y dominio verificado
-- `RECOVERY_ALLOWED_ORIGINS`, opcional; los orígenes staging y localhost ya están permitidos
+
+La configuración compartida exige además `AFUCOA_ENV`, `AFUCOA_ALLOWED_ORIGINS`, `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. No existen origins por defecto. `RECOVERY_ALLOWED_ORIGINS` quedó reemplazada por la lista única compartida.
 
 Si Resend rechaza el envío, el código queda marcado `failed` e invalidado. El código nunca se devuelve al cliente ni se imprime en logs. En DEV, los tres perfiles de prueba actualmente no tienen correo de contacto; por eso las solicitudes públicas son neutras pero no generan un código entregable hasta configurar un destinatario de prueba.
 
@@ -60,6 +61,14 @@ La recuperación exige entre 12 y 72 caracteres, al menos una mayúscula, una mi
 En Auth DEV se guardaron mínimo 12 y las cuatro clases, y se deshabilitaron las altas públicas. Estos ajustes del Dashboard no forman parte de las migraciones SQL. No se cambiaron planes pagos. Las contraseñas anteriores no se vuelven válidas/inválidas retroactivamente por esta política.
 
 Antes de producción debe habilitarse **Leaked Password Protection** en Supabase Auth y conservarse una longitud mínima de al menos 12 caracteres con las cuatro clases. Esta protección depende del plan de Supabase; si el plan no la incluye, el lanzamiento debe detenerse o incorporar una alternativa server-side equivalente.
+
+## Configuración runtime y CORS
+
+`_shared/runtime-config.ts` valida ambiente, URL Supabase, clave server-side y origins exactos. La configuración inválida devuelve indisponibilidad genérica y no realiza operaciones de recuperación. Un origin ajeno recibe 403 sin reflexión ni fallback; `OPTIONS` requiere origin permitido y todas las respuestas incluyen `Vary: Origin`.
+
+Se conservan POST server-to-server sin `Origin`: no reciben header CORS y siguen sujetos a validación de cuerpo, HMAC y límites IP/identidad/global. CORS no se trata como mecanismo de autenticación.
+
+El contrato completo, inventario PROD y variables están en `docs/EDGE_RUNTIME_CONFIG.md`. Antes de desplegar esta versión en DEV deben configurarse explícitamente las nuevas variables; esta fase no cambió secrets ni funciones remotas.
 
 ## SECURITY DEFINER revisadas
 
@@ -74,7 +83,8 @@ Los grants permanecen mínimos y las nuevas primitivas de recuperación no son `
 
 ## Pruebas
 
-- `pnpm test:recovery`: política, contratos y ejecución de los handlers reales con I/O simulado (Supabase y correo).
+- `pnpm test:recovery`: 13/13; política, contratos, fail-closed y ejecución de los handlers reales con I/O simulado (Supabase y correo).
+- `pnpm test:edge-config`: 12/12 más check estático; configuración/CORS e inventario PROD, sin red ni secretos.
 - `tests/password-recovery-state-machine.sql`: transacción sintética que valida código correcto, invalidación del anterior, expiración, reutilización, cinco intentos y rate limiting; siempre hace rollback.
 - `pnpm test:rls` y `pnpm test:integration`: matriz real contra DEV con credenciales efímeras fuera del repositorio.
 - `pnpm test:recovery-http`: endpoints públicos reales, CORS, neutralidad, código inválido, tablas privadas y altas públicas deshabilitadas; requiere `AFUCOA_SUPABASE_URL` y `AFUCOA_PUBLISHABLE_KEY`.

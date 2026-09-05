@@ -1,39 +1,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
+import { corsHeaders, loadRuntimeConfig, requestOriginAllowed } from '../_shared/runtime-config.ts'
 
 const PUBLIC_RESPONSE = {
   ok: true,
   message: 'Si la cuenta está habilitada, recibirás un código en breve.',
 }
-const DEFAULT_ORIGINS = [
-  'https://jorgestraumann.github.io',
-  'http://localhost:5173',
-  'http://localhost:4173',
-]
-
 type AdminClient = ReturnType<typeof createClient>
 
-function allowedOrigins() {
-  return new Set([
-    ...DEFAULT_ORIGINS,
-    ...(Deno.env.get('RECOVERY_ALLOWED_ORIGINS') || '').split(',').map((value) => value.trim()).filter(Boolean),
-  ])
-}
-
-function corsHeaders(request: Request) {
-  const origin = request.headers.get('origin')
-  const allowed = !origin || allowedOrigins().has(origin)
-  return {
-    'access-control-allow-origin': allowed && origin ? origin : DEFAULT_ORIGINS[0],
-    'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
-    'access-control-allow-methods': 'POST, OPTIONS',
-    'access-control-max-age': '86400',
-    'content-type': 'application/json; charset=utf-8',
-    'vary': 'Origin',
-  }
-}
-
-function json(request: Request, body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: corsHeaders(request) })
+function json(request: Request, body: unknown, status = 200, config = null) {
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders(request, config) })
 }
 
 async function readJson(request: Request) {
@@ -153,26 +128,29 @@ async function deliverCode(
 
 Deno.serve(async (request) => {
   const startedAt = Date.now()
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request) })
-  if (request.method !== 'POST') return json(request, { error: 'method_not_allowed' }, 405)
-  const origin = request.headers.get('origin')
-  if (origin && !allowedOrigins().has(origin)) return json(request, { error: 'origin_not_allowed' }, 403)
+  let config
+  try { config = loadRuntimeConfig() }
+  catch {
+    console.error('password_recovery_request_failed')
+    return json(request, { error: 'temporarily_unavailable' }, 503)
+  }
+  const reply = (body: unknown, status = 200) => json(request, body, status, config)
+  if (!requestOriginAllowed(request, config)) return reply({ error: 'origin_not_allowed' }, 403)
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, config) })
+  if (request.method !== 'POST') return reply({ error: 'method_not_allowed' }, 405)
 
   try {
     if (Number(request.headers.get('content-length') || 0) > 4096) {
       await finishAtNeutralTime(startedAt)
-      return json(request, PUBLIC_RESPONSE)
+      return reply(PUBLIC_RESPONSE)
     }
 
     const body = await readJson(request)
     const document = normalizeDocument(body?.document_number)
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serverKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    if (supabaseUrl !== 'https://imiplnspvmsrsuikulwm.supabase.co' || !serverKey) throw new Error('server_configuration_missing')
-
-    const client = createClient(supabaseUrl, serverKey, {
+    const client = createClient(config.supabaseUrl, config.serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     })
+    const serverKey = config.serviceRoleKey
     const ipHash = await hmac(`request-ip:${clientAddress(request)}`, serverKey)
     const globalHash = await hmac('request-global', serverKey)
     const identityHash = await hmac(`request-identity:${document || 'invalid'}`, serverKey)
@@ -219,5 +197,5 @@ Deno.serve(async (request) => {
   }
 
   await finishAtNeutralTime(startedAt)
-  return json(request, PUBLIC_RESPONSE)
+  return reply(PUBLIC_RESPONSE)
 })

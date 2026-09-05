@@ -17,7 +17,7 @@ Tipo de revisión: solo lectura y documentación
 Los dos riesgos técnicos más inmediatos son:
 
 1. `supabase/migrations/` ya contiene las 17 migraciones históricas y coincide por SHA-256 normalizado con DEV. Todavía no se ha demostrado la reconstrucción determinística porque este equipo no dispone de Supabase CLI ni Docker para el ensayo fresh-db.
-2. Las Edge Functions de recuperación y Web Push contienen vínculos explícitos al project ref y a los orígenes de DEV/staging. Antes de desplegarlas en PROD deben parametrizarse y validarse sin aceptar DEV como fallback de producción.
+2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto en el código de Fase 2B mediante configuración compartida fail-closed. No fue desplegado: B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E PROD.
 
 La protección contra contraseñas filtradas está deshabilitada en DEV. Es un riesgo aceptado únicamente porque DEV está en Free; es un **BLOCKER PROD**, requiere Supabase Pro o superior y no debe intentarse silenciar mediante SQL o cambios de frontend.
 
@@ -40,8 +40,8 @@ No se ejecutaron migraciones, SQL de escritura, despliegues, cambios de settings
 | B01 — **PARCIAL** | Cadena canónica recuperada, pero fresh-db aún no ejecutado | Requiere Supabase CLI + Docker local; no requiere tocar DEV | Las 17 versiones/nombres y checksums ya coinciden. Para cerrar: aplicar desde cero en una base local/desechable y comparar esquema, grants, RLS, buckets y funciones con DEV. |
 | B02 | Proyecto Supabase PROD separado y plan de producción no provisionados/validados | Supabase Pro o superior; desde USD 25/mes según tarifa vigente | Crear un proyecto nuevo, con organización/región/plan aprobados y sin usuarios, datos, claves ni secretos DEV. Confirmar responsables, acceso mínimo y facturación. |
 | B03 | Auth PROD no endurecido ni probado | Leaked Password Protection requiere Supabase Pro o superior | Configurar y evidenciar mínimo 12, cuatro clases, altas públicas cerradas, Leaked Password Protection habilitado, redirects exactos, sesiones y ciclo de altas/bajas. Resolver MFA para admin/superadmin o registrar una excepción de riesgo aprobada. |
-| B04 | Recuperación de acceso PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Quitar dependencia DEV del código/configuración, usar secretos PROD, verificar dominio/remitente y titularidad de emails, y aprobar E2E real: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
-| B05 | Web Push PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Parametrizar project ref/orígenes, generar VAPID PROD nueva, validar scope/origen final y completar E2E multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
+| B04 — **ABIERTO** | Recuperación de acceso PROD no está lista; hardcodes resueltos solo en código | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar secrets PROD, verificar dominio/remitente y titularidad de emails, y aprobar E2E real: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
+| B05 — **ABIERTO** | Web Push PROD no está lista; hardcodes resueltos solo en código | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar scope/origen final y completar E2E multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 | Dominio/hosting/frontend PROD no están definidos ni endurecidos | Dominio, DNS y posible hosting/CDN | Aprobar URL canónica HTTPS, base path, manifest, worker, redirects Auth, CORS y headers CSP/HSTS/Referrer/Permissions. Probar URL directa, refresh y actualización del worker. |
 | B07 | Pipeline de producción, promoción y protecciones no existen | GitHub puede cubrir parte sin costo si el repositorio/plan lo permite | Crear en otra fase un workflow PROD separado, environment protegido, aprobación humana, concurrencia, artefacto inmutable y rollback. Verificar branch rules en GitHub; no desplegar V2 desde `main` mientras `main` represente V1. |
 | B08 | Backups, restore, RPO y RTO PROD no están aprobados ni ensayados | Backups diarios en Pro; PITR es add-on y requiere Pro + compute compatible | Definir RPO/RTO, retención y responsables; habilitar backup acorde; ensayar restore en un proyecto aislado y documentar evidencia/tiempo. |
@@ -117,7 +117,7 @@ El manifiesto de despliegue PROD debe incluir únicamente `request-password-reco
 - Servir frontend, manifest y worker por HTTPS. Registrar el worker desde la ruta base final y comprobar que su scope cubra toda la aplicación.
 - Si el dominio final está en raíz, construir con `AFUCOA_PUBLIC_BASE=/` y comprobar `/push-sw.js`; si vive bajo subruta, scope/start_url/íconos deben usar la misma base.
 - Generar VAPID PROD y registrar su rotación. Rotar VAPID normalmente exige volver a suscribir dispositivos; planificar comunicación y ventana.
-- Eliminar los defaults DEV de `_shared/push-http.ts` y de los orígenes permitidos mediante configuración validada que falle cerrada si falta PROD. Esto es trabajo de una fase posterior.
+- [x] Eliminar los defaults DEV de `_shared/push-http.ts` y centralizar origins/URL/clave en configuración fail-closed. Código listo en Fase 2B, todavía no desplegado.
 - Revalidar: permiso por gesto explícito, Chrome/Edge/Firefox, instalación iOS compatible, cierre de app, refresh, logout/login, cambio de cuenta, dispositivo inválido y kill switch.
 - Alertar por tasa de `failed`, 404/410, claims `sending` estancados, límite de lotes, timeout, ledger incompleto y discrepancia entre destinatarios internos y deliveries.
 - Definir retención/purga de endpoints inactivos y ledger, preservando auditoría mínima y privacidad.
@@ -272,8 +272,8 @@ Resumen de findings:
 
 - [x] Reconstruir la cadena canónica de 17 migraciones y documentar checksums/orden.
 - [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage. Pendiente por falta de CLI/Docker.
-- [ ] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes.
-- [ ] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
+- [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Código no desplegado.
+- [x] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
 - [ ] Crear validadores de artefacto PROD que rechacen project ref/origen/base/secrets DEV.
 - [ ] Definir arquitectura de dominio/hosting, CSP/headers, workflow PROD y rollback, sin desplegar todavía.
 - [ ] Crear runbooks, matriz de monitoring, RPO/RTO, retención y prueba de restore.
@@ -341,7 +341,9 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 
 | Comando | Resultado | Observación |
 | --- | --- | --- |
+| `pnpm test:edge-config` | 12/12 PASS + check estático PASS | Fail-closed, CORS exacto, restricciones PROD/DEV, secreto no enumerable y 4 funciones PROD permitidas. |
 | `pnpm test:migrations` | 17/17 PASS | Versiones/nombres/orden/checksums; 0 obsoletas; 3 buckets esperados; 0 objetos Storage copiados. |
+| `pnpm test:recovery` | 13/13 PASS | Neutralidad, HMAC, expiración/reuso/intentos, rate limits, CORS, fail-closed y POST server-to-server. |
 | `pnpm test:staging` | PASS | Incluyó guard de Auth LIVE; build 163 módulos; 5 archivos; 0 source maps; clave publishable configurada; 0 clave privilegiada detectada. |
 | `pnpm test:session` | 11/11 PASS | Concurrencia, errores transitorios, perfil ausente/inactivo, refresh, restauración, cambio de identidad y logout manual. |
 | `pnpm test:push` | 44/44 PASS | Suscripción, logout/login, cambio de cuenta, payload, worker, tags, provider policy, lotes y cifrado. |
@@ -351,4 +353,4 @@ No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no era
 
 ## 12. Restricciones preservadas
 
-Esta fase no modificó código funcional, SQL, migraciones, Edge Functions, Supabase DEV/PROD, Auth, secrets, VAPID, Resend, DNS, Pages, `main`, V1, Pilot 01 ni datos. El único archivo creado es este documento. Pilot 01 continúa suspendido.
+Fase 2B modificó únicamente el código versionado de Edge Functions, sus tests/validadores y documentación. No desplegó funciones ni modificó Supabase DEV/PROD, Auth, secrets, VAPID, Resend remoto, DNS, Pages, `main`, V1, Pilot 01 o datos. B01 continúa PARCIAL; B04 y B05 continúan ABIERTOS.

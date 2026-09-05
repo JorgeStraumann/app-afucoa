@@ -29,7 +29,8 @@ test('la solicitud conserva respuesta neutra y no devuelve el código', () => {
 test('las dos funciones aceptan preflight solo desde orígenes permitidos', () => {
   for (const source of [requestSource, confirmSource]) {
     assert.match(source, /request\.method === 'OPTIONS'/);
-    assert.match(source, /https:\/\/jorgestraumann\.github\.io/);
+    assert.match(source, /runtime-config\.ts/);
+    assert.match(source, /requestOriginAllowed/);
     assert.match(source, /origin_not_allowed/);
   }
 });

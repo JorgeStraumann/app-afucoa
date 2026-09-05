@@ -1,35 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
-
-const DEFAULT_ORIGINS = [
-  'https://jorgestraumann.github.io',
-  'http://localhost:5173',
-  'http://localhost:4173',
-]
+import { corsHeaders, loadRuntimeConfig, requestOriginAllowed } from '../_shared/runtime-config.ts'
 
 type AdminClient = ReturnType<typeof createClient>
 
-function allowedOrigins() {
-  return new Set([
-    ...DEFAULT_ORIGINS,
-    ...(Deno.env.get('RECOVERY_ALLOWED_ORIGINS') || '').split(',').map((value) => value.trim()).filter(Boolean),
-  ])
-}
-
-function corsHeaders(request: Request) {
-  const origin = request.headers.get('origin')
-  const allowed = !origin || allowedOrigins().has(origin)
-  return {
-    'access-control-allow-origin': allowed && origin ? origin : DEFAULT_ORIGINS[0],
-    'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
-    'access-control-allow-methods': 'POST, OPTIONS',
-    'access-control-max-age': '86400',
-    'content-type': 'application/json; charset=utf-8',
-    'vary': 'Origin',
-  }
-}
-
-function json(request: Request, body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: corsHeaders(request) })
+function json(request: Request, body: unknown, status = 200, config = null) {
+  return new Response(JSON.stringify(body), { status, headers: corsHeaders(request, config) })
 }
 
 async function readJson(request: Request) {
@@ -109,15 +84,21 @@ async function finishAtNeutralTime(startedAt: number) {
 
 Deno.serve(async (request) => {
   const startedAt = Date.now()
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request) })
-  if (request.method !== 'POST') return json(request, { error: 'method_not_allowed' }, 405)
-  const origin = request.headers.get('origin')
-  if (origin && !allowedOrigins().has(origin)) return json(request, { error: 'origin_not_allowed' }, 403)
+  let config
+  try { config = loadRuntimeConfig() }
+  catch {
+    console.error('password_recovery_confirm_failed')
+    return json(request, { error: 'temporarily_unavailable' }, 503)
+  }
+  const reply = (body: unknown, status = 200) => json(request, body, status, config)
+  if (!requestOriginAllowed(request, config)) return reply({ error: 'origin_not_allowed' }, 403)
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(request, config) })
+  if (request.method !== 'POST') return reply({ error: 'method_not_allowed' }, 405)
 
   try {
     if (Number(request.headers.get('content-length') || 0) > 8192) {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_code' }, 400)
+      return reply({ error: 'invalid_code' }, 400)
     }
 
     const body = await readJson(request)
@@ -126,15 +107,13 @@ Deno.serve(async (request) => {
     const newPassword = String(body?.new_password || '')
     if (!validPassword(newPassword)) {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_password' }, 400)
+      return reply({ error: 'invalid_password' }, 400)
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serverKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    if (supabaseUrl !== 'https://imiplnspvmsrsuikulwm.supabase.co' || !serverKey) throw new Error('server_configuration_missing')
-    const client = createClient(supabaseUrl, serverKey, {
+    const client = createClient(config.supabaseUrl, config.serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     })
+    const serverKey = config.serviceRoleKey
 
     const ipHash = await hmac(`confirm-ip:${clientAddress(request)}`, serverKey)
     const globalHash = await hmac('confirm-global', serverKey)
@@ -146,7 +125,7 @@ Deno.serve(async (request) => {
     ]) : [false, false]
     if (!globalAllowed || !ipAllowed || !identityAllowed || document.length < 6 || !/^\d{8}$/.test(code)) {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_code' }, 400)
+      return reply({ error: 'invalid_code' }, 400)
     }
 
     const { data: profile } = await client.from('profiles')
@@ -156,7 +135,7 @@ Deno.serve(async (request) => {
       .maybeSingle()
     if (!profile?.auth_user_id) {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_code' }, 400)
+      return reply({ error: 'invalid_code' }, 400)
     }
 
     const { data: recovery } = await client.from('password_recovery_codes')
@@ -169,7 +148,7 @@ Deno.serve(async (request) => {
       .maybeSingle()
     if (!recovery?.id) {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_code' }, 400)
+      return reply({ error: 'invalid_code' }, 400)
     }
 
     const candidateHash = await hmac(`${recovery.id}:${code}`, serverKey)
@@ -181,7 +160,7 @@ Deno.serve(async (request) => {
     if (consumeError) throw new Error('recovery_consume_failed')
     if (result !== 'ok') {
       await finishAtNeutralTime(startedAt)
-      return json(request, { error: 'invalid_code' }, 400)
+      return reply({ error: 'invalid_code' }, 400)
     }
 
     const { error: updateError } = await client.auth.admin.updateUserById(profile.auth_user_id, {
@@ -190,11 +169,11 @@ Deno.serve(async (request) => {
     if (updateError) throw new Error('password_update_failed')
 
     await finishAtNeutralTime(startedAt)
-    return json(request, { ok: true })
+    return reply({ ok: true })
   } catch {
     // No se registran cédula, código, contraseña, IP ni secretos.
     console.error('password_recovery_confirm_failed')
     await finishAtNeutralTime(startedAt)
-    return json(request, { error: 'temporarily_unavailable' }, 503)
+    return reply({ error: 'temporarily_unavailable' }, 503)
   }
 })

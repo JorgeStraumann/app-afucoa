@@ -9,8 +9,11 @@ Implementación sobre baseline `0adc63eb42ba93454c17599f4c02d5376791b2be`, exclu
 - `src/components/push-controls.js` y Mi Cuenta: cuatro estados, instrucciones discretas, botón deshabilitado si falta configuración o está apagado allowPush.
 - Admin mantiene notifications/notification_recipients aunque falle push. Muestra cantidades agregadas, sin endpoints ni claves. Máximo 40 dispositivos por llamada, concurrencia 4 y timeout de proveedor 8 segundos; hasta cinco lotes desde frontend. Un envío parcial se identifica como incidencia.
 - Edge `push-config`: perfil activo autenticado, devuelve exclusivamente enabled/publicKey.
-- Edge `send-notification-push`: getUser verifica JWT y el rol se obtiene de profiles, nunca de metadata editable. Solo admin/superadmin. notification_id es la fuente de destinatarios; ignora destinatarios arbitrarios. CORS restringido, cuerpo limitado, URL DEV fijada. Gateway verify_jwt=false porque ambas funciones implementan autenticación explícita; esto NO significa acceso anónimo.
-- `_shared/push-http.ts`, `_shared/push-policy.ts`: autenticación, payload seguro, whitelist HTTPS de proveedores, cifrado aes128gcm/VAPID mediante web-push 3.6.7 fijado. Redirecciones bloqueadas y errores del proveedor nunca registrados.
+- Edge `send-notification-push`: getUser verifica JWT y el rol se obtiene de profiles, nunca de metadata editable. Solo admin/superadmin. notification_id es la fuente de destinatarios; ignora destinatarios arbitrarios. CORS restringido y cuerpo limitado. Gateway verify_jwt=false porque ambas funciones implementan autenticación explícita; esto NO significa acceso anónimo.
+- `_shared/runtime-config.ts`: configuración explícita `dev|prod`, URL Supabase server-side y origins sin defaults; PROD rechaza HTTP, loopback, staging GitHub y project ref DEV. `_shared/push-http.ts` consume esa configuración para autenticación/CORS.
+- `_shared/push-policy.ts`: payload seguro, whitelist HTTPS de proveedores, cifrado aes128gcm/VAPID mediante web-push 3.6.7 fijado. Redirecciones bloqueadas y errores del proveedor nunca registrados.
+
+La parametrización de Fase 2B está versionada pero no desplegada. El despliegue DEV actual conserva su versión anterior hasta una fase expresamente autorizada y requerirá configurar `AFUCOA_ENV` y `AFUCOA_ALLOWED_ORIGINS` antes de publicar el código nuevo.
 
 ## Migraciones aplicadas y versionadas
 
@@ -39,9 +42,10 @@ allowPush=false bloquea nuevas altas y envíos; el centro interno permanece disp
 
 | Suite | Resultado |
 | --- | --- |
+| test:edge-config | 12/12 + inventario/hardcodes PASS; exclusivamente local |
 | test:staging | PASS; 5 archivos, sin source maps ni secretos privilegiados |
 | test:session | 11/11 |
-| test:recovery | 11/11; no se reenvió correo real |
+| test:recovery | 13/13; no se reenvió correo real |
 | test:pilot | 6/6, exclusivamente sintética |
 | test:push | 44/44 |
 | test:navigation | 5/5 |

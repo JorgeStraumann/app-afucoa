@@ -1,26 +1,19 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.4';
-const DEV='https://imiplnspvmsrsuikulwm.supabase.co';
-const origins=new Set(['https://jorgestraumann.github.io','http://localhost:5173','http://localhost:4173']);
-export function respond(request,body,status=200) {
-  const origin=request.headers.get('origin');
-  return new Response(body===null?null:JSON.stringify(body),{status,headers:{
-    'content-type':'application/json','cache-control':'no-store','vary':'Origin',
-    'access-control-allow-origin':origins.has(origin)?origin:'https://jorgestraumann.github.io',
-    'access-control-allow-headers':'authorization, x-client-info, apikey, content-type',
-    'access-control-allow-methods':'POST, OPTIONS',
-  }});
+import {corsHeaders,loadRuntimeConfig,requestOriginAllowed} from './runtime-config.ts';
+export {loadRuntimeConfig};
+export function respond(request,config,body,status=200) {
+  return new Response(body===null?null:JSON.stringify(body),{status,headers:corsHeaders(request,config)});
 }
-export function preflight(request) {
-  if(request.headers.has('origin') && !origins.has(request.headers.get('origin'))) return respond(request,{error:'forbidden'},403);
-  if(request.method==='OPTIONS') return respond(request,null,204);
-  if(request.method!=='POST') return respond(request,{error:'method_not_allowed'},405);
+export function preflight(request,config) {
+  if(!requestOriginAllowed(request,config)) return respond(request,config,{error:'forbidden'},403);
+  if(request.method==='OPTIONS') return respond(request,config,null,204);
+  if(request.method!=='POST') return respond(request,config,{error:'method_not_allowed'},405);
   return null;
 }
-export async function authenticate(request,adminOnly=false) {
+export async function authenticate(request,config,adminOnly=false) {
   const jwt=request.headers.get('authorization')?.match(/^Bearer (.+)$/i)?.[1];
   if(!jwt) return {error:401};
-  if(Deno.env.get('SUPABASE_URL')!==DEV) return {error:503};
-  const db=createClient(DEV,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),{auth:{persistSession:false,autoRefreshToken:false}});
+  const db=createClient(config.supabaseUrl,config.serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
   const user=await db.auth.getUser(jwt);
   if(user.error || !user.data.user) return {error:401};
   const profile=await db.from('profiles').select('id,role').eq('auth_user_id',user.data.user.id).eq('status','activo').maybeSingle();

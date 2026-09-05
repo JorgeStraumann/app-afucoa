@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "functions": [
+    "request-password-recovery",
+    "confirm-password-recovery",
+    "push-config",
+    "send-notification-push"
+  ]
+}

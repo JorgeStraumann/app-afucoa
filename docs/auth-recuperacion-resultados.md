@@ -2,6 +2,8 @@
 
 Alcance: rama `afucoa-v2`, Supabase DEV `imiplnspvmsrsuikulwm`. Sin importaciones reales, sin cambios en main, V1 o producción.
 
+Actualización Fase 2B: la parametrización fail-closed y sus regresiones están versionadas localmente, pero no fueron desplegadas. La evidencia HTTP indicada como v12 corresponde a la versión DEV previa; no se repitieron tests LIVE ni se cambiaron secrets remotos.
+
 ## Cambios
 
 - Recuperación conserva las dos Edge Functions existentes, desplegadas en DEV como versión 12.
@@ -18,7 +20,7 @@ Alcance: rama `afucoa-v2`, Supabase DEV `imiplnspvmsrsuikulwm`. Sin importacione
 
 | Prueba | Resultado | Alcance |
 |---|---|---|
-| Recuperación automática | 11/11 | Handlers reales, I/O Auth/correo simulado; correcto, incorrecto, vencido, reutilizado, límite, errores y CORS |
+| Recuperación automática | 13/13 | Handlers reales, I/O Auth/correo simulado; correcto, incorrecto, vencido, reutilizado, límite, errores, CORS, fail-closed y server-to-server |
 | HTTP público DEV | 8/8 | Edge Functions reales v12; neutralidad, CORS, tablas privadas y registro público cerrado |
 | Máquina de estados SQL | OK | Base DEV real, rollback; incluye cinco intentos, identidad cambiada y envío pendiente |
 | Acceso SQL | OK | Base DEV real, rollback; permisos anon/authenticated y perfil inactivo |
