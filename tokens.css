@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Sistema de diseño AFUCOA — tokens
+   Contrastes verificados contra WCAG 2.1. Ver references/tokens.md.
+
+   Dos capas:
+   1. Primitivos (--v-, --a-, --n-): la paleta cruda. No usar directamente
+      en componentes.
+   2. Semánticos (--color-*, --espacio-*, etc.): lo que se usa al construir.
+
+   La separación existe para que la app se pueda re-marcar para otra
+   organización cambiando solo la capa 1.
+   ========================================================================== */
+
+:root {
+  /* --- Primitivos: verde institucional --- */
+  --v-50:  #EEF4F1;
+  --v-100: #D6E5DE;
+  --v-200: #AFCBBF;
+  --v-300: #82AC9B;
+  --v-400: #558D78;
+  --v-500: #2F6B55;
+  --v-600: #265946;
+  --v-700: #1F4D3D;
+  --v-800: #163A2E;
+  --v-900: #12332A;
+  --v-950: #0A1D17;
+
+  /* --- Primitivos: ámbar (acento) --- */
+  --a-50:  #FBF4E7;
+  --a-100: #F5E4C4;
+  --a-200: #EBCB92;
+  --a-300: #DFB05F;
+  --a-400: #D49A3F;
+  --a-500: #C8862A;
+  --a-600: #A66D20;
+  --a-700: #85561A;
+  --a-800: #5F3D13;
+
+  /* --- Primitivos: neutros --- */
+  --n-0:   #FFFFFF;
+  --n-50:  #F4F6F4;
+  --n-100: #EAEEEB;
+  --n-200: #D8DEDA;
+  --n-300: #BCC4BF;
+  --n-400: #7E8781;
+  --n-500: #6E7772;
+  --n-600: #5A5F5C;
+  --n-700: #3D423F;
+  --n-800: #2A2D2B;
+  --n-900: #1B1B1B;
+
+  /* --- Primitivos: estado --- */
+  --e-error:  #B3261E;
+  --e-exito:  #1E7A4F;
+  --e-info:   #1F5C8C;
+
+  /* ======================================================================
+     Semánticos — usar SOLO estos al construir componentes
+     ====================================================================== */
+
+  /* Superficie */
+  --color-fondo:            var(--n-50);
+  --color-superficie:       var(--n-0);
+  --color-superficie-sutil: var(--n-100);
+  --color-superficie-inv:   var(--v-900);
+
+  /* Texto */
+  --color-texto:            var(--n-900);   /* 15.86:1 sobre fondo */
+  --color-texto-suave:      var(--n-600);   /*  5.99:1 sobre fondo */
+  --color-texto-inv:        var(--n-0);     /* 13.70:1 sobre inv   */
+  --color-texto-marca:      var(--v-700);   /*  8.84:1 sobre fondo */
+  --color-texto-acento:     var(--a-700);   /*  6.28:1 sobre blanco */
+
+  /* Bordes — 3:1 mínimo cuando delimitan un control */
+  --color-borde:            var(--n-200);   /* divisores decorativos */
+  --color-borde-control:    var(--n-400);   /*  3.70:1 sobre blanco */
+  --color-borde-foco:       var(--v-500);
+
+  /* Acción */
+  --color-accion:           var(--a-500);
+  --color-accion-hover:     var(--a-600);
+  --color-accion-activo:    var(--a-700);
+  --color-accion-texto:     var(--n-900);   /*  5.66:1 sobre acento */
+
+  /* Estado */
+  --color-error:            var(--e-error);
+  --color-error-fondo:      #FBEAE9;
+  --color-exito:            var(--e-exito);
+  --color-exito-fondo:      #E8F4EE;
+  --color-info:             var(--e-info);
+  --color-info-fondo:       #E8F0F7;
+
+  /* --- Tipografía --- */
+  --fuente-titulo: "Fraunces", Georgia, serif;
+  --fuente-texto:  "Inter", system-ui, -apple-system, sans-serif;
+
+  --texto-xs:  0.8125rem;  /* 13px — solo metadatos */
+  --texto-sm:  0.875rem;   /* 14px */
+  --texto-md:  1rem;       /* 16px — base, nunca menos en cuerpo */
+  --texto-lg:  1.25rem;    /* 20px */
+  --texto-xl:  1.5625rem;  /* 25px */
+  --texto-2xl: 1.9375rem;  /* 31px */
+  --texto-3xl: 2.4375rem;  /* 39px */
+
+  --interlineado-ajustado: 1.2;   /* títulos */
+  --interlineado-normal:   1.5;   /* interfaz */
+  --interlineado-amplio:   1.65;  /* párrafos largos */
+
+  /* --- Espaciado (escala de 4) --- */
+  --espacio-1:  0.25rem;   /*  4px */
+  --espacio-2:  0.5rem;    /*  8px */
+  --espacio-3:  0.75rem;   /* 12px */
+  --espacio-4:  1rem;      /* 16px */
+  --espacio-6:  1.5rem;    /* 24px */
+  --espacio-8:  2rem;      /* 32px */
+  --espacio-12: 3rem;      /* 48px */
+  --espacio-16: 4rem;      /* 64px */
+  --espacio-24: 6rem;      /* 96px */
+
+  /* --- Forma --- */
+  --radio-sm:  2px;
+  --radio-md:  4px;   /* por defecto */
+  --radio-lg:  8px;   /* paneles, imágenes */
+  --radio-full: 999px;
+
+  /* --- Elevación — usar poco, ver references/tokens.md --- */
+  --sombra-menu:   0 4px 12px rgba(18, 51, 42, 0.12);
+  --sombra-dialogo: 0 16px 40px rgba(18, 51, 42, 0.20);
+
+  /* --- Movimiento --- */
+  --dur-rapida: 120ms;
+  --dur-media:  200ms;
+  --dur-lenta:  320ms;
+  --curva:      cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* --- Capas --- */
+  --z-nav:     100;
+  --z-menu:    200;
+  --z-dialogo: 300;
+  --z-aviso:   400;
+
+  /* --- Medidas --- */
+  --ancho-texto:    68ch;
+  --ancho-contenido: 1200px;
+  --toque-min:      44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-rapida: 1ms;
+    --dur-media:  1ms;
+    --dur-lenta:  1ms;
+  }
+}
+
+/* Cifras tabulares en todo dato numérico alineado en columna.
+   Sin esto las columnas de números bailan al cambiar de fila. */
+table, .dato-numerico, time {
+  font-variant-numeric: tabular-nums;
+}
