@@ -48,15 +48,21 @@ try {
   fail('no existe el directorio dist.');
 }
 
-for (const required of ['index.html', 'manifest.webmanifest', 'push-sw.js']) {
+for (const required of ['index.html', 'manifest.webmanifest', 'push-sw.js', '_headers']) {
   if (!files.includes(path.join(DIST, required))) fail(`falta ${required}.`);
 }
 if (files.some((file) => file.endsWith('.map'))) fail('el artefacto contiene source maps.');
+for (const file of files.filter((candidate) => path.relative(DIST, candidate).startsWith(`assets${path.sep}`))) {
+  if (!/-[A-Za-z0-9_-]{6,}\.[A-Za-z0-9]+$/.test(path.basename(file))) {
+    fail(`assets contiene un archivo sin hash de contenido: ${path.basename(file)}.`);
+  }
+}
 
 const index = await readFile(path.join(DIST, 'index.html'), 'utf8');
 const manifest = JSON.parse(await readFile(path.join(DIST, 'manifest.webmanifest'), 'utf8'));
 const worker = await readFile(path.join(DIST, 'push-sw.js'), 'utf8');
-const textFiles = files.filter((file) => TEXT_FILE.test(file));
+const cloudflareHeaders = await readFile(path.join(DIST, '_headers'), 'utf8');
+const textFiles = files.filter((file) => TEXT_FILE.test(file) || path.basename(file) === '_headers');
 const contents = (await Promise.all(textFiles.map((file) => readFile(file, 'utf8')))).join('\n');
 const jsContents = (await Promise.all(files.filter((file) => file.endsWith('.js')).map((file) => readFile(file, 'utf8')))).join('\n');
 
@@ -68,6 +74,34 @@ if (!worker.includes("addEventListener('push'") || !worker.includes("addEventLis
 }
 if (!jsContents.includes('push-sw.js') || !jsContents.includes('scope:')) {
   fail('el bundle no registra el Service Worker con scope explícito.');
+}
+
+const expectedConnect = `connect-src 'self' ${config.supabaseUrl};`;
+if (!cloudflareHeaders.includes(expectedConnect)) fail('CSP Cloudflare no limita connect-src a self + Supabase PROD.');
+if (/connect-src[^\n]*(?:\*|unsafe-inline|unsafe-eval)/.test(cloudflareHeaders)) {
+  fail('CSP Cloudflare contiene una fuente insegura.');
+}
+for (const requiredHeader of [
+  'Content-Security-Policy', 'X-Content-Type-Options', 'Referrer-Policy',
+  'Permissions-Policy', 'X-Frame-Options', 'Service-Worker-Allowed',
+]) {
+  if (!cloudflareHeaders.includes(`${requiredHeader}:`)) fail(`_headers no materializa ${requiredHeader}.`);
+}
+const headersMode = process.env.AFUCOA_CLOUDFLARE_HEADERS_MODE;
+if (headersMode === 'temporary-hostname' && cloudflareHeaders.includes('Strict-Transport-Security:')) {
+  fail('el hostname temporal no debe materializar HSTS canónico.');
+}
+if (headersMode === 'canonical-domain'
+    && !cloudflareHeaders.includes('Strict-Transport-Security: max-age=31536000; includeSubDomains')) {
+  fail('el dominio canónico debe materializar HSTS completo.');
+}
+for (const expected of [
+  '/index.html\n  Cache-Control: no-cache, no-store, must-revalidate',
+  '/manifest.webmanifest\n  Cache-Control: public, max-age=0, must-revalidate',
+  '/push-sw.js\n  Cache-Control: no-cache, no-store, must-revalidate',
+  '/assets/*\n  Cache-Control: public, max-age=31536000, immutable',
+]) {
+  if (!cloudflareHeaders.includes(expected)) fail(`_headers no contiene la regla esperada: ${expected.split('\n')[0]}.`);
 }
 const baseQuoted = [JSON.stringify(config.publicBase), `'${config.publicBase}'`];
 if (!baseQuoted.some((quoted) => jsContents.includes(quoted))) {

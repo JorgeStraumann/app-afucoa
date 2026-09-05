@@ -17,6 +17,7 @@ Object.assign(env, {
   VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_synthetic_prod_artifact_ci_only_000000000001',
   VITE_AUTH_ALIAS_DOMAIN: 'auth.synthetic.internal',
   AFUCOA_PUBLIC_BASE: '/',
+  AFUCOA_CLOUDFLARE_HEADERS_MODE: 'temporary-hostname',
 });
 
 const pnpmCli = process.env.npm_execpath;
