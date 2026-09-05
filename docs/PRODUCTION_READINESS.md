@@ -12,11 +12,11 @@ Tipo de revisión: solo lectura y documentación
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para producción.** La base funcional de DEV es sólida —28/28 tablas públicas con RLS, 40/40 pruebas RLS documentadas, 34/34 de integración documentadas, sesiones 11/11, Web Push 44/44 y navegación 5/5—, pero existen **10 blockers de lanzamiento**. B01 sigue **PARCIAL**: la cadena canónica y sus checksums están recuperados, pero falta aplicarla sobre una base local vacía y comparar las estructuras resultantes. Fase 2F completa los contratos documentales de operación, monitoring, incidentes, backups/restore, retención, rotación y cutover; no activa infraestructura ni cierra blockers.
+**AFUCOA V2 todavía no está habilitada para producción.** Se controlan diez gates y quedan **nueve blockers abiertos**. En Fase 3A, B01 quedó **CLOSED**: las 17 migraciones canónicas se aplicaron sin intervención desde una base `public` vacía al proyecto PROD aislado, el historial remoto conserva exactamente las versiones originales y la estructura coincide con el baseline esperado. B02 pasa a **PARTIAL** porque proyecto, organización Pro, región y separación DEV/PROD están confirmados; faltan gobernanza de accesos, responsables/facturación y validaciones operativas.
 
-Los dos riesgos técnicos más inmediatos son:
+Los riesgos técnicos más inmediatos son:
 
-1. `supabase/migrations/` ya contiene las 17 migraciones históricas y coincide por SHA-256 normalizado con DEV. Todavía no se ha demostrado la reconstrucción determinística porque este equipo no dispone de Supabase CLI ni Docker para el ensayo fresh-db.
+1. El bootstrap canónico quedó demostrado, pero PROD todavía no tiene Auth endurecido, funciones, secrets, proveedores, dominio, hosting, monitoring ni restore probado.
 2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto mediante configuración compartida fail-closed. La parametrización fue desplegada y validada E2E en DEV durante Fase 2C; B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E exclusivamente PROD.
 
 La protección contra contraseñas filtradas está deshabilitada en DEV. Es un riesgo aceptado únicamente porque DEV está en Free; es un **BLOCKER PROD**, requiere Supabase Pro o superior y no debe intentarse silenciar mediante SQL o cambios de frontend.
@@ -37,8 +37,8 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 
 | ID | Blocker | Dependencia/costo | Criterio de cierre |
 | --- | --- | --- | --- |
-| B01 — **PARCIAL** | Cadena canónica recuperada, pero fresh-db aún no ejecutado | Requiere Supabase CLI + Docker local; no requiere tocar DEV | Las 17 versiones/nombres y checksums ya coinciden. Para cerrar: aplicar desde cero en una base local/desechable y comparar esquema, grants, RLS, buckets y funciones con DEV. |
-| B02 | Proyecto Supabase PROD separado y plan de producción no provisionados/validados | Supabase Pro o superior; desde USD 25/mes según tarifa vigente | Crear un proyecto nuevo, con organización/región/plan aprobados y sin usuarios, datos, claves ni secretos DEV. Confirmar responsables, acceso mínimo y facturación. |
+| B01 — **CLOSED** | Bootstrap canónico reproducible | Completado con Supabase CLI 2.116.0, sin Docker | 17/17 aplicadas desde base vacía; historial exacto; 28 tablas con RLS, 46 policies públicas, 11 Storage policies, 17 funciones definer y 3 buckets coinciden. Evidencia: `docs/PROD_BOOTSTRAP.md`. |
+| B02 — **PARTIAL** | Proyecto PROD separado existe, pero su gobernanza operativa no está cerrada | Organización `AFUCOA PROD` en Pro; región `sa-east-1` | Proyecto/ref, plan, región y aislamiento confirmados. Falta aprobar responsables, acceso mínimo/facturación y completar controles operativos del proyecto. |
 | B03 | Auth PROD no endurecido ni probado | Leaked Password Protection requiere Supabase Pro o superior | Configurar y evidenciar mínimo 12, cuatro clases, altas públicas cerradas, Leaked Password Protection habilitado, redirects exactos, sesiones y ciclo de altas/bajas. Resolver MFA para admin/superadmin o registrar una excepción de riesgo aprobada. |
 | B04 — **ABIERTO** | Recuperación parametrizada y validada E2E en DEV, pero PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar email/dominio/secrets PROD, verificar titularidad de emails y aprobar E2E real PROD: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
 | B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
@@ -190,7 +190,7 @@ GitHub documenta que los environments pueden restringir ramas, requerir aprobaci
 - El Advisor de rendimiento marca índices sin uso y políticas permisivas múltiples; se detallan más abajo. No se deben eliminar índices usando métricas de un entorno DEV pequeño.
 - La cadena local contiene ahora las 17 versiones/nombres canónicos observados en DEV. `MANIFEST.json` conserva los SHA-256 normalizados obtenidos de `supabase_migrations.schema_migrations.statements[]`, y `pnpm test:migrations` informa 17/17. Las dos versiones obsoletas `20260831*` fueron retiradas.
 - La igualdad comprobada es de SQL normalizado: CRLF/CR a LF y exactamente un LF terminal; no se afirma igualdad byte-a-byte con la representación interna de Supabase.
-- No se pudo ejecutar un fresh-db ni comparar las estructuras resultantes porque Supabase CLI, Docker y Podman no están disponibles. Los SQL monolíticos continúan siendo referencia, no sustituto de esa prueba.
+- Fase 3A aplicó la cadena con Supabase CLI 2.116.0 sobre PROD vacío, sin Docker. El historial remoto quedó 17/17 y el resultado estructural coincide con el baseline esperado: 28 tablas públicas con RLS, 46 policies públicas, 11 Storage policies, 17 funciones `SECURITY DEFINER` y 3 buckets. Ver `docs/PROD_BOOTSTRAP.md`.
 
 ### Requisitos PROD
 
@@ -280,7 +280,7 @@ Resumen de findings:
 ### Fase 2 — preparación técnica sin producción
 
 - [x] Reconstruir la cadena canónica de 17 migraciones y documentar checksums/orden.
-- [ ] Levantar un proyecto Supabase desechable/local desde cero; comparar esquema, RLS, grants, funciones, índices y Storage. Pendiente por falta de CLI/Docker.
+- [x] Aplicar la cadena desde cero en el proyecto PROD vacío mediante CLI, conservar las 17 versiones y comparar tablas, RLS, policies, funciones y Storage con el baseline esperado.
 - [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Desplegado y validado E2E únicamente en DEV.
 - [x] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
 - [x] Crear validadores y build sintético de artefacto PROD que rechacen project ref/origen/base/secrets DEV, sin deploy. Ver `docs/PRODUCTION_BUILD.md`.
@@ -300,8 +300,8 @@ Resumen de findings:
 
 ### Fase 3 — infraestructura PROD vacía
 
-- [ ] Contratar/provisionar Supabase PROD Pro separado, con accesos mínimos y billing alerts.
-- [ ] Aplicar la cadena aprobada a PROD vacío y ejecutar smoke/RLS con usuarios sintéticos.
+- [x] Provisionar Supabase PROD Pro separado y confirmar región/aislamiento. Accesos mínimos, responsables y billing alerts siguen pendientes en B02.
+- [x] Aplicar la cadena aprobada a PROD vacío y validar estructura/historial sin usuarios ni datos. Smoke/RLS con usuarios sintéticos quedan para una fase posterior.
 - [ ] Configurar Auth PROD: política, signup cerrado, leaked password protection, redirects y decisión MFA.
 - [ ] Crear VAPID PROD y secrets Edge PROD; desplegar funciones parametrizadas.
 - [ ] Configurar proveedor/email PROD, dominio, SPF/DKIM/DMARC y alertas.
@@ -377,4 +377,4 @@ No se ejecutaron suites LIVE porque esta fase no autoriza cambios/datos y no era
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-No se modificaron Supabase, Edge Functions, Auth, secrets, VAPID, Resend, DNS, dominio, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01, usuarios o datos. Los diez blockers siguen abiertos: B01 continúa **PARCIAL**; B02–B07 permanecen **OPEN**; B08 sigue **OPEN** por aprobación/backup/restore real; B09 sigue **OPEN** por proveedor/integración/métricas/alertas/calibración; B10 sigue **OPEN** y Pilot 01 permanece **PARKED**. AFUCOA V2 no está declarada lista para producción.
+Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas: 28 tablas públicas con RLS, funciones/policies/índices esperados y tres buckets sin objetos. No se modificaron Edge Functions, Auth, secrets, VAPID, Resend, DNS, dominio, Repository Settings, branch protection, Environments, `main`, V1, Pilot 01, usuarios ni datos reales. B01 está **CLOSED**; B02 está **PARTIAL**; B03–B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada lista para producción.
