@@ -31,6 +31,11 @@ begin
     perform public.register_my_push_subscription(endpoint_test,repeat('C',87),repeat('D',22),'web-test');
     raise exception 'identity_takeover';
   exception when raise_exception then if sqlerrm<>'subscription_conflict' then raise; end if; end;
+  -- Account switching must safely re-own an already matching endpoint even if
+  -- the global kill switch is off; actual activation/sending remains blocked.
+  reset role;
+  update public.app_settings set value=jsonb_set(value,'{allowPush}','false') where key='features';
+  set local role authenticated;
   again:=public.register_my_push_subscription(endpoint_test,repeat('A',87),repeat('B',22),'web-test');
   if d<>again then raise exception 'device_transfer_created_duplicate'; end if;
   reset role;
@@ -40,6 +45,7 @@ begin
   if public.unregister_my_push_subscription(endpoint_test) then raise exception 'previous_owner_can_disable'; end if;
   perform public.register_my_push_subscription(endpoint_test,repeat('A',87),repeat('B',22),'web-test');
   reset role;
+  update public.app_settings set value=jsonb_set(value,'{allowPush}','true') where key='features';
   insert into public.notification_preferences(profile_id) values(a) on conflict do nothing;
   for category,pref_column in select * from (values('convenio','agreements'),('evento','events'),('tramite','request_updates'),('institucional','news'),('documento','news'),('propuesta','news'),('sistema','news')) mapping loop
     insert into public.notifications(type,title,body,target_path) values(category::public.notification_type,'PUSH SQL TEST','Synthetic','#/notificaciones') returning id into n;
@@ -54,7 +60,7 @@ begin
   if public.claim_notification_push(n,d,a) then raise exception 'kill_switch_claim'; end if;
   set local role authenticated;
   begin
-    perform public.register_my_push_subscription(endpoint_test,repeat('A',87),repeat('B',22),'web-test');
+    perform public.register_my_push_subscription(endpoint_test||'-blocked',repeat('A',87),repeat('B',22),'web-test');
     raise exception 'kill_switch_registration';
   exception when raise_exception then if sqlerrm<>'push_disabled' then raise; end if; end;
   reset role;

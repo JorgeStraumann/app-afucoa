@@ -8,19 +8,20 @@ const deferred = () => { let resolve, reject; const promise = new Promise((a,b) 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
 async function fixture() {
-  let sdkSession = null, listener, behavior = async () => ({...active});
-  const stats = { profiles: 0, logouts: 0, notifications: 0 };
+  let sdkSession = null, listener, behavior = async () => ({...active}), pushBehavior=async()=>({state:'unchanged'});
+  const stats = { profiles: 0, logouts: 0, notifications: 0, push:0 };
   const session = await loadSession({
     fetchMyProfile: async () => { stats.profiles++; return behavior(); },
     getAuthSession: async () => sdkSession,
     onAuthStateChange: callback => { listener = callback; return () => {}; },
     authSignOut: async () => { stats.logouts++; sdkSession=null; },
+    reconcilePushSubscription: async()=>{stats.push++;return pushBehavior();},
     window: { dispatchEvent: () => stats.notifications++ },
     // Only shorten retry delays, not Promise scheduling.
     setTimeout: callback => setTimeout(callback, 0),
   });
   await session.bootstrapSession();
-  return { session, stats, setAuth: value => {sdkSession=value;}, setProfile: fn => {behavior=fn;}, emit: (event, snapshot=sdkSession) => listener(event,snapshot) };
+  return { session, stats, setAuth: value => {sdkSession=value;}, setProfile: fn => {behavior=fn;}, setPush:fn=>{pushBehavior=fn;}, emit: (event, snapshot=sdkSession) => listener(event,snapshot) };
 }
 
 test('SIGNED_IN y login explícito comparten get_my_profile; eventos repetidos no reconstruyen', async () => {
@@ -39,6 +40,13 @@ test('fallo transitorio concurrente reintenta sin cerrar Auth', async () => {
   let count=0; f.setProfile(async () => {if(++count===1) throw new Error('HTTP 503'); return active;});
   await Promise.all([f.session.startRealSession(authA),f.emit('SIGNED_IN')]);
   assert.equal(f.stats.profiles,2); assert.equal(f.stats.logouts,0); assert.ok(f.session.getSession());
+});
+
+test('reconciliación push falla cerrada sin hacer logout de Auth',async()=>{
+  const f=await fixture();f.setAuth(authA);f.setPush(async()=>{throw new Error('push unavailable');});
+  await assert.rejects(f.session.startRealSession(authA),/push unavailable/);
+  assert.equal(f.session.getSession(),null);assert.equal(f.stats.logouts,0);assert.equal(f.stats.push,1);
+  f.setPush(async()=>({state:'unchanged'}));await f.emit('SIGNED_IN');assert.ok(f.session.getSession());
 });
 
 test('fallo persistente conserva tokens; no crea un perfil ficticio y permite reintentar', async () => {

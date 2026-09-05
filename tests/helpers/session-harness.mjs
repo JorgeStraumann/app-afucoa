@@ -17,6 +17,7 @@ export async function loadSession(dependencies) {
     appMode: 'supabase',
     CustomEvent: class { constructor(type) { this.type = type; } },
     window: { dispatchEvent() {} },
+    reconcilePushSubscription: async () => ({state:'unavailable'}),
     ...dependencies,
   }, ['bootstrapSession', 'startRealSession', 'getSession', 'refreshProfile', 'endSession', 'isAdminSession']);
 }

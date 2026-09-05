@@ -5,7 +5,7 @@ Implementación sobre baseline `0adc63eb42ba93454c17599f4c02d5376791b2be`, exclu
 ## Diseño y archivos
 
 - `public/push-sw.js`: worker sin caché ni interceptación fetch, scope `/app-afucoa/`. El payload solo contiene una ruta hash validada. Título y cuerpo siempre genéricos, incluso si llega un payload con texto privado.
-- `src/services/push-service.js`: soporte, worker, permiso solo por clic, configuración pública, suscripción, alta/baja/touch RPC. Reutiliza suscripciones; no adopta automáticamente un dispositivo de otra cuenta. Logout desuscribe por privacidad; el siguiente login requiere activación voluntaria.
+- `src/services/push-service.js`: soporte, worker, permiso solo por clic, configuración pública, suscripción, alta/baja/touch RPC. Logout conserva la suscripción. Cada login/refresh toca la suscripción si mantiene dueño o la reasocia atómicamente si cambió la cuenta, antes de exponer la sesión de app.
 - `src/components/push-controls.js` y Mi Cuenta: cuatro estados, instrucciones discretas, botón deshabilitado si falta configuración o está apagado allowPush.
 - Admin mantiene notifications/notification_recipients aunque falle push. Muestra cantidades agregadas, sin endpoints ni claves. Máximo 40 dispositivos por llamada, concurrencia 4 y timeout de proveedor 8 segundos; hasta cinco lotes desde frontend. Un envío parcial se identifica como incidencia.
 - Edge `push-config`: perfil activo autenticado, devuelve exclusivamente enabled/publicKey.
@@ -16,6 +16,7 @@ Implementación sobre baseline `0adc63eb42ba93454c17599f4c02d5376791b2be`, exclu
 
 1. `20260904023548_web_push_dev.sql`: endpoint único, claves de suscripción privadas, índices, RPC de propietario y ledger server-only.
 2. `20260904024725_web_push_active_device_limit.sql`: máximo 20 dispositivos ACTIVOS por perfil con bloqueo transaccional. Bajas anteriores no agotan una cuota vitalicia.
+3. `20260905002735_reconcile_existing_push_subscription.sql`: permite reasociar una suscripción existente y con claves coincidentes aun bajo kill switch, sin permitir nuevas altas. La identidad sigue derivándose de Auth.
 
 La tabla inicial estaba vacía; token legacy permanece nullable. El cambio de propietario exige posesión del mismo endpoint y ambas claves. Las escrituras directas y la lectura de endpoint/claves están revocadas a clientes; solo se permiten columnas de estado propias. Las RPC derivan identidad de auth.uid/current_profile_id y fijan search_path. No se modificaron funciones SECURITY DEFINER ajenas a esta fase.
 
@@ -39,10 +40,11 @@ Fecha: 2026-09-03 Uruguay / 2026-09-04 UTC.
 | Suite | Resultado |
 | --- | --- |
 | test:staging | PASS; 5 archivos, sin source maps ni secretos privilegiados |
-| test:session | 10/10 |
+| test:session | 11/11 |
 | test:recovery | 11/11; no se reenvió correo real |
 | test:pilot | 6/6, exclusivamente sintética |
-| test:push | 34/34 |
+| test:push | 38/38 |
+| test:navigation | 5/5 |
 | tests/push-rls.sql | PASS; transacción revertida |
 | tests/push-http-live.mjs | 23/23, endpoints desplegados DEV |
 | test:session-live | 8/8 |
@@ -64,11 +66,11 @@ Las advertencias SECURITY DEFINER de las tres RPC push son intencionales y revis
 - [Índices sin uso inicial](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)
 - [Leaked Password Protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) sigue pendiente antes de producción; fuera de esta fase DEV.
 
-## Configuración pendiente y límites
+## Estado operativo y límites
 
-Configurar conjuntamente en Supabase DEV Edge Function Secrets: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY y VAPID_SUBJECT. Subject sugerido: https://jorgestraumann.github.io/app-afucoa/. El par debe ser P-256 VAPID generado con CSPRNG fuera del repositorio; nunca imprimir la privada en logs, chat o Git. No usar VITE ni GitHub variables para estos secretos. No se generó ni almacenó un par operativo durante esta fase; únicamente claves efímeras de tests.
+Jorge confirmó la prueba Web Push real end-to-end en DEV: Admin, notificación interna, recipient, Edge Function, proveedor y navegador/Windows. Los secretos VAPID continúan exclusivamente en Edge Function Secrets; nunca en VITE, GitHub ni el repositorio.
 
-Una vez configurados, repetir QA con permiso real: activar, comprobar dispositivo activo, crear notificación interna desde Admin, recibir y abrir push, desactivar, confirmar ausencia del siguiente push, reactivar y refrescar. Hasta entonces NO afirmar recepción real ni aprobación end-to-end.
+El cierre posterior corrige que logout desactivaba el dispositivo. El único mecanismo de baja es ahora el botón explícito. Un fallo de reconciliación no cierra Supabase Auth, pero evita exponer una sesión de app vinculada al dueño anterior y permite reintentar con el siguiente evento Auth.
 
 Chrome/Edge/Firefox compatibles requieren contexto HTTPS y soporte del sistema. iOS/iPadOS requiere una versión compatible y la app agregada a Inicio; el permiso debe solicitarse por gesto explícito. Navegadores embebidos o privados pueden carecer de PushManager. El sistema operativo/proveedor puede demorar o suprimir avisos. No se implementó modo offline ni caché privada.
 

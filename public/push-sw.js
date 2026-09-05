@@ -4,16 +4,28 @@ const internalTarget = value => {
   return /^#\/(?:notificaciones|tramites|carnet|convenios|noticias|documentos|propuestas|cuenta|solicitudes\/[0-9a-f-]{36})?$/.test(value)
     ? value : '#/notificaciones';
 };
+const ownerDb = () => new Promise((resolve,reject) => {
+  const request=indexedDB.open('afucoa-push-state',1);
+  request.onupgradeneeded=()=>request.result.createObjectStore('state');
+  request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error);
+});
+const readOwner=async () => {
+  const db=await ownerDb();
+  const value=await new Promise((resolve,reject)=>{const request=db.transaction('state').objectStore('state').get('profile');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+  db.close();return value;
+};
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 self.addEventListener('push', event => {
   let payload = {};
   try { payload = event.data?.json() || {}; } catch { /* Always use a generic notice. */ }
-  event.waitUntil(self.registration.showNotification('AFUCOA', {
-    body: 'Tenés una nueva notificación en AFUCOA.',
-    tag: 'afucoa-notification',
-    data: { target_path: internalTarget(payload.target_path) },
-  }));
+  event.waitUntil((async()=>{
+    const owner=await readOwner().catch(()=>null);
+    if(!owner || payload.profile_id!==owner)return;
+    return self.registration.showNotification('AFUCOA', {
+      body:'Tenés una nueva notificación en AFUCOA.',tag:'afucoa-notification',data:{target_path:internalTarget(payload.target_path)},
+    });
+  })());
 });
 self.addEventListener('notificationclick', event => {
   event.notification.close();

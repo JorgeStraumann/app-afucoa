@@ -15,6 +15,7 @@
     "test:recovery": "node --test tests/password-recovery.test.mjs tests/password-recovery-handlers.test.mjs",
     "test:session": "node --test tests/session-regression.test.mjs",
     "test:push": "node --test tests/push.test.mjs",
+    "test:navigation": "node --test tests/navigation-access.test.mjs",
     "test:push-http": "node tests/push-http-live.mjs",
     "test:session-live": "node tests/session-regression-live.mjs",
     "test:auth-roles": "node tests/auth-roles-live.mjs",

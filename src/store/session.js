@@ -1,6 +1,7 @@
 import { appMode } from '../services/supabase.js';
 import { fetchMyProfile } from '../services/profile-service.js';
 import { getAuthSession, onAuthStateChange, signOut as authSignOut } from '../services/auth-service.js';
+import { reconcilePushSubscription } from '../services/push-service.js';
 
 const SESSION_KEY = 'afucoa_v2_demo_session';
 let currentSession = null;
@@ -73,6 +74,10 @@ async function synchronizeSession(authSession, { refresh = false } = {}) {
       await closeRealSession().catch(() => {});
       throw Object.assign(new Error('La cuenta no está habilitada. Contactá a AFUCOA.'), { code: 'ACCOUNT_DISABLED' });
     }
+    // An existing browser subscription survives logout. Reconcile it before
+    // exposing the new app session so a shared browser cannot keep the old owner.
+    await reconcilePushSubscription(profile.id);
+    if (generation !== expectedGeneration) throw cancelled();
     currentSession = {
       demo: false, auth: latestAuthSession, user: latestAuthSession.user, profile,
     };

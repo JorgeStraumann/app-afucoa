@@ -12,8 +12,8 @@ export function allowedEndpoint(endpoint) {
       /^(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9-]+\.notify\.windows\.com)$/.test(url.hostname);
   } catch {return false;}
 }
-export function genericPayload(notification) {
-  return JSON.stringify({target_path:safeTarget(notification.target_path)});
+export function genericPayload(notification,profileId) {
+  return JSON.stringify({target_path:safeTarget(notification.target_path),...(profileId?{profile_id:profileId}:{})});
 }
 
 export async function dispatchPush({db,notification,targets,send}) {
@@ -26,7 +26,7 @@ export async function dispatchPush({db,notification,targets,send}) {
       if(claim.error) {summary.failed++;return;}
       if(claim.data!==true) {summary.skipped++;return;}
       let status=0;
-      try {status=await send(target,genericPayload(notification));} catch { /* Never log provider errors: they contain endpoints/headers. */ }
+      try {status=await send(target,genericPayload(notification,target.profile_id));} catch { /* Never log provider errors: they contain endpoints/headers. */ }
       const dead=status===404 || status===410, ok=status>=200 && status<300;
       if(ok) summary.sent++; else summary.failed++;
       if(dead) {

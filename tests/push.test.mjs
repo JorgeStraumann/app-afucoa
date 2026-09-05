@@ -12,23 +12,32 @@ async function module(path,env,names) {
 }
 const policy=await module('supabase/functions/_shared/push-policy.ts',{},['safeTarget','allowedEndpoint','preferenceFor','genericPayload','dispatchPush']);
 const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64,1)]).toString('base64url');
-async function browser({permission='default',compatible=true,enabled=true,existing=false}={}) {
+const profileA='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',profileB='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+function fakeIndexedDB(seed) {
+  const values=new Map(seed?[['profile',seed]]:[]);let created=Boolean(seed);
+  return {open(){const request={};queueMicrotask(()=>{request.result={
+    createObjectStore(){created=true;},close(){},transaction(){const tx={objectStore:()=>({
+      put(value,name){queueMicrotask(()=>{values.set(name,value);tx.oncomplete?.();});},
+      get(name){const read={};queueMicrotask(()=>{read.result=values.get(name);read.onsuccess?.();});return read;},
+    })};return tx;}};if(!created)request.onupgradeneeded?.();request.onsuccess?.();});return request;},values};
+}
+async function browser({permission='default',compatible=true,enabled=true,existing=false,existingOwner='current'}={}) {
   const stats={permission:0,subscribe:0,register:0,unregister:0,touch:0,sw:0};
-  let subscription=existing?sub():null,active=existing;
+  let subscription=existing?sub():null,active=existing,owner=existing?existingOwner:null,current='current';
   function sub(){return {endpoint:'https://fcm.googleapis.com/test-only',options:{applicationServerKey:Buffer.from(key,'base64url')},toJSON:()=>({endpoint:'https://fcm.googleapis.com/test-only',keys:{p256dh:key,auth:'x'.repeat(22)}}),unsubscribe:async()=>{subscription=null;return true;}};}
   const Notification={permission,requestPermission:async()=>{stats.permission++;Notification.permission='granted';return 'granted';}};
   const reg={active:true,pushManager:{getSubscription:async()=>subscription,subscribe:async()=>{stats.subscribe++;subscription=sub();return subscription;}}};
   const client={functions:{invoke:async()=>({data:{enabled,publicKey:enabled?key:null}})},rpc:async name=>{
-    if(name==='register_my_push_subscription'){stats.register++;active=true;return {data:'device-id'};}
+    if(name==='register_my_push_subscription'){stats.register++;active=true;owner=current;return {data:'device-id'};}
     if(name==='unregister_my_push_subscription'){stats.unregister++;active=false;return {data:true};}
-    stats.touch++;return {data:active};
+    stats.touch++;return {data:active && owner===current};
   }};
   const api=await module('src/services/push-service.js',{
-    appMode:'supabase',requireSupabase:()=>client,Notification,
+    appMode:'supabase',requireSupabase:()=>client,Notification,indexedDB:fakeIndexedDB().open?fakeIndexedDB():undefined,
     window:{isSecureContext:true,Notification,...(compatible?{PushManager:{}}:{})},
     navigator:{serviceWorker:{getRegistration:async()=>reg,register:async(path,options)=>{stats.sw++;assert.equal(path,'/app-afucoa/push-sw.js');assert.equal(options.scope,'/app-afucoa/');return reg;}}},
-  },['getPushState','activatePush','deactivatePush','registerPushWorker','vapidBytes']);
-  return {api,stats,Notification,setActive:value=>{active=value;}};
+  },['getPushState','activatePush','deactivatePush','reconcilePushSubscription','registerPushWorker','vapidBytes']);
+  return {api,stats,Notification,setActive:value=>{active=value;},setUser:value=>{current=value;},owner:()=>owner,subscription:()=>subscription};
 }
 test('A granted + existente: estado activo, sin pedir permiso ni duplicar',async()=>{
   const f=await browser({permission:'granted',existing:true});assert.equal((await f.api.getPushState()).state,'active');
@@ -39,6 +48,26 @@ test('C denied: no insiste',async()=>{const f=await browser({permission:'denied'
 test('D sin PushManager: no compatible',async()=>{const f=await browser({compatible:false});assert.equal((await f.api.getPushState()).state,'unsupported');await f.api.activatePush();assert.equal(f.stats.permission,0);});
 test('E activación explícita y V scope GitHub Pages',async()=>{const f=await browser();assert.equal((await f.api.activatePush()).state,'active');assert.equal(f.stats.permission,1);assert.equal(f.stats.subscribe,1);assert.equal(f.stats.sw,1);});
 test('F desactivación, G registro duplicado sin segunda suscripción',async()=>{const f=await browser({permission:'granted'});await f.api.activatePush();await f.api.activatePush();assert.equal(f.stats.subscribe,1);await f.api.deactivatePush();assert.equal(f.stats.unregister,1);assert.equal((await f.api.getPushState()).state,'inactive');});
+test('logout/login conserva la suscripción, no duplica y vuelve a recibir',async()=>{
+  const f=await browser({permission:'granted'});await f.api.activatePush();
+  // Logout intentionally invokes no push API.
+  assert.ok(f.subscription());assert.equal(f.stats.unregister,0);
+  assert.equal((await f.api.reconcilePushSubscription(profileA)).state,'unchanged');
+  assert.equal(f.stats.subscribe,1);assert.equal(f.stats.register,1);
+  const db=senderDb();const result=await policy.dispatchPush({db,notification:{id:'after-login',target_path:'#/'},targets:[{device_id:'device',profile_id:'current',endpoint:'https://fcm.googleapis.com/test'}],send:async()=>201});
+  assert.equal(result.sent,1);
+});
+test('cambio de usuario reasigna el mismo endpoint sin duplicarlo',async()=>{
+  const f=await browser({permission:'granted',existing:true});f.setUser('other');
+  assert.equal((await f.api.reconcilePushSubscription(profileB)).state,'reassigned');
+  assert.equal(f.owner(),'other');assert.equal(f.stats.subscribe,0);assert.equal(f.stats.register,1);
+});
+test('refresh reconcilia por touch sin recrear la suscripción',async()=>{
+  const f=await browser({permission:'granted',existing:true});
+  assert.equal((await f.api.reconcilePushSubscription(profileA)).state,'unchanged');
+  assert.equal((await f.api.reconcilePushSubscription(profileA)).state,'unchanged');
+  assert.equal(f.stats.register,0);assert.equal(f.stats.subscribe,0);
+});
 test('H dispositivo de otra cuenta no se adopta al consultar; exige activación',async()=>{const f=await browser({permission:'granted',existing:true});f.setActive(false);assert.equal((await f.api.getPushState()).state,'inactive');assert.equal(f.stats.register,0);await f.api.activatePush();assert.equal(f.stats.register,1);});
 test('M allowPush=false: sin permiso, registro ni suscripción',async()=>{const f=await browser({enabled:false});await f.api.getPushState();await f.api.activatePush();assert.equal(f.stats.permission+f.stats.register+f.stats.subscribe,0);});
 for(const [type,expected] of Object.entries({convenio:'agreements',evento:'events',tramite:'request_updates',institucional:'news',documento:'news',propuesta:'news',sistema:'news'})) {
@@ -86,16 +115,21 @@ for(const [role,expected] of [['socio',403],['admin',null],['superadmin',null]])
 
 async function worker(open,target='#/tramites') {
   const events={},shown=[],navigation=[],focus=[];let opened;
-  vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,self:{
+  vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,indexedDB:fakeIndexedDB(profileA),self:{
     addEventListener:(name,fn)=>{events[name]=fn;},
     registration:{scope:'https://jorgestraumann.github.io/app-afucoa/',showNotification:async(title,options)=>shown.push({title,options})},
     clients:{matchAll:async()=>open?[{url:'https://jorgestraumann.github.io/app-afucoa/#/',navigate:async url=>navigation.push(url),focus:async()=>focus.push(true)}]:[],openWindow:async url=>{opened=url;}},
   }});
-  let work;events.push({data:{json:()=>({title:'Privado',body:'Privado',target_path:'#/tramites'})},waitUntil:promise=>{work=promise;}});await work;
+  let work;events.push({data:{json:()=>({title:'Privado',body:'Privado',target_path:'#/tramites',profile_id:profileA})},waitUntil:promise=>{work=promise;}});await work;
   assert.equal(shown[0].title,'AFUCOA');assert.equal(shown[0].options.body,'Tenés una nueva notificación en AFUCOA.');
   events.notificationclick({notification:{close(){},data:{target_path:target}},waitUntil:promise=>{work=promise;}});await work;
   return {opened,navigation,focus};
 }
+test('Service Worker descarta push de la cuenta anterior',async()=>{
+  const events={},shown=[];
+  vm.runInNewContext(await readFile(new URL('public/push-sw.js',root),'utf8'),{URL,indexedDB:fakeIndexedDB(profileB),self:{addEventListener:(name,fn)=>events[name]=fn,registration:{scope:'https://jorgestraumann.github.io/app-afucoa/',showNotification:async()=>shown.push(true)},clients:{claim:async()=>{}}}});
+  let work;events.push({data:{json:()=>({profile_id:profileA,target_path:'#/'})},waitUntil:value=>work=value});await work;assert.equal(shown.length,0);
+});
 test('S click enfoca y navega ventana AFUCOA existente',async()=>{const f=await worker(true);assert.equal(f.focus.length,1);assert.equal(f.navigation[0],'https://jorgestraumann.github.io/app-afucoa/#/tramites');assert.equal(f.opened,undefined);});
 test('T click abre AFUCOA cerrada bajo la base correcta',async()=>assert.equal((await worker(false)).opened,'https://jorgestraumann.github.io/app-afucoa/#/tramites'));
 

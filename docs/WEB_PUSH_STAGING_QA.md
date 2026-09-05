@@ -25,6 +25,6 @@ Config responde enabled=false/publicKey=null. No se enviaron pushes externos ni 
 
 RLS 40/40 e integración 34/34 ejecutadas después de ambas migraciones; ver WEB_PUSH_DEV.md para detalle y alcance de cada test.
 
-## Pendiente de VAPID, no aprobado end-to-end todavía
+## Cierre posterior
 
-No se pudieron validar permiso granted en navegador real, suscripción real activa, recepción del proveedor, clic de una notificación real, ni ciclos de baja/reactivación con proveedor. Esas rutas están cubiertas automáticamente, pero no equivalen a recepción real. Tras configurar VAPID, usar un navegador compatible con permiso disponible y completar la secuencia indicada en WEB_PUSH_DEV.md.
+Jorge confirmó posteriormente la entrega real end-to-end en navegador/Windows. El cierre corrige dos defectos: logout conserva el dispositivo activo y el shell muestra Administración exclusivamente para admin/superadmin. La reasignación por cambio de cuenta y la protección adminOnly se mantienen server-side/RLS además de la visibilidad de UI.

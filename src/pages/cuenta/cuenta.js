@@ -4,7 +4,6 @@ import { escapeHtml, initials } from '../../utils/html.js';
 import { updateMyContact } from '../../services/profile-service.js';
 import { getNotificationPreferences, saveNotificationPreferences } from '../../services/preferences-repository.js';
 import { pushControls, bindPushControls } from '../../components/push-controls.js';
-import { deactivatePush } from '../../services/push-service.js';
 
 let preferences={agreements:true,news:true,events:true,request_updates:true};
 
@@ -28,7 +27,9 @@ export async function renderAccount() {
 
 export function bindAccount() {
   bindPushControls();
-  document.querySelector('#logout-button')?.addEventListener('click', async()=>{try{await deactivatePush();}catch{/* Unsubscribe failure must not prevent logout. */}finally{await endSession();navigate('/login');}});
+  // Logout only closes Auth. Push belongs to the browser and is disabled solely
+  // through the explicit control above.
+  document.querySelector('#logout-button')?.addEventListener('click', async()=>{await endSession();navigate('/login');});
   document.querySelector('#contact-form')?.addEventListener('submit', async e=>{e.preventDefault();const status=document.querySelector('#contact-status');const fd=new FormData(e.currentTarget);try{status.textContent='Guardando…';await updateMyContact({email:fd.get('email'),phone:fd.get('phone')});await refreshProfile();status.textContent='Guardado';}catch(err){console.error(err);status.textContent='No se pudo guardar';}});
   document.querySelector('#preferences-form')?.addEventListener('submit', async e=>{e.preventDefault();const status=document.querySelector('#preferences-status');const f=e.currentTarget;try{status.textContent='Guardando…';await saveNotificationPreferences({agreements:f.agreements.checked,news:f.news.checked,events:f.events.checked,request_updates:f.request_updates.checked});status.textContent='Guardado';}catch(err){console.error(err);status.textContent='No se pudo guardar';}});
 }

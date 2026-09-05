@@ -55,6 +55,38 @@ export async function getPushState() {
   return {...settings,active,canDeactivate:Boolean(subscription),state:Notification.permission==='denied'?'denied':active?'active':'inactive'};
 }
 
+async function setPushOwner(profileId) {
+  const request=indexedDB.open('afucoa-push-state',1);
+  const db=await new Promise((resolve,reject)=>{
+    request.onupgradeneeded=()=>request.result.createObjectStore('state');
+    request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+  });
+  await new Promise((resolve,reject)=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').put(profileId,'profile');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+  db.close();
+}
+
+export async function reconcilePushSubscription(profileId) {
+  if (!supported()) return {state:'unavailable'};
+  if(!/^[0-9a-f-]{36}$/i.test(profileId || ''))throw new Error('No se pudo reconciliar este dispositivo.');
+  // Change the local delivery guard first. If the RPC then fails, old-account
+  // pushes are suppressed while the app session remains unavailable for retry.
+  await setPushOwner(profileId);
+  if(Notification.permission !== 'granted')return {state:'unavailable'};
+  const reg = await navigator.serviceWorker.getRegistration(base);
+  const subscription = await reg?.pushManager.getSubscription();
+  if (!subscription) return {state:'absent'};
+  const client=requireSupabase();
+  const touched=await client.rpc('touch_my_push_subscription',{p_endpoint:subscription.endpoint});
+  if(touched.error) throw new Error('No se pudo reconciliar este dispositivo.');
+  if(touched.data===true)return {state:'unchanged'};
+  const serialized=subscription.toJSON();
+  const registered=await client.rpc('register_my_push_subscription',{
+    p_endpoint:serialized.endpoint,p_p256dh:serialized.keys?.p256dh,p_auth:serialized.keys?.auth,p_platform:'web',
+  });
+  if(registered.error)throw new Error('No se pudo reconciliar este dispositivo.');
+  return {state:'reassigned'};
+}
+
 export async function activatePush() {
   if (!supported()) return {state:'unsupported'};
   // Mi Cuenta loads public config before enabling the button. Reuse it here so
