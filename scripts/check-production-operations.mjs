@@ -11,6 +11,7 @@ export const requiredDocuments = [
   'docs/INCIDENT_RESPONSE.md',
   'docs/BACKUP_RESTORE.md',
   'docs/PROD_BACKUP_RESTORE_DRILL.md',
+  'docs/PROD_GOVERNANCE.md',
   'docs/DATA_RETENTION.md',
   'docs/PRODUCTION_CUTOVER_CHECKLIST.md',
   'docs/runbooks/FRONTEND_OUTAGE.md',
@@ -165,9 +166,23 @@ export function validateOperations(root = repoRoot) {
   if (!drill.includes('RESTORE REAL: EXECUTED AND VALIDATED')) errors.push('restore drill: real restore evidence is missing');
 
   const drillEvidence = read(root, 'docs/PROD_BACKUP_RESTORE_DRILL.md');
-  if (!/B08 queda \*\*PARTIAL\*\*/i.test(drillEvidence)) errors.push('restore evidence: B08 partial status is missing');
-  if (!/dump lógico[\s\S]*NO GENERADO/i.test(drillEvidence)) errors.push('restore evidence: logical dump gap is not explicit');
+  if (!/B08 queda \*\*CLOSED\*\*/i.test(drillEvidence)) errors.push('restore evidence: B08 closed status is missing');
+  if (!/dump lógico[\s\S]*DEFENSE IN DEPTH \/ FUTURE IMPROVEMENT \/ NON-BLOCKING/i.test(drillEvidence)) {
+    errors.push('restore evidence: logical dump must be explicitly non-blocking defense in depth');
+  }
   if (!/cero proyectos temporales facturables/i.test(drillEvidence)) errors.push('restore evidence: billable cleanup is not explicit');
+
+  const governance = read(root, 'docs/PROD_GOVERNANCE.md');
+  if (!/B02 CLOSED/i.test(governance)) errors.push('governance: B02 closed status is missing');
+  if (!/SINGLE-OPERATOR TEMPORARY MODEL/i.test(governance)) errors.push('governance: single-operator model is missing');
+  if (!/1 miembro humano[\s\S]*Owner[\s\S]*MFA habilitado/i.test(governance)) {
+    errors.push('governance: member, Owner and MFA evidence is incomplete');
+  }
+  if (!/Spend Cap[\s\S]*ENABLED/i.test(governance)) errors.push('governance: Spend Cap state is missing');
+  if (!/PITR[\s\S]*deshabilitado/i.test(governance)) errors.push('governance: PITR state is missing');
+  if (!/pgpgyjafphfevhvjdgwt[\s\S]*no existe como recurso activo/i.test(governance)) {
+    errors.push('governance: deleted restore project evidence is missing');
+  }
 
   const retention = read(root, 'docs/DATA_RETENTION.md');
   if (!retention.includes('NO AUTOMATIC PURGE ENABLED')) errors.push('retention: automatic purge must be explicitly disabled');

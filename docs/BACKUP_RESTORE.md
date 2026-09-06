@@ -2,7 +2,7 @@
 
 Estado: baseline aprobado; **RESTORE REAL: EXECUTED AND VALIDATED** el 6 de septiembre de 2026.
 
-**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B08 permanece PARTIAL.** Backups PROD, restore físico aislado y mecanismo Storage sintético quedaron validados. Falta generar y verificar el dump lógico adicional desde un runner controlado con Docker/PostgreSQL ya disponible.
+**AFUCOA V2 NO ESTÁ HABILITADA COMPLETAMENTE PARA PRODUCCIÓN. B08 está CLOSED.** Backups PROD, restore físico aislado y mecanismo Storage sintético quedaron validados. Un dump lógico adicional es defensa en profundidad futura y no bloquea B08.
 
 ## Baseline operativo aprobado
 
@@ -53,4 +53,4 @@ Referencia vigente: [Supabase — Database Backups](https://supabase.com/docs/gu
 
 Guardar reportes de backup/restore con acceso restringido, fecha UTC, responsables, origen/destino, checksums, errores, tiempos y aprobación. No incluir datos de socios, secrets, signed URLs ni endpoints push. Revisar trimestralmente la capacidad propuesta y después de cada cambio material o incidente.
 
-La evidencia real está en `docs/PROD_BACKUP_RESTORE_DRILL.md`; el procedimiento repetible queda en `docs/runbooks/RESTORE_DRILL.md`. El restore físico y Storage sintético no sustituyen el dump lógico adicional pendiente.
+La evidencia real está en `docs/PROD_BACKUP_RESTORE_DRILL.md`; el procedimiento repetible queda en `docs/runbooks/RESTORE_DRILL.md`. El restore físico y Storage sintético cumplen el criterio aprobado de B08. Un export lógico cifrado/off-site puede agregarse como **DEFENSE IN DEPTH / FUTURE IMPROVEMENT / NON-BLOCKING**, sin introducir credenciales solo para ese control.

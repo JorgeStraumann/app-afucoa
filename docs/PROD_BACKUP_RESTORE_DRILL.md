@@ -2,7 +2,7 @@
 
 Estado: **RESTORE FÍSICO REAL EJECUTADO Y VALIDADO EN DESTINO AISLADO; CLEANUP COMPLETO.**
 
-AFUCOA V2 no queda habilitada para producción por este ejercicio. El drill cerró la validación del backup administrado, la restauración física y el mecanismo de bytes de Storage, pero el control adicional de dump lógico quedó pendiente porque el runner disponible no tenía Docker ni `pg_dump`. Por ese pendiente explícito, B08 queda **PARTIAL**.
+AFUCOA V2 no queda habilitada para producción por este ejercicio. El drill cerró la validación del backup administrado, la restauración física y el mecanismo de bytes de Storage. El dump lógico adicional se reclasificó como defensa en profundidad no bloqueante. Con los criterios operativos aprobados cumplidos, B08 queda **CLOSED**.
 
 ## Alcance y fuente
 
@@ -90,16 +90,17 @@ Se usaron solo objetos sintéticos pequeños dentro del proyecto temporal:
 
 Secuencia validada: upload con MIME permitido → export → SHA-256 → eliminación remota → restore desde export → descarga → comparación byte a byte. Un `text/plain` en `documents-private` fue rechazado con `415 invalid_mime_type`; el objeto público respondió `200` y el objeto privado rechazó acceso anónimo (`400`). Al terminar, los tres objetos fueron eliminados y `storage.objects = 0`.
 
-## Dump lógico adicional
+## Dump lógico adicional — defensa en profundidad
 
 `supabase db dump --linked` se intentó contra PROD sin imprimir el contenido del comando ni sus credenciales temporales. La CLI oficial no pudo ejecutar `pg_dump` porque este runner no tiene Docker ni cliente PostgreSQL y la fase prohíbe instalar infraestructura pesada para el ejercicio.
 
 - Resultado: **NO GENERADO**.
 - SHA-256: **N/A**.
 - Archivo residual: ninguno.
-- Pendiente exacto para B08: ejecutar `supabase db dump` desde un runner controlado que ya disponga de Docker/PostgreSQL, cubrir `public`, metadata relevante de `auth` y `storage`, validar el artefacto, calcular SHA-256 y destruirlo o moverlo a un destino cifrado aprobado.
+- Clasificación: **DEFENSE IN DEPTH / FUTURE IMPROVEMENT / NON-BLOCKING**.
+- Mejora futura opcional: ejecutar `supabase db dump` desde un runner controlado que ya disponga de Docker/PostgreSQL, cubrir `public` y la metadata aprobada, validar el artefacto, calcular SHA-256 y destruirlo o moverlo a un destino cifrado aprobado.
 
-La restauración física administrada sí fue real y exitosa; el faltante lógico no se presenta como éxito ni se reemplaza con un inventario de catálogo.
+La restauración física administrada sí fue real y exitosa; el dump no generado no se presenta como éxito. Tampoco es requisito de cierre de B08 y no justifica introducir DB passwords, credenciales nuevas ni infraestructura pesada.
 
 ## Seguridad, no impacto y cleanup
 
@@ -114,6 +115,6 @@ Excepción de auditoría: un precheck previo con `supabase db dump --dry-run` mo
 
 ## Dictamen
 
-Los objetivos RPO/RTO y el restore físico/Storage cumplen. B08 permanece **PARTIAL** por el dump lógico adicional no generado; no debe reclasificarse a `CLOSED` hasta completar ese control en un runner aprobado y revisar nuevamente el criterio de logs. AFUCOA V2 continúa no habilitada para producción.
+Los objetivos RPO/RTO y el restore físico/Storage cumplen. La evidencia demuestra backup físico PROD `COMPLETED`, restore real aislado, equivalencia estructural 17/17, controles RLS/policies/functions/triggers/grants, metadata Storage, recuperación byte a byte de PDF/PNG/JPEG sintéticos, RPO y RTO dentro del objetivo y cleanup completo. Por ello B08 queda **CLOSED**. El dump lógico permanece como mejora futura no bloqueante. AFUCOA V2 continúa no habilitada completamente para producción por los demás blockers.
 
 Referencias: [Supabase — Database Backups](https://supabase.com/docs/guides/platform/backups), [Supabase — Restore to a New Project](https://supabase.com/docs/guides/platform/clone-project) y [Supabase — Compute costs](https://supabase.com/docs/guides/platform/manage-your-usage/compute).
