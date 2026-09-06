@@ -1,19 +1,19 @@
 # AFUCOA V2 — Backup, restore, RPO y RTO
 
-Estado: diseño; **RESTORE REAL: NOT EXECUTED**.
+Estado: baseline aprobado; **RESTORE REAL: EXECUTED AND VALIDATED** el 6 de septiembre de 2026.
 
-**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B08 permanece OPEN.** Falta aprobar RPO/RTO, provisionar backups PROD, respaldar objetos de Storage y ejecutar un restore drill real aislado.
+**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B08 permanece PARTIAL.** Backups PROD, restore físico aislado y mecanismo Storage sintético quedaron validados. Falta generar y verificar el dump lógico adicional desde un runner controlado con Docker/PostgreSQL ya disponible.
 
-## Propuesta de objetivos
+## Baseline operativo aprobado
 
-| Clase | RPO propuesto | RTO propuesto | Estado |
+| Clase | RPO | RTO | Estado |
 | --- | --- | --- | --- |
-| Database/Auth metadata crítica | 24 horas con backup diario; evaluar PITR si el negocio exige menor pérdida | 8 horas desde declaración hasta servicio validado | **PENDING AFUCOA APPROVAL** |
-| Objetos privados de Storage | 24 horas | 12 horas, condicionado por volumen y mecanismo de copia | **PENDING AFUCOA APPROVAL** |
-| Edge config/secrets | último cambio aprobado, sin depender de backup de base | 4 horas | **PENDING AFUCOA APPROVAL** |
-| Frontend/artifacts | cero pérdida del release aprobado porque artefacto/manifest son inmutables | 2 horas | **PENDING AFUCOA APPROVAL** |
+| Database/Auth metadata crítica | 24 horas con backup diario | 8 horas desde declaración hasta servicio validado | **APPROVED BASELINE** |
+| Objetos privados de Storage | 24 horas | 12 horas, condicionado por volumen y mecanismo de copia | **APPROVED BASELINE** |
+| Edge config/secrets | último cambio aprobado, sin depender de backup de base | 4 horas | **APPROVED BASELINE** |
+| Frontend/artifacts | cero pérdida del release aprobado porque artefacto/manifest son inmutables | 2 horas | **APPROVED BASELINE** |
 
-Estos valores son objetivos iniciales, no capacidad demostrada. Deben compararse con costos, frecuencia de cambio y tiempos observados durante el drill.
+El drill del 6 de septiembre de 2026 observó RPO DB/Auth de 13 h 42 min 46,708 s, restore físico de 4 min 32,666 s y RTO completo de 12 min 34,589 s. Cumplió los objetivos DB/Auth y Storage. PITR no se contrató; solo se reevaluará si AFUCOA exige posteriormente un RPO menor a 24 horas.
 
 ## Inventario y estrategia
 
@@ -28,7 +28,7 @@ Estos valores son objetivos iniciales, no capacidad demostrada. Deben compararse
 
 ## Supabase: límites y opciones
 
-- Supabase documenta backups diarios administrados para proyectos Pro, Team y Enterprise; la retención depende del plan. La contratación/retención real de PROD no está decidida.
+- PROD está efectivamente en Pro. El 6 de septiembre de 2026 se observaron dos backups físicos `COMPLETED`, incluido el restaurado de `2026-09-06T03:15:00.292Z`; la retención documentada para Pro es de siete días de backups diarios.
 - PITR permite puntos más granulares, pero es un add-on de planes pagos con requisitos de compute. **No se asume contratado.**
 - Un restore administrado puede dejar el proyecto inaccesible durante el proceso. El tiempo depende del tamaño; por eso el RTO solo puede confirmarse midiendo.
 - Los backups de Database no incluyen los objetos almacenados mediante Storage API; solo incluyen metadata. Storage necesita estrategia propia.
@@ -53,4 +53,4 @@ Referencia vigente: [Supabase — Database Backups](https://supabase.com/docs/gu
 
 Guardar reportes de backup/restore con acceso restringido, fecha UTC, responsables, origen/destino, checksums, errores, tiempos y aprobación. No incluir datos de socios, secrets, signed URLs ni endpoints push. Revisar trimestralmente la capacidad propuesta y después de cada cambio material o incidente.
 
-El drill futuro se define en `docs/runbooks/RESTORE_DRILL.md`; su definición documental no equivale a haberlo ejecutado.
+La evidencia real está en `docs/PROD_BACKUP_RESTORE_DRILL.md`; el procedimiento repetible queda en `docs/runbooks/RESTORE_DRILL.md`. El restore físico y Storage sintético no sustituyen el dump lógico adicional pendiente.

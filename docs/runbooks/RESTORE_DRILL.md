@@ -1,6 +1,6 @@
 # Runbook — Restore drill aislado
 
-Estado: diseño para un ensayo futuro. **RESTORE REAL: NOT EXECUTED.** Infraestructura, ventana y aprobadores pendientes.
+Estado: procedimiento validado. **RESTORE REAL: EXECUTED AND VALIDATED** el 6 de septiembre de 2026 en un proyecto temporal aislado de `AFUCOA PROD`.
 
 El drill no se ejecuta contra PROD ni reutiliza credenciales/dominios de servicio. Requiere Incident/Database/Security Owner, un destino desechable autorizado y evidencia redacted.
 
@@ -16,7 +16,7 @@ El drill no se ejecuta contra PROD ni reutiliza credenciales/dominios de servici
 8. **Verificar Storage:** restaurar/validar objetos en buckets aislados, checksums, límites, MIME, acceso privado y URLs firmadas.
 9. **Verificar Auth:** comprobar configuración, identidades sintéticas, login, refresh/logout y vínculos de perfil; no enviar recovery a personas reales.
 10. **Medir tiempos reales:** registrar inicio/fin de restore, validación, recuperación operativa y cada bloqueo/proveedor.
-11. **Registrar RPO/RTO observado:** calcular el último dato recuperado y el tiempo hasta los checks aprobados; compararlos con la propuesta **PENDING AFUCOA APPROVAL**.
+11. **Registrar RPO/RTO observado:** calcular el último dato recuperado y el tiempo hasta los checks aprobados; compararlos con el baseline AFUCOA aprobado: DB/Auth 24 h/8 h, Storage 24 h/12 h, Edge config último cambio aprobado/4 h y frontend RPO 0/2 h.
 12. **Destruir de forma controlada:** obtener aprobación, confirmar que el target es el entorno aislado exacto, preservar evidencia permitida y retirarlo usando el procedimiento recuperable del proveedor.
 
 ## Criterios de éxito
@@ -27,4 +27,8 @@ El drill no se ejecuta contra PROD ni reutiliza credenciales/dominios de servici
 - RPO/RTO observados, gaps y plan de remediación registrados;
 - cierre conjunto de Database, Security y Product Owner.
 
-Hasta ejecutar los 12 pasos con infraestructura real aislada, B08 continúa OPEN.
+## Última ejecución
+
+El drill real del 6 de septiembre de 2026 restauró el backup físico PROD `2026-09-06T03:15:00.292Z` en un proyecto temporal `sa-east-1`, validó equivalencia de 17 migraciones y estructura, probó export/delete/restore byte a byte de PDF/PNG/JPEG sintéticos y eliminó todos los objetos y el proyecto. RPO observado: 13 h 42 min 46,708 s. RTO observado: 12 min 34,589 s. La organización terminó con cero proyectos temporales facturables.
+
+B08 queda **PARTIAL**: falta ejecutar el dump lógico adicional con `supabase db dump` desde un runner controlado que ya disponga de Docker/PostgreSQL, calcular su SHA-256 y destruir el artefacto o moverlo a almacenamiento cifrado aprobado. Ver `docs/PROD_BACKUP_RESTORE_DRILL.md`.

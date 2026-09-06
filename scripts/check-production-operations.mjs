@@ -10,6 +10,7 @@ export const requiredDocuments = [
   'docs/PRODUCTION_SLO.md',
   'docs/INCIDENT_RESPONSE.md',
   'docs/BACKUP_RESTORE.md',
+  'docs/PROD_BACKUP_RESTORE_DRILL.md',
   'docs/DATA_RETENTION.md',
   'docs/PRODUCTION_CUTOVER_CHECKLIST.md',
   'docs/runbooks/FRONTEND_OUTAGE.md',
@@ -151,15 +152,22 @@ export function validateOperations(root = repoRoot) {
   }
 
   const backup = read(root, 'docs/BACKUP_RESTORE.md');
-  if (!/RPO[\s\S]*PENDING AFUCOA APPROVAL/i.test(backup)) errors.push('backup: RPO is not pending AFUCOA approval');
-  if (!/RTO[\s\S]*PENDING AFUCOA APPROVAL/i.test(backup)) errors.push('backup: RTO is not pending AFUCOA approval');
-  if (!backup.includes('RESTORE REAL: NOT EXECUTED')) errors.push('backup: real restore must be explicitly not executed');
+  if (!/Database\/Auth[\s\S]*24 horas[\s\S]*8 horas[\s\S]*APPROVED BASELINE/i.test(backup)) {
+    errors.push('backup: approved Database/Auth RPO/RTO baseline is missing');
+  }
+  if (!/Objetos privados de Storage[\s\S]*24 horas[\s\S]*12 horas[\s\S]*APPROVED BASELINE/i.test(backup)) {
+    errors.push('backup: approved Storage RPO/RTO baseline is missing');
+  }
+  if (/PENDING AFUCOA APPROVAL/i.test(backup)) errors.push('backup: obsolete pending approval marker remains');
+  if (!backup.includes('RESTORE REAL: EXECUTED AND VALIDATED')) errors.push('backup: real restore evidence is missing');
 
   const drill = read(root, 'docs/runbooks/RESTORE_DRILL.md');
-  if (!drill.includes('RESTORE REAL: NOT EXECUTED')) errors.push('restore drill: real restore must be explicitly not executed');
-  if (/restore real (?:fue|ha sido) (?:ejecutado|completado)/i.test(`${backup}\n${drill}`)) {
-    errors.push('restore documentation claims a real restore ran');
-  }
+  if (!drill.includes('RESTORE REAL: EXECUTED AND VALIDATED')) errors.push('restore drill: real restore evidence is missing');
+
+  const drillEvidence = read(root, 'docs/PROD_BACKUP_RESTORE_DRILL.md');
+  if (!/B08 queda \*\*PARTIAL\*\*/i.test(drillEvidence)) errors.push('restore evidence: B08 partial status is missing');
+  if (!/dump lógico[\s\S]*NO GENERADO/i.test(drillEvidence)) errors.push('restore evidence: logical dump gap is not explicit');
+  if (!/cero proyectos temporales facturables/i.test(drillEvidence)) errors.push('restore evidence: billable cleanup is not explicit');
 
   const retention = read(root, 'docs/DATA_RETENTION.md');
   if (!retention.includes('NO AUTOMATIC PURGE ENABLED')) errors.push('retention: automatic purge must be explicitly disabled');
