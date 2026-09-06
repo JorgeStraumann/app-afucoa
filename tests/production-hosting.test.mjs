@@ -80,9 +80,21 @@ test('cache diferencia shell HTML, worker, manifest y assets con hash', () => {
   assert.match(rules.get('hashed-assets').headers['Cache-Control'], /immutable/);
 });
 
-test('no existe workflow PROD activo y el template es inequívocamente no ejecutable', async () => {
+test('existen únicamente los workflows PROD manuales aprobados y el template histórico sigue inactivo', async () => {
   const workflows = await readdir(new URL('.github/workflows/', root));
-  assert.deepEqual(workflows.filter((name) => /prod(?:uction)?/i.test(name)), []);
+  assert.deepEqual(workflows.filter((name) => /prod(?:uction)?/i.test(name)).sort(), [
+    'afucoa-v2-production-rollback.yml',
+    'afucoa-v2-production.yml',
+  ]);
+  for (const name of workflows.filter((candidate) => /prod(?:uction)?/i.test(candidate))) {
+    const workflow = await readFile(new URL(`.github/workflows/${name}`, root), 'utf8');
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.ok(!/^\s{2}push:/m.test(workflow));
+    for (const forbidden of ['jorgestraumann.github.io', 'localhost']) {
+      assert.ok(!workflow.toLowerCase().includes(forbidden.toLowerCase()));
+    }
+    if (name === 'afucoa-v2-production.yml') assert.match(workflow, /rywdochyzhgfaymrmxek/);
+  }
   const template = await readFile(new URL('ops/templates/afucoa-v2-production-workflow.yml', root), 'utf8');
   assert.ok(template.startsWith('# TEMPLATE - NOT EXECUTED BY GITHUB ACTIONS.'));
   for (const forbidden of ['imiplnspvmsrsuikulwm', 'jorgestraumann.github.io', 'localhost']) {

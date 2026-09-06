@@ -1,12 +1,12 @@
 # AFUCOA V2 — rollback de producción
 
-Estado: estrategia documental; no existe infraestructura ni release PROD.
+Estado Fase 3E: origin PROD existente y workflow de rollback real versionado; prueba controlada pendiente al momento de este commit.
 
 ## Frontend
 
-El rollback consiste en redeployar exactamente un artefacto anterior ya aprobado. Nunca se recompila el commit viejo: se descarga el artifact inmutable, se valida su release manifest y se comparan todos sus SHA-256 antes de promoverlo. Se conservan manifest, deployment ID, SHA, fecha, smoke result y motivo del rollback.
+El rollback operativo usa un deployment Production anterior ya almacenado por Cloudflare Pages. Nunca recompila el commit viejo ni produce un dist nuevo. El workflow `.github/workflows/afucoa-v2-production-rollback.yml` recibe su UUID, exige aprobación en `production`, consulta el deployment por la ruta específica del proyecto y rechaza Preview, fallo u otra branch.
 
-El procedimiento futuro será: declarar incidente, congelar nuevos deploys, seleccionar el último manifest aprobado, verificar hashes, redeployar con concurrencia exclusiva, ejecutar smoke de HTTPS/headers/cache/Auth/rutas/worker y registrar cierre. Si el Service Worker impide una recuperación rápida, se aplica la purga CDN prevista por el proveedor y el runbook de actualización; no se cambia el worker improvisadamente.
+El procedimiento es: declarar incidente, congelar nuevos deploys, seleccionar un deployment Production conocido, lanzar manualmente `AFUCOA V2 production rollback`, aprobar el Environment y dejar que el precheck llame al endpoint oficial de rollback. El workflow usa la misma concurrencia exclusiva del deploy y ejecuta smoke de HTTPS/headers/cache/Auth/rutas/worker. Si el Service Worker impide una recuperación rápida, se aplica el runbook de actualización; no se cambia el worker improvisadamente.
 
 ## Edge Functions
 
@@ -27,3 +27,5 @@ La rotación/revocación de claves, recuperación de cuentas privilegiadas y cam
 - no existe una migración incompatible que vuelva inseguro el frontend anterior;
 - smoke tests definidos y canal de comunicación preparado;
 - registro de inicio, decisión, resultado y acciones posteriores.
+
+Cloudflare admite como target cualquier build exitoso de Production y no admite Preview. Volver al release actual se hace ejecutando el mismo workflow contra el deployment Production aprobado; también exige approval y smoke. La evidencia de la prueba controlada se registra en `docs/PROD_PIPELINE_ACTIVE.md`.

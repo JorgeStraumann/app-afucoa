@@ -1,0 +1,234 @@
+name: AFUCOA V2 production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full 40-character SHA reachable from origin/afucoa-v2
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: afucoa-v2-production
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      VITE_AFUCOA_MODE: supabase
+      VITE_SUPABASE_URL: https://rywdochyzhgfaymrmxek.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AFUCOA_PROD_PUBLISHABLE_KEY }}
+      VITE_AUTH_ALIAS_DOMAIN: auth.afucoa.local
+      AFUCOA_PUBLIC_BASE: /
+      AFUCOA_CLOUDFLARE_HEADERS_MODE: canonical-domain
+    outputs:
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+      manifest_sha: ${{ steps.package.outputs.manifest_sha }}
+    steps:
+      - name: Reject moving or malformed release identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == 'refs/heads/afucoa-v2' ]]
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$RELEASE_SHA" != 'main' ]]
+          [[ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ]]
+          [[ "$VITE_SUPABASE_URL" == 'https://rywdochyzhgfaymrmxek.supabase.co' ]]
+          [[ "$VITE_SUPABASE_URL" != *'imiplnspvmsrsuikulwm'* ]]
+
+      - name: Checkout exact release SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.release_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify immutable checkout belongs to afucoa-v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin '+refs/heads/afucoa-v2:refs/remotes/origin/afucoa-v2'
+          [[ "$(git rev-parse HEAD)" == "$RELEASE_SHA" ]]
+          git merge-base --is-ancestor "$RELEASE_SHA" origin/afucoa-v2
+          [[ -z "$(git status --porcelain=v1 --untracked-files=all)" ]]
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.19.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run production gates before the real build
+        run: |
+          pnpm test:migrations
+          pnpm test:prod-operations
+          pnpm test:prod-hosting
+          pnpm test:prod-artifact
+          pnpm test:edge-config
+          pnpm test:recovery
+          pnpm test:push
+          pnpm test:session
+          pnpm test:navigation
+
+      - name: Build real PROD artifact exactly once
+        run: pnpm build:prod
+
+      - name: Package immutable artifact and release manifest
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_dir="$RUNNER_TEMP/afucoa-prod-release"
+          mkdir -p "$release_dir"
+          node scripts/create-production-release-manifest.mjs --output "$release_dir/manifest.json"
+          cp -a dist "$release_dir/dist"
+          sha256sum "$release_dir/manifest.json" | awk '{print $1}' > "$release_dir/manifest.sha256"
+          node scripts/verify-production-release.mjs \
+            --manifest "$release_dir/manifest.json" \
+            --dist "$release_dir/dist" \
+            --release-sha "$RELEASE_SHA"
+          manifest_sha="$(cat "$release_dir/manifest.sha256")"
+          [[ "$manifest_sha" =~ ^[0-9a-f]{64}$ ]]
+          echo "artifact_name=afucoa-v2-prod-$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "manifest_sha=$manifest_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Upload immutable production artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: afucoa-v2-prod-${{ inputs.release_sha }}
+          path: ${{ runner.temp }}/afucoa-prod-release
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://afucoa-v2-prod.pages.dev
+    outputs:
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+    steps:
+      - name: Checkout release tooling at exact SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.release_sha }}
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.19.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install locked deployment tooling without building the app
+        run: pnpm install --frozen-lockfile
+
+      - name: Download the prepared artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ needs.prepare.outputs.artifact_name }}
+          path: ${{ runner.temp }}/afucoa-prod-release
+
+      - name: Verify environment contract and immutable artifact
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          EXPECTED_MANIFEST_SHA: ${{ needs.prepare.outputs.manifest_sha }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          AFUCOA_PROD_ORIGIN: ${{ vars.AFUCOA_PROD_ORIGIN }}
+          AFUCOA_PROD_SUPABASE_URL: ${{ vars.AFUCOA_PROD_SUPABASE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CLOUDFLARE_ACCOUNT_ID" =~ ^[0-9a-f]{32}$ ]]
+          [[ "$CLOUDFLARE_PAGES_PROJECT" == 'afucoa-v2-prod' ]]
+          [[ "$AFUCOA_PROD_ORIGIN" == 'https://afucoa-v2-prod.pages.dev' ]]
+          [[ "$AFUCOA_PROD_SUPABASE_URL" == 'https://rywdochyzhgfaymrmxek.supabase.co' ]]
+          release_dir="$RUNNER_TEMP/afucoa-prod-release"
+          [[ "$(cat "$release_dir/manifest.sha256")" == "$EXPECTED_MANIFEST_SHA" ]]
+          [[ "$(sha256sum "$release_dir/manifest.json" | awk '{print $1}')" == "$EXPECTED_MANIFEST_SHA" ]]
+          node scripts/verify-production-release.mjs \
+            --manifest "$release_dir/manifest.json" \
+            --dist "$release_dir/dist" \
+            --release-sha "$RELEASE_SHA"
+
+      - name: Deploy the prepared bytes to Cloudflare Pages production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          pnpm exec wrangler pages deploy "$RUNNER_TEMP/afucoa-prod-release/dist" \
+            --project-name="${{ vars.CLOUDFLARE_PAGES_PROJECT }}" \
+            --branch=afucoa-v2 \
+            --commit-hash="${{ inputs.release_sha }}" \
+            --commit-message="AFUCOA V2 production ${{ inputs.release_sha }}" \
+            --commit-dirty=false
+
+      - name: Resolve the exact Cloudflare deployment
+        id: deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          node scripts/cloudflare-pages-release.mjs latest \
+            --release-sha "${{ inputs.release_sha }}" \
+            --output "$RUNNER_TEMP/afucoa-prod-release/deployment.json"
+
+      - name: Post-deploy smoke against canonical origin
+        env:
+          AFUCOA_PROD_PUBLISHABLE_KEY: ${{ vars.AFUCOA_PROD_PUBLISHABLE_KEY }}
+        run: |
+          node scripts/production-smoke.mjs \
+            --origin "${{ vars.AFUCOA_PROD_ORIGIN }}" \
+            --manifest "$RUNNER_TEMP/afucoa-prod-release/manifest.json" \
+            --dist "$RUNNER_TEMP/afucoa-prod-release/dist" \
+            --release-sha "${{ inputs.release_sha }}" \
+            --deployment-id "${{ steps.deployment.outputs.deployment_id }}" \
+            --attempts 12 \
+            --output "$RUNNER_TEMP/afucoa-prod-release/smoke.json"
+
+      - name: Record deployment evidence
+        shell: bash
+        run: |
+          {
+            echo '## AFUCOA V2 production deployment'
+            echo '- Release SHA: `${{ inputs.release_sha }}`'
+            echo '- Cloudflare deployment: `${{ steps.deployment.outputs.deployment_id }}`'
+            echo '- Canonical origin: https://afucoa-v2-prod.pages.dev'
+            echo '- Manifest SHA-256: `${{ needs.prepare.outputs.manifest_sha }}`'
+            echo '- Build count after approval: 0'
+            echo '- Login attempted: no'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload public deployment evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: afucoa-v2-prod-evidence-${{ inputs.release_sha }}
+          path: |
+            ${{ runner.temp }}/afucoa-prod-release/manifest.json
+            ${{ runner.temp }}/afucoa-prod-release/manifest.sha256
+            ${{ runner.temp }}/afucoa-prod-release/deployment.json
+            ${{ runner.temp }}/afucoa-prod-release/smoke.json
+          if-no-files-found: error
+          retention-days: 90
