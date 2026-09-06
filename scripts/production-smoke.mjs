@@ -20,10 +20,30 @@ function assertHeader(response, name, pattern) {
   if (!pattern.test(value)) throw new Error(`${name} ausente o inválido en ${response.url}.`);
 }
 
-async function get(url, options = {}) {
-  const response = await fetch(url, { redirect: 'error', ...options });
-  if (!response.ok) throw new Error(`HTTP ${response.status} en ${url}.`);
-  return response;
+function safeRequestLabel(url) {
+  const parsed = new URL(url);
+  return `${parsed.origin}${parsed.pathname}`;
+}
+
+async function get(url, options = {}, { attempts = 4, timeoutMs = 15_000 } = {}) {
+  const label = safeRequestLabel(url);
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        redirect: 'error',
+        signal: AbortSignal.timeout(timeoutMs),
+        ...options,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 1_500));
+    }
+  }
+  const reason = lastError?.cause?.code || lastError?.name || 'request_failed';
+  throw new Error(`falló GET ${label} tras ${attempts} intentos (${reason}).`);
 }
 
 async function smoke({ origin, manifestPath, releaseSha, deploymentId }) {

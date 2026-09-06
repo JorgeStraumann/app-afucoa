@@ -126,6 +126,9 @@ test('smoke PROD permanece público, read-only y sin login', async () => {
   const smoke = await readFile(new URL('scripts/production-smoke.mjs', root), 'utf8');
   assert.match(smoke, /afucoa-v2-prod\.pages\.dev/);
   assert.match(smoke, /rywdochyzhgfaymrmxek\.supabase\.co\/auth\/v1\/settings/);
+  assert.match(smoke, /AbortSignal\.timeout\(timeoutMs\)/);
+  assert.match(smoke, /attempts = 4/);
+  assert.match(smoke, /falló GET \$\{label\} tras \$\{attempts\} intentos/);
   assert.ok(!smoke.includes('/auth/v1/token'));
   assert.ok(!smoke.includes('signIn'));
   assert.ok(!smoke.includes('Authorization:'));
