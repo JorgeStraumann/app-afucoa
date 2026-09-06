@@ -63,7 +63,8 @@ async function smoke({ origin, manifestPath, releaseSha, deploymentId }) {
   assertHeader(root, 'x-frame-options', /^DENY$/i);
   assertHeader(root, 'cache-control', /no-(?:cache|store)/i);
   if (/noindex/i.test(root.headers.get('x-robots-tag') || '')) throw new Error('el origin canónico publica X-Robots-Tag noindex.');
-  const html = await root.text();
+  const rootBytes = Buffer.from(await root.arrayBuffer());
+  const html = rootBytes.toString('utf8');
 
   const manifestResponse = await get(`${origin}/manifest.webmanifest`);
   assertHeader(manifestResponse, 'cache-control', /max-age=0/i);
@@ -99,9 +100,12 @@ async function smoke({ origin, manifestPath, releaseSha, deploymentId }) {
     manifestSha256 = release.manifestSha256;
     for (const file of release.manifest.files) {
       if (file.path === '_headers') continue;
-      const segments = file.path.split('/').map(encodeURIComponent).join('/');
-      const response = await get(`${origin}/${segments}`);
-      const bytes = Buffer.from(await response.arrayBuffer());
+      const response = file.path === 'index.html'
+        ? root
+        : await get(`${origin}/${file.path.split('/').map(encodeURIComponent).join('/')}`);
+      const bytes = file.path === 'index.html'
+        ? rootBytes
+        : Buffer.from(await response.arrayBuffer());
       if (bytes.length !== file.bytes || sha256(bytes) !== file.sha256) {
         throw new Error(`el origin no sirve el byte exacto de ${file.path}.`);
       }

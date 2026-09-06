@@ -129,6 +129,8 @@ test('smoke PROD permanece público, read-only y sin login', async () => {
   assert.match(smoke, /AbortSignal\.timeout\(timeoutMs\)/);
   assert.match(smoke, /attempts = 4/);
   assert.match(smoke, /falló GET \$\{label\} tras \$\{attempts\} intentos/);
+  assert.match(smoke, /file\.path === 'index\.html'\s*\? root/);
+  assert.match(smoke, /file\.path === 'index\.html'\s*\? rootBytes/);
   assert.ok(!smoke.includes('/auth/v1/token'));
   assert.ok(!smoke.includes('signIn'));
   assert.ok(!smoke.includes('Authorization:'));
