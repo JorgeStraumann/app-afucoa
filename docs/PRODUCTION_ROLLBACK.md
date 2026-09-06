@@ -1,6 +1,6 @@
 # AFUCOA V2 — rollback de producción
 
-Estado Fase 3E: origin PROD existente y workflow de rollback real versionado; prueba controlada pendiente al momento de este commit.
+Estado Fase 3E: workflow versionado y rollback/restauración reales validados con smoke PASS.
 
 ## Frontend
 
@@ -29,3 +29,7 @@ La rotación/revocación de claves, recuperación de cuentas privilegiadas y cam
 - registro de inicio, decisión, resultado y acciones posteriores.
 
 Cloudflare admite como target cualquier build exitoso de Production y no admite Preview. Volver al release actual se hace ejecutando el mismo workflow contra el deployment Production aprobado; también exige approval y smoke. La evidencia de la prueba controlada se registra en `docs/PROD_PIPELINE_ACTIVE.md`.
+
+## Prueba controlada ejecutada
+
+El run `34003066262` validó y promovió el deployment Production anterior `f7645b3e-61e9-4fb8-b513-f1b741accbc7` mediante el endpoint oficial; no reconstruyó ni creó artifact y el smoke canónico pasó. El run `34003124433` repitió el mismo procedimiento contra `cfeaedf7-21d1-4cbb-96bf-b9cb6065ef16`, restaurando el release aprobado `f9d8c15883341ee9a95581e88f24d67a90d821af`; el smoke volvió a pasar. Ambos runs registran aprobación del Environment `production`.

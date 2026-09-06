@@ -12,11 +12,11 @@ Tipo de documento: auditoría viva de readiness; Fase 3E activa el pipeline PROD
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada completamente para producción.** B01 está **CLOSED**; B02, B03 y B07 permanecen **PARTIAL**; B04, B05 y B08–B10 siguen **OPEN**. B06 está **CLOSED** para el origin canónico aprobado `https://afucoa-v2-prod.pages.dev`, con TLS/HSTS, headers, frontend y Auth URL verificados. B07 solo podrá cerrar después de observar promoción, approval, rollback y restauración reales.
+**AFUCOA V2 todavía no está habilitada completamente para producción.** B01, B06 y B07 están **CLOSED**; B02 y B03 permanecen **PARTIAL**; B04, B05 y B08–B10 siguen **OPEN**. B06 cubre el origin canónico `https://afucoa-v2-prod.pages.dev`. B07 cerró tras observar promoción, approval, rollback y restauración reales con smoke PASS.
 
 Los riesgos técnicos más inmediatos son:
 
-1. El bootstrap, el hardening base de Auth y el hosting canónico quedaron demostrados, pero PROD todavía no tiene Edge Functions, secrets, proveedores operativos de recovery/push, pipeline protegido, monitoring ni restore probado.
+1. El bootstrap, el hardening base de Auth, el hosting canónico y el pipeline protegido quedaron demostrados, pero PROD todavía no tiene Edge Functions, secrets, proveedores operativos de recovery/push, monitoring ni restore de datos probado.
 2. El subproblema de vínculos explícitos al project ref y orígenes DEV quedó resuelto mediante configuración compartida fail-closed. La parametrización fue desplegada y validada E2E en DEV durante Fase 2C; B04/B05 continúan abiertos por infraestructura, secrets, dominio y E2E exclusivamente PROD.
 
 La protección contra contraseñas filtradas continúa deshabilitada en DEV, riesgo aceptado únicamente porque DEV está en Free. En PROD Pro quedó habilitada en Fase 3B; no se intentó silenciar el warning DEV mediante SQL ni cambios de frontend.
@@ -43,7 +43,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B04 — **ABIERTO** | Recuperación parametrizada y validada E2E en DEV, pero PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar email/dominio/secrets PROD, verificar titularidad de emails y aprobar E2E real PROD: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
 | B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 — **CLOSED** | Origin canónico Cloudflare Pages.dev adoptado y validado | Sin dominio propio ni costo nuevo aprobado | Production deployment estable, HTTPS/TLS, HSTS canónico, CSP, headers, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado están probados. Evidencia: `docs/PROD_CANONICAL_ORIGIN.md` y `docs/PROD_HOSTING_FOUNDATION.md`. |
-| B07 — **PARTIAL** | Pipeline y rollback versionados; prueba real y regla mínima de branch aún pendientes | Sin costo nuevo | Environment `production`, approval, branch allowlist, exact SHA, artifact/manifest, mutex y Cloudflare token acotado están configurados. Cerrar solo tras promoción+rollback+restauración con smoke PASS y protección anti-force-push/deletion confirmada. |
+| B07 — **CLOSED** | Pipeline protegido y rollback operativo | Completado sin costo nuevo | Environment `production`, approval, branch allowlist, exact SHA, artifact/manifest, mutex, token Cloudflare acotado y regla anti-force-push/deletion confirmados. Promoción run `34002807860`, rollback run `34003066262` y restauración run `34003124433` terminaron con smoke PASS. Evidencia: `docs/PROD_PIPELINE_ACTIVE.md`. |
 | B08 — **OPEN** | Contrato documental creado, pero backups/restore/RPO/RTO PROD no están operativos | Backups diarios en Pro; PITR es add-on y requiere Pro + compute compatible | Aprobar RPO/RTO, provisionar y evidenciar backups PROD de DB/Storage, y ejecutar el restore drill real aislado con tiempos observados. |
 | B09 — **OPEN** | Modelo, matriz, SLI/SLO y runbooks creados, pero monitoring no está operativo | Puede comenzar gratis; proveedor, integración y retención pueden tener costo | Elegir/integrar proveedor, obtener métricas PROD, activar alertas, calibrar thresholds y ensayar guardia/escalamiento. |
 | B10 — **OPEN** | Cutover gate documentado; alta/cutover de personas reales no aprobados | Operación y soporte; Pilot 01 permanece PARKED | Cerrar todos los blockers, aprobar datos/consentimiento/soporte y celebrar go/no-go. Reactivar Pilot solo mediante autorización posterior explícita; no migrar contraseñas V1. |
@@ -162,7 +162,7 @@ Referencias: [Resend — verificación de dominio, SPF y DKIM](https://resend.co
 - El validador rechaza `sb_secret_*`, `service_role`, nombres `VITE_*` privilegiados y cualquier server key recibida por el build.
 - Vite genera `sourcemap: false`; el escaneo actual del artefacto informó cero source maps y cero claves privilegiadas.
 - Se usa hash routing, adecuado para refresh bajo GitHub Pages sin reglas SPA del servidor.
-- Existen workflows manuales separados para promoción y rollback. El Environment `production` entrega el token Cloudflare solo después de la aprobación. La regla clásica mínima de `afucoa-v2` quedó pendiente del `Confirm access` interactivo de GitHub.
+- Existen workflows manuales separados para promoción y rollback. El Environment `production` entrega el token Cloudflare solo después de la aprobación. La regla clásica de `afucoa-v2` prohíbe force push y branch deletion; la rama predeterminada es `afucoa-v2` para habilitar `workflow_dispatch`, sin modificar commits de `main`.
 
 ### Pipeline PROD implementado en Fase 3E
 
@@ -295,7 +295,7 @@ Resumen de findings:
 - [x] Documentar gobernanza GitHub requerida, manteniendo Settings y branches sin cambios. Ver `docs/GITHUB_PRODUCTION_GOVERNANCE.md`.
 - [x] Provisionar y validar la foundation Cloudflare Pages sobre HTTPS.
 - [x] Adoptar `https://afucoa-v2-prod.pages.dev` como origin canónico, desplegar Production, activar HSTS canónico, ajustar Auth Site URL y repetir la validación final. B06 CLOSED.
-- [x] Crear workflows PROD/rollback reales y activar Environment approval con branch allowlist. La prueba controlada y la protección clásica mínima mantienen B07 PARTIAL.
+- [x] Crear workflows PROD/rollback reales, activar Environment approval con branch allowlist, proteger contra force push/deletion y validar promoción, rollback y restauración reales. B07 CLOSED.
 - [x] Definir modelo de monitoring, matriz declarativa de 17 alertas, SLI/SLO provisionales y health checks sintéticos no destructivos. B09 permanece OPEN hasta integración, métricas, activación y calibración.
 - [x] Crear incident response y runbooks de frontend, Auth, DB/Storage, recovery, push, Edge, secrets y DNS/TLS.
 - [x] Proponer RPO/RTO con estado `PENDING AFUCOA APPROVAL`, estrategia separada de DB/Storage/Auth/config/secrets/artifacts y restore drill futuro de 12 pasos. B08 permanece OPEN.
@@ -313,7 +313,7 @@ Resumen de findings:
 - [ ] Configurar proveedor/email PROD, dominio, SPF/DKIM/DMARC y alertas.
 - [ ] Configurar backup/PITR según RPO/RTO y ensayar restore.
 - [x] Crear una foundation Cloudflare Pages Preview mediante Direct Upload, sin dominio propio ni identidades.
-- [x] Adoptar el hostname estable `afucoa-v2-prod.pages.dev` como origin canónico y validar el deployment Production. El pipeline protegido está implementado; B07 espera la prueba real completa.
+- [x] Adoptar el hostname estable `afucoa-v2-prod.pages.dev` como origin canónico, validar el deployment Production y completar promoción/rollback/restauración mediante el pipeline protegido. B07 CLOSED.
 
 ### Fase 4 — validación preproducción
 
@@ -368,7 +368,7 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 
 | Comando | Resultado | Observación |
 | --- | --- | --- |
-| `pnpm test:prod-operations` | 6/6 PASS + contrato PASS | 18 archivos operativos, 17 alertas y 7 smoke checks no destructivos. |
+| `pnpm test:prod-operations` | 12/12 PASS + contrato PASS | 18 archivos operativos, 17 alertas y 7 smoke checks no destructivos. |
 | `pnpm test:prod-hosting` | PASS | CSP/headers/cache PROD, ausencia de referencias DEV, template inactivo y release manifest determinístico/sin secretos. |
 | `pnpm test:prod-artifact` | PASS | Build PROD sintético sin red; base `/`; 0 referencias DEV, 0 source maps y 0 material privilegiado. Casos negativos fail-closed cubiertos. |
 | `pnpm test:edge-config` | 12/12 PASS + check estático PASS | Fail-closed, CORS exacto, restricciones PROD/DEV, secreto no enumerable y 4 funciones PROD permitidas. |
@@ -385,4 +385,4 @@ No se ejecutaron suites LIVE de login/RLS/integración porque PROD no tiene usua
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas. Fase 3B cambió únicamente Auth PROD: política fuerte, HIBP y cierre de signup público; no creó usuarios ni perfiles. Fase 3C agregó el adaptador versionado de headers y creó el proyecto Cloudflare Pages. Fase 3D desplegó el artefacto `canonical-domain` en Production y actualizó únicamente `Site URL`/redirects de Auth PROD. Fase 3E configura GitHub Environment/variables/secret por nombre y versiona promoción/rollback sin tocar Supabase, V1, `main`, Pilot, DNS ni datos. B01 y B06 están **CLOSED**; B02, B03 y B07 están **PARTIAL**; B04, B05 y B08–B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada completamente lista para producción.
+Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas. Fase 3B cambió únicamente Auth PROD: política fuerte, HIBP y cierre de signup público; no creó usuarios ni perfiles. Fase 3C agregó el adaptador versionado de headers y creó el proyecto Cloudflare Pages. Fase 3D desplegó el artefacto `canonical-domain` en Production y actualizó únicamente `Site URL`/redirects de Auth PROD. Fase 3E configuró GitHub Environment/variables/secret por nombre, protegió `afucoa-v2` y validó promoción/rollback/restauración sin tocar Supabase, V1, commits de `main`, Pilot, DNS ni datos. B01, B06 y B07 están **CLOSED**; B02 y B03 siguen **PARTIAL**; B04, B05 y B08–B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada completamente lista para producción.

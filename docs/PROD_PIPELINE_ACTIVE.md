@@ -1,6 +1,6 @@
 # AFUCOA V2 — pipeline PROD activo
 
-Estado: Fase 3E implementada; validación controlada pendiente al momento de este commit.
+Estado: Fase 3E implementada y validada mediante promoción, rollback y restauración reales. B07 **CLOSED**.
 
 ## Alcance fijo
 
@@ -56,8 +56,23 @@ El rollback llama al endpoint oficial `POST /accounts/{account_id}/pages/project
 
 El único operador actual también es el revisor requerido, por lo que `prevent_self_review=false`. Esto añade una pausa explícita y auditada, pero no constituye separación real de funciones. Cuando exista una segunda persona autorizada se debe agregarla como reviewer, activar `Prevent self-review`, probar una promoción y un rollback con aprobación cruzada y actualizar este documento.
 
-La retención configurada es 30 días para el artifact de release y 90 días para evidencia pública de deploy/rollback. Los identificadores de ejecución, deployment, release y manifest se registrarán aquí después de la prueba controlada.
+La retención configurada es 30 días para el artifact de release y 90 días para evidencia pública de deploy/rollback.
 
-## Evidencia controlada
+## Evidencia controlada — 5 de septiembre de 2026
 
-Pendiente: primera promoción mediante el workflow, aprobación humana observada, smoke, rollback a un Production anterior y restauración al release aprobado. Hasta completar esa secuencia B07 permanece **PARTIAL**.
+| Operación | Evidencia |
+| --- | --- |
+| Promoción aprobada | Workflow `AFUCOA V2 production` run `34002807860`, con aprobación registrada de `JorgeStraumann` |
+| Release SHA | `f9d8c15883341ee9a95581e88f24d67a90d821af` |
+| Artifact | `afucoa-v2-prod-f9d8c15883341ee9a95581e88f24d67a90d821af`; digest GitHub `sha256:fb586a3bab9b1a9a820268343110959128ccb0f3df10b44a07c20293657f71fc` |
+| Manifest SHA-256 | `2fa0172e9e974bf1803942d2ed4410f6bdc062c68bd098674686d5ed819e9cab` |
+| Deployment aprobado | `cfeaedf7-21d1-4cbb-96bf-b9cb6065ef16` |
+| Smoke post-deploy | PASS; bytes del manifest, origin canónico, headers, worker y backend PROD; login no intentado |
+| Rollback real | Workflow run `34003066262` hacia `f7645b3e-61e9-4fb8-b513-f1b741accbc7`, release `63140a03654386f18b0e4d1198dc7ea3c20b5bb7` |
+| Smoke tras rollback | PASS; target validado como production/success; rebuild no; artifact nuevo no |
+| Restauración real | Workflow run `34003124433` hacia `cfeaedf7-21d1-4cbb-96bf-b9cb6065ef16` |
+| Smoke tras restauración | PASS; release restaurado `f9d8c15883341ee9a95581e88f24d67a90d821af`; rebuild no; artifact nuevo no |
+
+La primera ejecución operativa reveló que Cloudflare normaliza `/index.html` hacia `/`. El smoke se corrigió para verificar los bytes exactos de `index.html` mediante la respuesta canónica `/`, sin relajar la prohibición de redirects. También usa timeout y reintentos acotados por recurso con diagnóstico que no expone query strings ni credenciales.
+
+La secuencia real demostró exact SHA, build único previo a approval, artifact inmutable, acceso al token únicamente después del Environment, deploy sin rebuild, smoke, rollback oficial y restauración. B07 queda **CLOSED**. Esto no habilita usuarios reales ni cierra B02–B05/B08–B10.
