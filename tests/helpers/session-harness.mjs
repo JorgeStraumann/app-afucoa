@@ -18,8 +18,9 @@ export async function loadSession(dependencies) {
     CustomEvent: class { constructor(type) { this.type = type; } },
     window: { dispatchEvent() {} },
     reconcilePushSubscription: async () => ({state:'unavailable'}),
+    getMfaStatus: async () => ({currentLevel:'aal2',nextLevel:'aal2',mode:'ready',factorId:'factor-test'}),
     ...dependencies,
-  }, ['bootstrapSession', 'startRealSession', 'getSession', 'refreshProfile', 'endSession', 'isAdminSession']);
+  }, ['bootstrapSession', 'startRealSession', 'getSession', 'refreshProfile', 'refreshMfaSession', 'endSession', 'isAdminSession', 'isMfaRequiredSession']);
 }
 
 export async function loadAuth(client) {

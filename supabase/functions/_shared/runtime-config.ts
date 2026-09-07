@@ -11,8 +11,8 @@ const CORS_BASE_HEADERS = {
   'vary': 'Origin',
 }
 
-function invalidConfig() {
-  return new Error('runtime_configuration_invalid')
+function invalidConfig(reason = 'invalid') {
+  return new Error(`runtime_configuration_invalid:${reason}`)
 }
 
 function validSupabaseUrl(value) {
@@ -48,9 +48,31 @@ function isLoopback(hostname) {
 export function loadRuntimeConfig(getEnv = (name) => Deno.env.get(name)) {
   const env = String(getEnv('AFUCOA_ENV') || '').trim().toLowerCase()
   const supabaseUrlValue = String(getEnv('SUPABASE_URL') || '').trim()
-  const serviceRoleKey = String(getEnv('SUPABASE_SERVICE_ROLE_KEY') || '').trim()
+  const secretKeysValue = String(getEnv('SUPABASE_SECRET_KEYS') || '').trim()
+  const secretKeyName = String(getEnv('AFUCOA_SECRET_KEY_NAME') || 'default').trim()
   const originsValue = String(getEnv('AFUCOA_ALLOWED_ORIGINS') || '').trim()
-  if (!VALID_ENVS.has(env) || !supabaseUrlValue || !serviceRoleKey || !originsValue) throw invalidConfig()
+  if (!VALID_ENVS.has(env)) throw invalidConfig('environment')
+  if (!supabaseUrlValue) throw invalidConfig('supabase_url_missing')
+  if (!secretKeysValue) throw invalidConfig('secret_keys_missing')
+  if (!originsValue) throw invalidConfig('origins_missing')
+
+  let secretKey
+  try {
+    const secretKeys = JSON.parse(secretKeysValue)
+    if (!/^[A-Za-z0-9_-]+$/.test(secretKeyName)) throw invalidConfig('secret_key_name')
+    if (!Object.prototype.hasOwnProperty.call(secretKeys ?? {}, secretKeyName)) {
+      throw invalidConfig('secret_key_selected_missing')
+    }
+    if (typeof secretKeys[secretKeyName] !== 'string') throw invalidConfig('secret_key_selected_type')
+    secretKey = secretKeys[secretKeyName].trim()
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('runtime_configuration_invalid:secret_key_default_')) {
+      throw error
+    }
+    throw invalidConfig('secret_keys_json')
+  }
+  if (!secretKey.startsWith('sb_secret_')) throw invalidConfig('secret_key_selected_prefix')
+  if (!/^sb_secret_[A-Za-z0-9_-]+$/.test(secretKey)) throw invalidConfig('secret_key_selected_format')
 
   const supabaseUrl = validSupabaseUrl(supabaseUrlValue)
   const rawOrigins = originsValue.split(',').map((value) => value.trim())
@@ -69,12 +91,29 @@ export function loadRuntimeConfig(getEnv = (name) => Deno.env.get(name)) {
   if (allowedOrigins.size !== origins.length) throw invalidConfig()
 
   const config = { env, supabaseUrl: supabaseUrl.origin, allowedOrigins }
-  Object.defineProperty(config, 'serviceRoleKey', {
-    value: serviceRoleKey,
+  Object.defineProperty(config, 'secretKey', {
+    value: secretKey,
     enumerable: false,
     writable: false,
   })
   return Object.freeze(config)
+}
+
+export function secretKeyClientOptions(secretKey, baseFetch = fetch) {
+  const secretBearer = `Bearer ${secretKey}`
+  return {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: async (input, init = {}) => {
+        const headers = new Headers(init.headers)
+        // Secret API keys are opaque API keys, not JWTs. supabase-js clients
+        // may add the API key as a Bearer fallback; remove only that exact
+        // fallback and retain real user JWTs used by authenticated requests.
+        if (headers.get('authorization') === secretBearer) headers.delete('authorization')
+        return baseFetch(input, { ...init, headers })
+      },
+    },
+  }
 }
 
 export function requestOriginAllowed(request, config) {

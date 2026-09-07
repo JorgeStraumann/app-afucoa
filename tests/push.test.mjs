@@ -11,7 +11,7 @@ async function module(path,env,names) {
   let source=await readFile(new URL(path,root),'utf8');
   if(path==='supabase/functions/_shared/push-http.ts') source=`${runtimeConfigSource}\n${source}`;
   source=source.replace(/^import .*;?\r?\n/gm,'').replace(/^export /gm,'').replace('import.meta.env.BASE_URL',"'/app-afucoa/'");
-  return vm.runInNewContext(source+`;({${names.join(',')}})`,{URL,Response,Request,Uint8Array,atob,TextDecoder,setTimeout,clearTimeout,console,...env});
+  return vm.runInNewContext(source+`;({${names.join(',')}})`,{URL,Response,Request,Headers,Uint8Array,atob,TextDecoder,setTimeout,clearTimeout,fetch:async()=>new Response('{}'),console,...env});
 }
 const policy=await module('supabase/functions/_shared/push-policy.ts',{},['safeTarget','allowedEndpoint','preferenceFor','genericPayload','dispatchPush']);
 const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64,1)]).toString('base64url');
@@ -112,15 +112,16 @@ test('claims rechazados no envían (duplicados, preferencias o kill switch)',asy
   await policy.dispatchPush({db,notification:{id:'n'},targets:[{endpoint:'https://fcm.googleapis.com/test'}],send:async()=>{sent++;return 201;}});assert.equal(sent,0);
 });
 
-for(const [role,expected] of [['socio',403],['admin',null],['superadmin',null]])test(`N/O/P autenticación servidor ${role}`,async()=>{
+const edgeJwt=aal=>`header.${Buffer.from(JSON.stringify({aal})).toString('base64url')}.signature`;
+for(const [role,aal,expected] of [['socio','aal1',403],['admin','aal1',403],['superadmin','aal1',403],['admin','aal2',null],['superadmin','aal2',null]])test(`N/O/P autenticación servidor ${role} ${aal}`,async()=>{
   const query={select:()=>query,eq:()=>query,maybeSingle:async()=>({data:{id:'profile',role}})};
-  const values={AFUCOA_ENV:'dev',AFUCOA_ALLOWED_ORIGINS:'https://dev.example.test',SUPABASE_URL:'https://abcdefghijklmnopqrst.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'synthetic'};
+  const values={AFUCOA_ENV:'dev',AFUCOA_ALLOWED_ORIGINS:'https://dev.example.test',SUPABASE_URL:'https://abcdefghijklmnopqrst.supabase.co',SUPABASE_SECRET_KEYS:JSON.stringify({default:'sb_secret_synthetic'})};
   const api=await module('supabase/functions/_shared/push-http.ts',{
     Deno:{env:{get:name=>values[name]}},
     createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'user'}}})},from:()=>query}),
   },['authenticate','loadRuntimeConfig']);
   const config=api.loadRuntimeConfig(name=>values[name]);
-  assert.equal((await api.authenticate(new Request('https://dev.test',{headers:{authorization:'Bearer synthetic'}}),config,true)).error || null,expected);
+  assert.equal((await api.authenticate(new Request('https://dev.test',{headers:{authorization:`Bearer ${edgeJwt(aal)}`}}),config,true)).error || null,expected);
 });
 
 async function worker(open,target='#/tramites',pushPayload={title:'Privado',body:'Privado',target_path:'#/tramites',profile_id:profileA,notification_id:notificationA}) {

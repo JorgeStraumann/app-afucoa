@@ -24,6 +24,8 @@
     "test:live-auth-isolation": "node --test tests/live-auth-isolation.test.mjs",
     "test:push": "node --test tests/push.test.mjs",
     "test:navigation": "node --test tests/navigation-access.test.mjs",
+    "test:mfa": "node --test tests/mfa.test.mjs",
+    "test:mfa-live": "node tests/mfa-lifecycle-synthetic.mjs",
     "test:push-http": "node tests/push-http-live.mjs",
     "test:session-live": "node tests/session-regression-live.mjs",
     "test:auth-roles": "node tests/auth-roles-live.mjs",
@@ -37,7 +39,7 @@
     "wrangler": "4.34.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.57.4",
+    "@supabase/supabase-js": "2.116.0",
     "qrcode": "1.5.4"
   }
 }

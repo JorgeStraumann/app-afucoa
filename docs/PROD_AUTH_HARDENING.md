@@ -70,26 +70,19 @@ El alias Auth de cédula no representa el correo de contacto del socio. Antes de
 - No se agregaron localhost, GitHub Pages, preview, deployment hash, DEV ni comodines amplios.
 - El origin canónico y su TLS/HSTS fueron verificados antes de actualizar Auth.
 
-B03 permanece **PARTIAL** por MFA privilegiado, ciclo operativo de cuentas y recovery PROD; la URL ya no es un pendiente.
+B03 permanece **PARTIAL** únicamente por Recovery PROD/B04 E2E; la URL, MFA privilegiado y ciclo operativo de cuentas ya no son pendientes.
 
 ## MFA
 
 ### Usuarios de la aplicación
 
-TOTP enrollment y verification están disponibles en Auth; WebAuthn y phone MFA no están habilitados. Esta fase no cambió esas capacidades ni agregó comportamiento al producto. No existe aún enforcement por rol o `aal2`.
+Fase 3H implementó TOTP obligatorio para `admin` y `superadmin`, con enforcement server-side por `auth.jwt()->>'aal' = 'aal2'`, gate frontend y procedimiento operativo de alta, baja, revocación, pérdida de factor y re-enrollment. WebAuthn y phone MFA no se usan en la aplicación. Los socios continúan admitidos en AAL1.
 
-Antes del alta de cuentas privilegiadas debe aprobarse uno de estos caminos para `admin` y `superadmin`:
-
-1. MFA TOTP obligatorio, con enforcement verificable server-side/RLS y procedimiento de recuperación; o
-2. excepción de riesgo formal, con dueño, controles compensatorios y fecha de remediación.
-
-No se habilita MFA obligatorio para socios en esta fase. La decisión debe considerar soporte, pérdida del factor, accesibilidad, enrolamiento y cuentas de emergencia sin debilitar RLS.
+La migración canónica #18, `20260906182340_privileged_aal2_enforcement.sql`, fue aplicada primero en DEV y después en PROD. La validación LIVE sintética confirmó AAL1 denegado y AAL2 autorizado para admin/superadmin, challenge tras re-login, desactivación/revocación/reactivación y cleanup completo. Ver `docs/PROD_PRIVILEGED_MFA.md` y `docs/PROD_ACCOUNT_LIFECYCLE.md`.
 
 ### Cuenta y organización Supabase
 
-La existencia de la organización separada y el plan Pro quedaron confirmados. El estado MFA de la cuenta propietaria y una eventual política de enforcement de organización no pudieron verificarse de forma segura con la evidencia API disponible. No se activó enforcement organizacional para evitar bloquear al propietario sin confirmar previamente su MFA.
-
-B02 permanece **PARTIAL** hasta registrar responsable operativo, owner de facturación, miembros mínimos, MFA de cada cuenta con acceso, política organizacional aplicable y alertas de billing/uso disponibles.
+La existencia de la organización separada y el plan Pro quedaron confirmados. Fase 3G verificó owner, acceso mínimo, MFA individual, billing y cost governance; B02 está **CLOSED**. El MFA de la aplicación para roles privilegiados es independiente del MFA de la cuenta Supabase.
 
 ## Prueba controlada de signup cerrado
 
@@ -109,32 +102,35 @@ No fue necesario ejecutar cleanup porque no se creó ninguna identidad.
 
 ## Invariantes posteriores
 
-- Historial remoto: **17 migraciones canónicas**, sin cambios ni repair.
+- Historial remoto: **18 migraciones canónicas**, sin migration repair y con dry-run posterior vacío.
 - Edge Functions PROD: **0**.
 - Usuarios Auth PROD: **0**.
 - Profiles PROD: **0**.
 - Pilot 01: **PARKED**.
 - Site URL: `https://afucoa-v2-prod.pages.dev`.
 - Redirect URLs: allowlist vacía por diseño actual.
-- B02: **PARTIAL**.
+- Factores MFA PROD: **0** después del cleanup sintético.
+- Objetos Storage y datos de negocio PROD: **0**.
+- B02: **CLOSED**.
 - B03: **PARTIAL**.
 - B04–B05: **OPEN**.
 - B06: **CLOSED** para el origin canónico Pages.dev; ver `docs/PROD_CANONICAL_ORIGIN.md`.
-- B07–B10: **OPEN**.
+- B07–B08: **CLOSED**; B09–B10: **OPEN**.
 
 ## Validación local
 
 | Comando | Resultado |
 | --- | --- |
-| `pnpm test:migrations` | PASS — 17/17 checksums, 0 obsoletas |
-| `pnpm test:prod-operations` | PASS — 6/6 y contrato operativo de 18 archivos |
-| `pnpm test:prod-hosting` | PASS — 12/12 |
+| `pnpm test:migrations` | PASS — 18/18 checksums, 0 obsoletas |
+| `pnpm test:prod-operations` | PASS — 12/12 y contrato operativo PASS |
+| `pnpm test:prod-hosting` | PASS — 18/18 |
 | `pnpm test:prod-artifact` | PASS — 16/16 y build sintético sin referencias DEV, source maps ni clave privilegiada |
-| `pnpm test:edge-config` | PASS — 12/12 y check estático |
+| `pnpm test:edge-config` | PASS — 14/14 y check estático |
 | `pnpm test:recovery` | PASS — 13/13 |
-| `pnpm test:push` | PASS — 44/44 |
+| `pnpm test:push` | PASS — 46/46 |
 | `pnpm test:session` | PASS — 11/11 |
 | `pnpm test:navigation` | PASS — 5/5 |
-| `pnpm test:staging` | PASS — build de 163 módulos, 5 archivos, 0 source maps y 0 clave privilegiada |
+| `pnpm test:mfa` | PASS — 14/14 |
+| `pnpm test:staging` | PASS — build de 142 módulos, 5 archivos, 0 source maps y 0 clave privilegiada |
 
 Referencias: [Supabase — Password security](https://supabase.com/docs/guides/auth/password-security), [Supabase — General configuration](https://supabase.com/docs/guides/auth/general-configuration), [Supabase — Platform security](https://supabase.com/docs/guides/security/platform-security) y [Supabase — Production checklist](https://supabase.com/docs/guides/deployment/going-into-prod).

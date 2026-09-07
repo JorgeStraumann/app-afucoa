@@ -11,16 +11,16 @@ const pushHttpSource = (await readFile(
   new URL('supabase/functions/_shared/push-http.ts', root), 'utf8',
 )).replace(/^import .*;?\r?\n/gm, '').replace(/^export /gm, '');
 const api = vm.runInNewContext(
-  `${runtimeSource}\n${pushHttpSource}\n;({loadRuntimeConfig,requestOriginAllowed,corsHeaders,preflight})`,
-  { URL, Request, Response, Set, Object, Error, JSON, createClient: () => ({}) },
+  `${runtimeSource}\n${pushHttpSource}\n;({loadRuntimeConfig,secretKeyClientOptions,requestOriginAllowed,corsHeaders,preflight})`,
+  { URL, Request, Response, Headers, Set, Object, Error, JSON, createClient: () => ({}) },
 );
 
-const secret = 'synthetic-server-secret-never-log';
+const secret = 'sb_secret_synthetic_server_secret_never_log';
 const base = {
   AFUCOA_ENV: 'dev',
   AFUCOA_ALLOWED_ORIGINS: 'https://dev.example.test',
   SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
-  SUPABASE_SERVICE_ROLE_KEY: secret,
+  SUPABASE_SECRET_KEYS: JSON.stringify({ default: secret }),
 };
 
 function config(overrides = {}) {
@@ -30,7 +30,7 @@ function config(overrides = {}) {
 
 function rejected(overrides) {
   assert.throws(() => config(overrides), (error) => {
-    assert.equal(error.message, 'runtime_configuration_invalid');
+    assert.match(error.message, /^runtime_configuration_invalid(?::[a-z_]+)?$/);
     assert.doesNotMatch(error.message, /synthetic|server-secret|supabase\.co/);
     return true;
   });
@@ -55,11 +55,40 @@ test('SUPABASE_URL ausente, HTTP o ajena a Supabase falla cerrado', () => {
   rejected({ SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co/rest/v1' });
 });
 
-test('service-role ausente falla cerrado y no es enumerable', () => {
-  rejected({ SUPABASE_SERVICE_ROLE_KEY: undefined });
+test('secret key default ausente o inválida falla cerrado y no es enumerable', () => {
+  rejected({ SUPABASE_SECRET_KEYS: undefined });
+  rejected({ SUPABASE_SECRET_KEYS: '{}' });
+  rejected({ SUPABASE_SECRET_KEYS: '{invalid' });
+  rejected({ SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'legacy-jwt-not-accepted' }) });
   const loaded = config();
-  assert.equal(loaded.serviceRoleKey, secret);
+  assert.equal(loaded.secretKey, secret);
   assert.doesNotMatch(JSON.stringify(loaded), /synthetic-server-secret-never-log/);
+});
+
+test('una clave nombrada se selecciona explícitamente y default sigue siendo el fallback', () => {
+  const named = config({
+    AFUCOA_SECRET_KEY_NAME: 'afucoa_edge',
+    SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_unused', afucoa_edge: 'sb_secret_named' }),
+  });
+  assert.equal(named.secretKey, 'sb_secret_named');
+  rejected({
+    AFUCOA_SECRET_KEY_NAME: 'missing',
+    SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_default' }),
+  });
+  rejected({ AFUCOA_SECRET_KEY_NAME: '../default' });
+});
+
+test('cliente secret conserva apikey, retira Bearer secret y preserva JWT de usuario', async () => {
+  const observed = [];
+  const options = api.secretKeyClientOptions(secret, async (_input, init) => {
+    observed.push(Object.fromEntries(init.headers.entries()));
+    return new Response('{}');
+  });
+  await options.global.fetch('https://example.test', { headers: { apikey: secret, authorization: `Bearer ${secret}` } });
+  await options.global.fetch('https://example.test', { headers: { apikey: secret, authorization: 'Bearer user.jwt.value' } });
+  assert.equal(observed[0].apikey, secret);
+  assert.equal(Object.hasOwn(observed[0], 'authorization'), false);
+  assert.equal(observed[1].authorization, 'Bearer user.jwt.value');
 });
 
 test('prod rechaza HTTP, localhost y loopback', () => {

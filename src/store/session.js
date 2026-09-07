@@ -1,6 +1,7 @@
 import { appMode } from '../services/supabase.js';
 import { fetchMyProfile } from '../services/profile-service.js';
 import { getAuthSession, onAuthStateChange, signOut as authSignOut } from '../services/auth-service.js';
+import { getMfaStatus } from '../services/mfa-service.js';
 import { reconcilePushSubscription } from '../services/push-service.js';
 
 const SESSION_KEY = 'afucoa_v2_demo_session';
@@ -53,7 +54,25 @@ async function loadProfile(expectedGeneration) {
   }
 }
 
-async function synchronizeSession(authSession, { refresh = false } = {}) {
+function isPrivilegedProfile(profile) {
+  return ['admin', 'superadmin'].includes(profile?.role);
+}
+
+async function resolveMfaState(profile) {
+  if (!isPrivilegedProfile(profile)) {
+    return { required: false, mode: 'not_required', currentLevel: 'aal1', nextLevel: 'aal1', factorId: null };
+  }
+  try {
+    const status = await getMfaStatus();
+    return { ...status, required: status.currentLevel !== 'aal2' };
+  } catch {
+    // A transient Auth/MFA error is not a disabled account. Keep the Auth
+    // session, fail closed for Administration, and expose a retry-only gate.
+    return { required: true, mode: 'unavailable', currentLevel: 'aal1', nextLevel: null, factorId: null };
+  }
+}
+
+async function synchronizeSession(authSession, { refresh = false, refreshMfa = false } = {}) {
   if (signingOut || !authSession?.user?.id) throw cancelled();
   if (latestAuthSession?.user.id !== authSession.user.id) clearRealSession();
   latestAuthSession = authSession;
@@ -62,6 +81,13 @@ async function synchronizeSession(authSession, { refresh = false } = {}) {
   }
   // Explicit login, restoration and SIGNED_IN share one request/retry chain.
   if (profileFlight?.generation === generation) return profileFlight.promise;
+  if (currentSession && refreshMfa && !refresh) {
+    const expectedGeneration = generation;
+    const mfa = await resolveMfaState(currentSession.profile);
+    if (generation !== expectedGeneration) throw cancelled();
+    currentSession = { ...currentSession, auth: latestAuthSession, user: latestAuthSession.user, mfa };
+    return currentSession;
+  }
   if (currentSession && !refresh) return currentSession;
 
   const expectedGeneration = generation;
@@ -78,8 +104,10 @@ async function synchronizeSession(authSession, { refresh = false } = {}) {
     // exposing the new app session so a shared browser cannot keep the old owner.
     await reconcilePushSubscription(profile.id);
     if (generation !== expectedGeneration) throw cancelled();
+    const mfa = await resolveMfaState(profile);
+    if (generation !== expectedGeneration) throw cancelled();
     currentSession = {
-      demo: false, auth: latestAuthSession, user: latestAuthSession.user, profile,
+      demo: false, auth: latestAuthSession, user: latestAuthSession.user, profile, mfa,
     };
     return currentSession;
   }).finally(() => {
@@ -91,7 +119,7 @@ async function synchronizeSession(authSession, { refresh = false } = {}) {
 
 async function handleAuthStateChange(event, _snapshot) {
   if (signingOut) return;
-  if (!['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED', 'PASSWORD_RECOVERY'].includes(event)) return;
+  if (!['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED', 'PASSWORD_RECOVERY', 'MFA_CHALLENGE_VERIFIED'].includes(event)) return;
   const observedGeneration = generation;
   let authSession;
   try {
@@ -106,10 +134,18 @@ async function handleAuthStateChange(event, _snapshot) {
   }
   const previousUser = currentSession?.user?.id;
   const previousRole = currentSession?.profile?.role;
+  const previousMfaMode = currentSession?.mfa?.mode;
+  const previousAal = currentSession?.mfa?.currentLevel;
   try {
-    await synchronizeSession(authSession, { refresh: event === 'USER_UPDATED' });
+    await synchronizeSession(authSession, {
+      refresh: event === 'USER_UPDATED',
+      refreshMfa: event === 'TOKEN_REFRESHED' || event === 'MFA_CHALLENGE_VERIFIED',
+    });
     // Refreshing tokens/repeated SIGNED_IN must not remount a form being saved.
-    if (previousUser !== currentSession?.user?.id || previousRole !== currentSession?.profile?.role) sessionChanged();
+    if (previousUser !== currentSession?.user?.id
+      || previousRole !== currentSession?.profile?.role
+      || previousMfaMode !== currentSession?.mfa?.mode
+      || previousAal !== currentSession?.mfa?.currentLevel) sessionChanged();
   } catch {
     // The loader closes Auth ONLY for ACCOUNT_DISABLED; transport/RPC errors
     // retain the SDK tokens and any last validated profile. Never sign out here.
@@ -118,7 +154,11 @@ async function handleAuthStateChange(event, _snapshot) {
 
 export function getSession() { return currentSession; }
 export function getAppMode() { return appMode; }
-export function isAdminSession() { return ['admin', 'superadmin'].includes(currentSession?.profile?.role); }
+export function isMfaRequiredSession() { return Boolean(currentSession?.mfa?.required); }
+export function isAdminSession() {
+  if (currentSession?.demo) return ['admin', 'superadmin'].includes(currentSession?.profile?.role);
+  return isPrivilegedProfile(currentSession?.profile) && currentSession?.mfa?.currentLevel === 'aal2';
+}
 
 export async function bootstrapSession() {
   if (appMode === 'demo') {
@@ -158,6 +198,7 @@ export function startDemoSession(documentNumber) {
       member_number: '1925',
       status: 'activo',
     },
+    mfa: { required: false, mode: 'not_required', currentLevel: 'aal2', nextLevel: 'aal2', factorId: null },
   };
   currentSession = session;
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -167,6 +208,13 @@ export function startDemoSession(documentNumber) {
 export async function refreshProfile() {
   if (appMode !== 'supabase' || !currentSession) return currentSession;
   return synchronizeSession(latestAuthSession, { refresh: true });
+}
+
+export async function refreshMfaSession() {
+  if (appMode !== 'supabase' || !currentSession) return currentSession;
+  const authSession = await getAuthSession();
+  if (!authSession) throw cancelled();
+  return synchronizeSession(authSession, { refreshMfa: true });
 }
 
 export async function endSession() {

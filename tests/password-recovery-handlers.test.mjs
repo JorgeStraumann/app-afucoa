@@ -21,7 +21,8 @@ function fixture(options = {}) {
   const profile = { id: 'profile-dev', auth_user_id: 'auth-dev', document_number: '10000001', status: 'activo', email: 'dev@example.test', ...options.profile };
   const rows = [], mail = [], changes = [], logs = [], pending = [], counters = new Map();
   const env = { AFUCOA_ENV: 'dev', AFUCOA_ALLOWED_ORIGINS: origin,
-    SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'only-a-synthetic-test-secret',
+    SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
+    SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_only_a_synthetic_test_secret' }),
     RESEND_API_KEY: 'only-a-synthetic-provider-key', RECOVERY_EMAIL_FROM: 'AFUCOA <test@example.test>', ...options.env };
   const client = {
     from(table) {
@@ -78,7 +79,7 @@ function fixture(options = {}) {
   const handlers = {};
   for (const name of ['request', 'confirm']) {
     const context = vm.createContext({
-      createClient: () => client, crypto: webcrypto, URL, Request, Response, TextEncoder, TextDecoder, AbortController,
+      createClient: () => client, crypto: webcrypto, URL, Request, Response, Headers, TextEncoder, TextDecoder, AbortController,
       setTimeout: (fn, ms) => { if (ms < 10_000) fn(); return 0; }, clearTimeout() {},
       console: { error: value => logs.push(value) },
       Deno: { env: { get: key => env[key] }, serve: fn => { handlers[name] = fn; } },
@@ -185,7 +186,7 @@ test('configuración inválida falla cerrada sin filtrar secretos', async () => 
     { AFUCOA_ENV: undefined },
     { AFUCOA_ALLOWED_ORIGINS: undefined },
     { SUPABASE_URL: undefined },
-    { SUPABASE_SERVICE_ROLE_KEY: undefined },
+    { SUPABASE_SECRET_KEYS: undefined },
   ]) {
     const f=fixture({env});
     for (const name of ['request','confirm']) {

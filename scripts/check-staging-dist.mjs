@@ -30,7 +30,7 @@ if (!index.includes(`${EXPECTED_BASE}assets/`)) fail(`index.html no usa la base 
 if (!index.includes(`${EXPECTED_BASE}manifest.webmanifest`)) fail('el manifest no respeta la base pública.');
 if (manifest.start_url !== './') fail('manifest.start_url debe ser relativo.');
 if (!contents.includes(`${EXPECTED_PROJECT_REF}.supabase.co`)) fail('el bundle no apunta al proyecto DEV permitido.');
-if (/sb_secret|service_role|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
+if (/sb_secret_[A-Za-z0-9_-]{16,}|\bservice_role\b|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
   fail('el artefacto contiene una clave privilegiada o un rol privilegiado.');
 }
 if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|\bre_[A-Za-z0-9]{24,}/.test(contents)) {

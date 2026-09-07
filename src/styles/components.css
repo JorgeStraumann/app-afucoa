@@ -530,6 +530,19 @@
 .form-error{padding:.75rem .9rem;border:1px solid #fecaca;background:#fff7f7;color:#991b1b;border-radius:10px;font-size:.92rem}
 .integration-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.38rem .65rem;border-radius:999px;font-size:.78rem;font-weight:700;background:#eef4ff;color:#0a3d91}
 
+/* MFA TOTP privilegiado */
+.mfa-card { overflow:hidden; }
+.mfa-help { margin:0; color:var(--afucoa-muted); font-size:.86rem; line-height:1.5; }
+.mfa-enrollment { display:grid; gap:16px; }
+.mfa-qr-wrap { display:grid; place-items:center; padding:14px; border:1px solid var(--afucoa-border); border-radius:16px; background:white; }
+.mfa-qr-wrap canvas { width:min(100%,240px)!important; height:auto!important; }
+.mfa-secret { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; }
+.mfa-secret code { min-width:0; overflow-wrap:anywhere; padding:12px; border-radius:10px; background:var(--afucoa-blue-100); color:var(--afucoa-blue-900); font-size:.84rem; }
+@media (max-width:480px) {
+  .mfa-secret { grid-template-columns:1fr; }
+  .mfa-secret .button { width:100%; }
+}
+
 /* Incremento 08 — QR real, verificación pública y archivos privados */
 .qr-live{display:grid;place-items:center;min-height:280px;padding:16px;background:#fff;border:1px solid var(--afucoa-border);border-radius:16px}.qr-live canvas{width:min(100%,256px)!important;height:auto!important}.qr-loading,.qr-error{color:var(--afucoa-muted);text-align:center}.qr-error{color:#9f2f2f}.verification-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,#eef4ff 0%,#f7f9fc 45%,#fff 100%)}.verification-card{width:min(100%,520px);text-align:center;padding:32px}.verification-brand{display:flex;align-items:center;gap:12px;text-align:left;margin-bottom:28px}.verification-brand .brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--afucoa-blue-700);color:#fff;font-weight:800}.verification-brand small{display:block;color:var(--afucoa-muted)}.verification-status{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;margin:0 auto 18px;font-size:36px;font-weight:800;background:#e9f7ef;color:#14783f}.verification-card.invalid .verification-status{background:#fff0f0;color:#a33232}.verification-data{display:grid;gap:0;margin:24px 0;text-align:left;border:1px solid var(--afucoa-border);border-radius:14px;overflow:hidden}.verification-data div{display:flex;justify-content:space-between;gap:20px;padding:14px 16px;border-bottom:1px solid var(--afucoa-border)}.verification-data div:last-child{border-bottom:0}.verification-data dt{color:var(--afucoa-muted)}.verification-data dd{margin:0;font-weight:700;text-align:right}.file-link{display:block;width:100%;text-align:left;border:1px solid var(--afucoa-border);background:#fff;border-radius:12px;padding:12px 14px;margin-top:8px;cursor:pointer}.error-panel{padding:14px;border-radius:12px;background:#fff3f3;color:#7e2626}.form-fields>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .hidden{display:none!important}.back-link{display:inline-flex;margin-bottom:20px;color:var(--blue);font-weight:700;text-decoration:none}.form-status{min-height:1.4em;font-size:.9rem;color:var(--text-muted)}

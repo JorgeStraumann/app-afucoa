@@ -1,5 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
-import { corsHeaders, loadRuntimeConfig, requestOriginAllowed } from '../_shared/runtime-config.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2.116.0'
+import { corsHeaders, loadRuntimeConfig, requestOriginAllowed, secretKeyClientOptions } from '../_shared/runtime-config.ts'
 
 type AdminClient = ReturnType<typeof createClient>
 
@@ -110,10 +110,8 @@ Deno.serve(async (request) => {
       return reply({ error: 'invalid_password' }, 400)
     }
 
-    const client = createClient(config.supabaseUrl, config.serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
-    const serverKey = config.serviceRoleKey
+    const client = createClient(config.supabaseUrl, config.secretKey, secretKeyClientOptions(config.secretKey))
+    const serverKey = config.secretKey
 
     const ipHash = await hmac(`confirm-ip:${clientAddress(request)}`, serverKey)
     const globalHash = await hmac('confirm-global', serverKey)

@@ -81,10 +81,13 @@ async function smoke({ origin, manifestPath, releaseSha, deploymentId }) {
   }
 
   const publicText = `${html}\n${workerText}\n${JSON.stringify(webManifest)}`;
-  for (const forbidden of ['imiplnspvmsrsuikulwm', 'jorgestraumann.github.io', '/app-afucoa/', 'localhost', '127.0.0.1']) {
+  for (const forbidden of ['imiplnspvmsrsuikulwm', 'jorgestraumann.github.io', '/app-afucoa/']) {
     if (publicText.toLowerCase().includes(forbidden.toLowerCase())) throw new Error(`se detectó referencia prohibida: ${forbidden}.`);
   }
-  if (/sb_secret_|service_role|SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(publicText)) {
+  if (/(?:https?|wss?):\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[\/?#"']|$)/i.test(publicText)) {
+    throw new Error('se detectó una URL localhost o loopback.');
+  }
+  if (/sb_secret_[A-Za-z0-9_-]{16,}|\bservice_role\b|SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(publicText)) {
     throw new Error('se detectó material privilegiado en contenido público.');
   }
   if (/\.map(?:["'?#]|$)|sourceMappingURL/i.test(publicText)) throw new Error('se detectó referencia a source maps.');

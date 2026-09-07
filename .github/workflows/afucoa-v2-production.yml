@@ -82,6 +82,7 @@ jobs:
           pnpm test:push
           pnpm test:session
           pnpm test:navigation
+          pnpm test:mfa
 
       - name: Build real PROD artifact exactly once
         run: pnpm build:prod

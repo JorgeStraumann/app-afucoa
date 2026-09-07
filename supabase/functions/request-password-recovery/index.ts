@@ -1,5 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
-import { corsHeaders, loadRuntimeConfig, requestOriginAllowed } from '../_shared/runtime-config.ts'
+import { createClient } from 'npm:@supabase/supabase-js@2.116.0'
+import { corsHeaders, loadRuntimeConfig, requestOriginAllowed, secretKeyClientOptions } from '../_shared/runtime-config.ts'
 
 const PUBLIC_RESPONSE = {
   ok: true,
@@ -130,8 +130,11 @@ Deno.serve(async (request) => {
   const startedAt = Date.now()
   let config
   try { config = loadRuntimeConfig() }
-  catch {
-    console.error('password_recovery_request_failed')
+  catch (error) {
+    const reason = error instanceof Error && error.message.startsWith('runtime_configuration_invalid:')
+      ? error.message
+      : 'runtime_configuration_invalid'
+    console.error('password_recovery_request_failed', reason)
     return json(request, { error: 'temporarily_unavailable' }, 503)
   }
   const reply = (body: unknown, status = 200) => json(request, body, status, config)
@@ -147,10 +150,8 @@ Deno.serve(async (request) => {
 
     const body = await readJson(request)
     const document = normalizeDocument(body?.document_number)
-    const client = createClient(config.supabaseUrl, config.serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
-    const serverKey = config.serviceRoleKey
+    const client = createClient(config.supabaseUrl, config.secretKey, secretKeyClientOptions(config.secretKey))
+    const serverKey = config.secretKey
     const ipHash = await hmac(`request-ip:${clientAddress(request)}`, serverKey)
     const globalHash = await hmac('request-global', serverKey)
     const identityHash = await hmac(`request-identity:${document || 'invalid'}`, serverKey)

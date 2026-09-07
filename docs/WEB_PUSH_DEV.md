@@ -61,7 +61,7 @@ Las suites HTTP utilizaron credenciales transitorias exclusivamente para las tre
 
 ## Seguridad y Advisor
 
-El build se escanea por nombres de secretos, sb_secret, service_role, PEM y JWT privilegiados. Frontend solo recibe la publishable key DEV y la clave VAPID pública.
+El build se escanea por material `sb_secret_*`, `service_role`, PEM y JWT privilegiados. Frontend solo recibe la publishable key DEV y la clave VAPID pública. Las Edge Functions DEV usan una nueva Secret API Key seleccionada dentro del runtime server-side; Push fue revalidado antes de desactivar las legacy API keys DEV.
 
 Las advertencias SECURITY DEFINER de las tres RPC push son intencionales y revisadas: identidad derivada del JWT y columnas privadas no expuestas. Ledger con RLS sin policies es intencionalmente server-only, igual que rate limits de recuperación. Los índices FK nuevos sin uso aún se conservan. No se debilita seguridad para eliminar avisos.
 

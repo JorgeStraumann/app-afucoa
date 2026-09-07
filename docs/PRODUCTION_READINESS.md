@@ -12,7 +12,7 @@ Tipo de documento: auditoría viva de readiness; Fase 3G cierra B02/B08 y regist
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada completamente para producción.** B01, B02, B06, B07 y B08 están **CLOSED**; B03 permanece **PARTIAL**; B04, B05, B09 y B10 siguen **OPEN**. B02 cerró con owner, acceso mínimo, MFA individual, billing y cost governance verificados. B06 cubre el origin canónico `https://afucoa-v2-prod.pages.dev`. B07 cerró tras observar promoción, approval, rollback y restauración reales con smoke PASS. B08 cerró con backup/restore físico y Storage sintético reales; el dump lógico adicional es defensa en profundidad no bloqueante.
+**AFUCOA V2 todavía no está habilitada completamente para producción.** B01, B02, B06, B07 y B08 están **CLOSED**; B03 permanece **PARTIAL** únicamente por Recovery PROD/B04 E2E; B04, B05, B09 y B10 siguen **OPEN**. Fase 3H agregó MFA TOTP obligatorio para admin/superadmin, enforcement AAL2 server-side y ciclo operativo validado con identidades PROD sintéticas eliminadas al finalizar. B02 cerró con owner, acceso mínimo, MFA individual, billing y cost governance verificados. B06 cubre el origin canónico `https://afucoa-v2-prod.pages.dev`. B07 cerró tras observar promoción, approval, rollback y restauración reales con smoke PASS. B08 cerró con backup/restore físico y Storage sintético reales; el dump lógico adicional es defensa en profundidad no bloqueante.
 
 Los riesgos técnicos más inmediatos son:
 
@@ -37,9 +37,9 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 
 | ID | Blocker | Dependencia/costo | Criterio de cierre |
 | --- | --- | --- | --- |
-| B01 — **CLOSED** | Bootstrap canónico reproducible | Completado con Supabase CLI 2.116.0, sin Docker | 17/17 aplicadas desde base vacía; historial exacto; 28 tablas con RLS, 46 policies públicas, 11 Storage policies, 17 funciones definer y 3 buckets coinciden. Evidencia: `docs/PROD_BOOTSTRAP.md`. |
+| B01 — **CLOSED** | Bootstrap canónico reproducible | Completado con Supabase CLI 2.116.0, sin Docker | Bootstrap 17/17 desde base vacía y migración #18 aplicada canónicamente después de DEV PASS; DEV/PROD 18/18, dry-run posterior vacío y sin migration repair. Evidencia: `docs/PROD_BOOTSTRAP.md` y `docs/PROD_PRIVILEGED_MFA.md`. |
 | B02 — **CLOSED** | Proyecto PROD separado y gobernanza operativa verificada | Organización `AFUCOA PROD` en Pro; región `sa-east-1`; modelo de una sola persona | Un miembro humano Owner, acceso mínimo, MFA individual habilitado, responsables formales, billing operativo, Spend Cap habilitado, compute micro y add-ons inesperados ausentes. El enforcement MFA organizacional queda como mejora futura por riesgo de lockout del único Owner. Evidencia: `docs/PROD_GOVERNANCE.md`. |
-| B03 — **PARTIAL** | Hardening base Auth y URL canónica aplicados; MFA privilegiado, ciclo operativo y recovery pendientes | Leaked Password Protection ya está habilitada con el plan Pro | Mínimo 12, cuatro clases, signup público cerrado, HIBP y `Site URL=https://afucoa-v2-prod.pages.dev` están evidenciados. Para cerrar: decisión/enforcement MFA para admin/superadmin, altas/bajas/recuperación y E2E recovery PROD. Evidencia: `docs/PROD_AUTH_HARDENING.md`. |
+| B03 — **PARTIAL** | Hardening base Auth, URL, MFA privilegiado y ciclo operativo aplicados | Leaked Password Protection ya está habilitada con el plan Pro | Mínimo 12, cuatro clases, signup cerrado, HIBP, Site URL y MFA TOTP AAL2 para admin/superadmin están evidenciados. Alta/baja/revocación/reset MFA fueron documentados y validados sintéticamente. Único pendiente: Recovery PROD/B04 E2E. Evidencia: `docs/PROD_AUTH_HARDENING.md`, `docs/PROD_PRIVILEGED_MFA.md` y `docs/PROD_ACCOUNT_LIFECYCLE.md`. |
 | B04 — **ABIERTO** | Recuperación parametrizada y validada E2E en DEV, pero PROD no está lista | Dominio y proveedor de correo; costo según proveedor/volumen | Configurar/desplegar runtime PROD, usar email/dominio/secrets PROD, verificar titularidad de emails y aprobar E2E real PROD: solicitud neutra, recepción, cambio, login, expirado, reuso y límites. |
 | B05 — **ABIERTO** | Web Push parametrizado y validado E2E en DEV, pero PROD no está lista | VAPID PROD, dominio HTTPS y observabilidad; costos posibles del hosting/monitoring | Configurar/desplegar runtime PROD, generar VAPID PROD nueva, validar dominio/scope/runtime final y completar E2E PROD multidispositivo, limpieza 404/410, ledger, retry y alertas. Nunca copiar VAPID DEV. |
 | B06 — **CLOSED** | Origin canónico Cloudflare Pages.dev adoptado y validado | Sin dominio propio ni costo nuevo aprobado | Production deployment estable, HTTPS/TLS, HSTS canónico, CSP, headers, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado están probados. Evidencia: `docs/PROD_CANONICAL_ORIGIN.md` y `docs/PROD_HOSTING_FOUNDATION.md`. |
@@ -74,7 +74,7 @@ La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor.
 
 - [x] Habilitar **Leaked Password Protection** en Auth PROD Pro y aplicar mínimo 12/cuatro clases/signup cerrado. DEV Free conserva el warning de forma consciente; no se elimina con SQL ni con código de aplicación.
 - [x] Reemplazar el Site URL temporal por `https://afucoa-v2-prod.pages.dev`; mantener allowlist de redirects vacía y verificar configuración Auth final del frontend.
-- Definir el segundo factor para cuentas privilegiadas. La recomendación es MFA obligatorio para admin/superadmin; si no se implementa antes del go-live, se necesita una excepción de riesgo explícita con controles compensatorios y fecha de remediación.
+- [x] MFA TOTP obligatorio para admin/superadmin, con AAL2 server-side, gate frontend, re-login challenge y lifecycle sintético PROD. Los socios permanecen en AAL1.
 - Definir alta, baja, reemplazo de correo, pérdida de acceso, baja de funcionarios y revocación de sesiones. Un `profiles.status = inactivo` protege las RPC contextuales, pero el runbook debe cubrir también sesiones Auth activas.
 - Ejecutar RLS e integración contra un proyecto PROD vacío/preproducción con identidades sintéticas, nunca con socios reales ni con sesiones compartidas.
 - Revisar cada `SECURITY DEFINER` de nuevo después de construir PROD: propietario, `search_path`, grants, uso de `auth.uid()`, outputs y comportamiento sin perfil activo. No convertirlas a invoker solo para silenciar Advisor.
@@ -192,9 +192,9 @@ GitHub documenta que los environments pueden restringir ramas, requerir aprobaci
 
 - No se encontraron foreign keys públicas sin índice utilizable.
 - El Advisor de rendimiento marca índices sin uso y políticas permisivas múltiples; se detallan más abajo. No se deben eliminar índices usando métricas de un entorno DEV pequeño.
-- La cadena local contiene ahora las 17 versiones/nombres canónicos observados en DEV. `MANIFEST.json` conserva los SHA-256 normalizados obtenidos de `supabase_migrations.schema_migrations.statements[]`, y `pnpm test:migrations` informa 17/17. Las dos versiones obsoletas `20260831*` fueron retiradas.
+- La cadena local contiene ahora 18 versiones/nombres canónicos. `MANIFEST.json` conserva los SHA-256 normalizados y `pnpm test:migrations` informa 18/18. Las dos versiones obsoletas `20260831*` permanecen retiradas.
 - La igualdad comprobada es de SQL normalizado: CRLF/CR a LF y exactamente un LF terminal; no se afirma igualdad byte-a-byte con la representación interna de Supabase.
-- Fase 3A aplicó la cadena con Supabase CLI 2.116.0 sobre PROD vacío, sin Docker. El historial remoto quedó 17/17 y el resultado estructural coincide con el baseline esperado: 28 tablas públicas con RLS, 46 policies públicas, 11 Storage policies, 17 funciones `SECURITY DEFINER` y 3 buckets. Ver `docs/PROD_BOOTSTRAP.md`.
+- Fase 3A aplicó las primeras 17 migraciones con Supabase CLI 2.116.0 sobre PROD vacío, sin Docker. Fase 3H aplicó exclusivamente `20260906182340_privileged_aal2_enforcement.sql` después de un dry-run sin divergencias. DEV y PROD quedaron 18/18 y el dry-run posterior no tiene pendientes. Ver `docs/PROD_BOOTSTRAP.md` y `docs/PROD_PRIVILEGED_MFA.md`.
 
 ### Requisitos PROD
 
@@ -283,7 +283,7 @@ Resumen de findings:
 
 ### Fase 2 — preparación técnica sin producción
 
-- [x] Reconstruir la cadena canónica de 17 migraciones y documentar checksums/orden.
+- [x] Reconstruir la cadena canónica inicial y mantenerla en 18 migraciones con checksums/orden después del enforcement MFA.
 - [x] Aplicar la cadena desde cero en el proyecto PROD vacío mediante CLI, conservar las 17 versiones y comparar tablas, RLS, policies, funciones y Storage con el baseline esperado.
 - [x] Parametrizar recuperación y push para entornos explícitos; en modo PROD, fallar cerrado si URL/origen/secreto no están presentes. Desplegado y validado E2E únicamente en DEV.
 - [x] Crear un inventario permitido de Edge Functions que excluya `dev-seed-test-users` de PROD.
@@ -308,7 +308,7 @@ Resumen de findings:
 - [x] Provisionar Supabase PROD Pro separado y confirmar región/aislamiento; verificar un único Owner necesario, MFA individual, responsables, billing, Spend Cap y recursos activos. B02 CLOSED; ver `docs/PROD_GOVERNANCE.md`.
 - [x] Aplicar la cadena aprobada a PROD vacío y validar estructura/historial sin usuarios ni datos. Smoke/RLS con usuarios sintéticos quedan para una fase posterior.
 - [x] Configurar el hardening base Auth PROD: política de 12/cuatro clases, signup cerrado y Leaked Password Protection.
-- [x] Completar Auth PROD: Site URL canónico y redirects mínimos. Pendientes de B03: MFA privilegiado, recuperación y ciclo operativo de altas/bajas.
+- [x] Completar Auth PROD: Site URL canónico, redirects mínimos, MFA privilegiado AAL2 y ciclo operativo de altas/bajas/revocación/reset. B03 queda parcial únicamente por Recovery PROD/B04 E2E.
 - [ ] Crear VAPID PROD y secrets Edge PROD; desplegar funciones parametrizadas.
 - [ ] Configurar proveedor/email PROD, dominio, SPF/DKIM/DMARC y alertas.
 - [x] Backups diarios, RPO/RTO y restore físico/Storage sintético validados sin PITR. B08 CLOSED; dump lógico adicional no bloqueante.
@@ -371,18 +371,19 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 | `pnpm test:prod-operations` | 12/12 PASS + contrato PASS | 20 archivos operativos, 17 alertas y 7 smoke checks no destructivos; evidencia Fases 3F/3G incluida. |
 | `pnpm test:prod-hosting` | PASS | CSP/headers/cache PROD, ausencia de referencias DEV, template inactivo y release manifest determinístico/sin secretos. |
 | `pnpm test:prod-artifact` | PASS | Build PROD sintético sin red; base `/`; 0 referencias DEV, 0 source maps y 0 material privilegiado. Casos negativos fail-closed cubiertos. |
-| `pnpm test:edge-config` | 12/12 PASS + check estático PASS | Fail-closed, CORS exacto, restricciones PROD/DEV, secreto no enumerable y 4 funciones PROD permitidas. |
-| `pnpm test:migrations` | 17/17 PASS | Versiones/nombres/orden/checksums; 0 obsoletas; 3 buckets esperados; 0 objetos Storage copiados. |
+| `pnpm test:edge-config` | 14/14 PASS + check estático PASS | Fail-closed, CORS exacto, selección segura de Secret API Key, restricciones PROD/DEV y 4 funciones PROD permitidas. |
+| `pnpm test:migrations` | 18/18 PASS | Versiones/nombres/orden/checksums; 0 obsoletas; 3 buckets esperados; 0 objetos Storage copiados. |
 | `pnpm test:recovery` | 13/13 PASS | Neutralidad, HMAC, expiración/reuso/intentos, rate limits, CORS, fail-closed y POST server-to-server. |
-| `pnpm test:staging` | PASS | Incluyó guard de Auth LIVE; build 163 módulos; 5 archivos; 0 source maps; clave publishable configurada; 0 clave privilegiada detectada. |
+| `pnpm test:staging` | PASS | Incluyó migraciones, Edge config y guard de Auth LIVE; build 142 módulos; 5 archivos; 0 source maps; 0 clave privilegiada detectada. |
 | `pnpm test:session` | 11/11 PASS | Concurrencia, errores transitorios, perfil ausente/inactivo, refresh, restauración, cambio de identidad y logout manual. |
-| `pnpm test:push` | 44/44 PASS | Suscripción, logout/login, cambio de cuenta, payload, worker, tags, provider policy, lotes y cifrado. |
+| `pnpm test:push` | 46/46 PASS | Suscripción, logout/login, cambio de cuenta, payload, worker, tags, AAL2 del sender, provider policy, lotes y cifrado. |
 | `pnpm test:navigation` | 5/5 PASS | Visibilidad y protección Admin; logout conserva push y baja explícita desactiva. |
+| `pnpm test:mfa` | 14/14 PASS | Socio AAL1, admin/superadmin AAL1 denegado, AAL2, gate, enrollment/challenge, refresh, cuenta inactiva, secreto no persistido y guard central. |
 
-No se ejecutaron suites LIVE de login/RLS/integración porque PROD no tiene usuarios y esta fase prohíbe crearlos. La única llamada Auth pública fue el probe sintético `example.invalid` de signup cerrado: fue rechazado y dejó 0 usuarios/0 profiles. La evidencia versionada más reciente conserva RLS 40/40 e integración 34/34; deben repetirse contra infraestructura vacía/preproducción con identidades sintéticas aprobadas antes de un go-live.
+Fase 3H ejecutó una suite LIVE dedicada con dos identidades PROD inequívocamente sintéticas y confirmó MFA/lifecycle para admin y superadmin. El cleanup remoto posterior dejó 0 usuarios, 0 profiles, 0 factores MFA, 0 objetos Storage y 0 datos de negocio. Las matrices generales RLS 40/40 e integración 34/34 permanecen como evidencia DEV y deberán repetirse contra la infraestructura preproducción completa cuando B04/B05 autoricen sus Edge Functions y proveedores PROD.
 
 ## 12. Restricciones preservadas
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones versionadas. Fase 3B cambió únicamente Auth PROD: política fuerte, HIBP y cierre de signup público; no creó usuarios ni perfiles. Fase 3C agregó el adaptador versionado de headers y creó el proyecto Cloudflare Pages. Fase 3D desplegó el artefacto `canonical-domain` en Production y actualizó únicamente `Site URL`/redirects de Auth PROD. Fase 3E configuró GitHub Environment/variables/secret por nombre, protegió `afucoa-v2` y validó promoción/rollback/restauración sin tocar Supabase, V1, commits de `main`, Pilot, DNS ni datos. Fase 3F aprobó el baseline RPO/RTO, restauró un backup físico real en un proyecto temporal, validó estructura y Storage sintético y eliminó el recurso. Fase 3G reclasificó el dump lógico como defensa en profundidad no bloqueante, cerró B08 y verificó read-only la gobernanza PROD para cerrar B02; no cambió Supabase ni infraestructura. B01, B02, B06, B07 y B08 están **CLOSED**; B03 sigue **PARTIAL**; B04, B05, B09 y B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada completamente lista para producción.
+Fase 3A modificó exclusivamente la base PROD vacía mediante las 17 migraciones iniciales. Fase 3B cambió únicamente Auth PROD: política fuerte, HIBP y cierre de signup público; no creó usuarios ni perfiles. Fase 3C agregó el adaptador versionado de headers y creó el proyecto Cloudflare Pages. Fase 3D desplegó el artefacto `canonical-domain` en Production y actualizó únicamente `Site URL`/redirects de Auth PROD. Fase 3E configuró GitHub Environment/variables/secret por nombre, protegió `afucoa-v2` y validó promoción/rollback/restauración sin tocar Supabase, V1, commits de `main`, Pilot, DNS ni datos. Fase 3F aprobó el baseline RPO/RTO, restauró un backup físico real en un proyecto temporal, validó estructura y Storage sintético y eliminó el recurso. Fase 3G reclasificó el dump lógico como defensa en profundidad no bloqueante, cerró B08 y verificó read-only la gobernanza PROD para cerrar B02. Fase 3H agregó la migración #18, MFA privilegiado TOTP y lifecycle; las dos identidades sintéticas PROD fueron eliminadas y no se desplegaron Edge Functions. B01, B02, B06, B07 y B08 están **CLOSED**; B03 sigue **PARTIAL** únicamente por Recovery PROD/B04 E2E; B04, B05, B09 y B10 permanecen **OPEN** y Pilot 01 sigue **PARKED**. AFUCOA V2 no está declarada completamente lista para producción.

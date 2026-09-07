@@ -1,5 +1,5 @@
-import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.4';
-import {corsHeaders,loadRuntimeConfig,requestOriginAllowed} from './runtime-config.ts';
+import {createClient} from 'npm:@supabase/supabase-js@2.116.0';
+import {corsHeaders,loadRuntimeConfig,requestOriginAllowed,secretKeyClientOptions} from './runtime-config.ts';
 export {loadRuntimeConfig};
 export function respond(request,config,body,status=200) {
   return new Response(body===null?null:JSON.stringify(body),{status,headers:corsHeaders(request,config)});
@@ -10,15 +10,23 @@ export function preflight(request,config) {
   if(request.method!=='POST') return respond(request,config,{error:'method_not_allowed'},405);
   return null;
 }
+function jwtAal(jwt) {
+  try {
+    const payload=jwt.split('.')[1];if(!payload)return null;
+    const normalized=payload.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(payload.length/4)*4,'=');
+    const claims=JSON.parse(atob(normalized));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return null;}
+}
 export async function authenticate(request,config,adminOnly=false) {
   const jwt=request.headers.get('authorization')?.match(/^Bearer (.+)$/i)?.[1];
   if(!jwt) return {error:401};
-  const db=createClient(config.supabaseUrl,config.serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
+  const db=createClient(config.supabaseUrl,config.secretKey,secretKeyClientOptions(config.secretKey));
   const user=await db.auth.getUser(jwt);
   if(user.error || !user.data.user) return {error:401};
   const profile=await db.from('profiles').select('id,role').eq('auth_user_id',user.data.user.id).eq('status','activo').maybeSingle();
   if(profile.error) return {error:503};
-  if(!profile.data || (adminOnly && !['admin','superadmin'].includes(profile.data.role))) return {error:403};
+  if(!profile.data || (adminOnly && (!['admin','superadmin'].includes(profile.data.role) || jwtAal(jwt)!=='aal2'))) return {error:403};
   return {db,profile:profile.data};
 }
 export async function pushEnabled(db) {

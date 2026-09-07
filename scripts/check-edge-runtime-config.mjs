@@ -49,6 +49,9 @@ const files = await typescriptFiles(functionsDir);
 for (const file of files) {
   const source = await readFile(file, 'utf8');
   const relative = path.relative(functionsDir, file).replaceAll('\\', '/');
+  if (/SUPABASE_SERVICE_ROLE_KEY|SUPABASE_ANON_KEY|serviceRoleKey/.test(source)) {
+    fail(`${relative} conserva una dependencia de API keys legacy.`);
+  }
   if (file !== runtimeConfigPath) {
     for (const value of forbiddenRuntimeValues) {
       if (source.includes(value)) fail(`${relative} contiene un hardcode DEV: ${value}.`);
@@ -63,8 +66,16 @@ for (const file of files) {
 }
 
 const runtimeSource = await readFile(runtimeConfigPath, 'utf8');
-for (const token of ['AFUCOA_ENV', 'AFUCOA_ALLOWED_ORIGINS', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']) {
+for (const token of ['AFUCOA_ENV', 'AFUCOA_ALLOWED_ORIGINS', 'AFUCOA_SECRET_KEY_NAME', 'SUPABASE_URL', 'SUPABASE_SECRET_KEYS']) {
   if (!runtimeSource.includes(token)) fail(`runtime-config no valida ${token}.`);
+}
+if (/SUPABASE_SERVICE_ROLE_KEY|serviceRoleKey/.test(runtimeSource)) {
+  fail('runtime-config conserva una dependencia de la legacy service_role.');
+}
+if (!runtimeSource.includes("getEnv('AFUCOA_SECRET_KEY_NAME') || 'default'")
+  || !runtimeSource.includes('secretKeys[secretKeyName]')
+  || !runtimeSource.includes('secretKeyClientOptions')) {
+  fail("runtime-config no selecciona SUPABASE_SECRET_KEYS['default'] o el nombre explícito de forma segura.");
 }
 if (!runtimeSource.includes("env === 'prod'")
   || !runtimeSource.includes('DEV_PROJECT_REF')
@@ -78,8 +89,14 @@ const recoverySources = await Promise.all([
 if (recoverySources.some((source) => !source.includes("../_shared/runtime-config.ts"))) {
   fail('alguna función de recuperación no consume runtime-config compartida.');
 }
+if (recoverySources.some((source) => !source.includes('npm:@supabase/supabase-js@2.116.0'))) {
+  fail('alguna función de recuperación no fija la versión compatible con Secret API Keys.');
+}
 const pushHttp = await readFile(path.join(functionsDir, '_shared', 'push-http.ts'), 'utf8');
 if (!pushHttp.includes("./runtime-config.ts")) fail('Web Push no consume runtime-config compartida.');
+if (!pushHttp.includes('npm:@supabase/supabase-js@2.116.0')) {
+  fail('Web Push no fija la versión compatible con Secret API Keys.');
+}
 
 console.log(JSON.stringify({
   ok: true,

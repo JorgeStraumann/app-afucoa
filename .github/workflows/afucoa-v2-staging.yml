@@ -50,6 +50,9 @@ jobs:
       - name: Validate synthetic production artifact (no deploy)
         run: pnpm test:prod-artifact
 
+      - name: Validate privileged MFA gate
+        run: pnpm test:mfa
+
       - name: Build and validate staging artifact
         # This rebuilds dist with the DEV staging contract after the synthetic
         # production check. Only this final staging dist is uploaded below.

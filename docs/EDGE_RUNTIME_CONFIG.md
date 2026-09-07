@@ -21,9 +21,10 @@ No se agregó ninguna variable al frontend. La clave privilegiada permanece excl
 | `AFUCOA_ENV` | `dev` | `prod` | Obligatoria; cualquier otro valor falla cerrado. |
 | `AFUCOA_ALLOWED_ORIGINS` | Lista explícita de origins DEV necesarios | Lista explícita de origins PROD HTTPS | CSV, sin wildcard, paths, query, fragment, credenciales ni entradas vacías. No hay defaults. |
 | `SUPABASE_URL` | La URL server-side provista por el proyecto DEV | La URL provista por el proyecto PROD | Obligatoria, HTTPS, host `*.supabase.co`, sin path/query/fragment/credenciales. PROD rechaza el project ref DEV. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Provista por el runtime DEV | Provista por el runtime PROD | Obligatoria y server-side. Nunca `VITE_*`, GitHub Pages, repositorio, respuestas o logs. |
+| `SUPABASE_SECRET_KEYS` | Mapa JSON server-side provisto por Supabase DEV | Mapa JSON server-side futuro de PROD | Debe contener una nueva Secret API Key `sb_secret_*`; nunca `VITE_*`, frontend, repositorio, respuestas o logs. |
+| `AFUCOA_SECRET_KEY_NAME` | Nombre explícito de la clave activa DEV | Nombre explícito futuro PROD | Opcional; usa `default` si no se define. Solo selecciona una entrada del mapa y no contiene el valor de la clave. |
 
-Supabase expone `SUPABASE_URL` y la legacy `SUPABASE_SERVICE_ROLE_KEY` como variables server-side del runtime. Una futura migración a `SUPABASE_SECRET_KEYS` debe tratarse como una fase independiente y probarse antes de desactivar claves legacy.
+Las cuatro Edge Functions usan `SUPABASE_URL` y una entrada de `SUPABASE_SECRET_KEYS`. DEV migró y validó este contrato antes de desactivar sus legacy API keys. El código ya no lee `SUPABASE_SERVICE_ROLE_KEY`.
 
 Variables adicionales que conservan su semántica:
 
@@ -38,7 +39,8 @@ Variables adicionales que conservan su semántica:
 
 - valida la presencia y el valor de `AFUCOA_ENV`;
 - valida y normaliza la URL Supabase sin fallback;
-- exige la clave server-side y la conserva como propiedad no enumerable;
+- exige el mapa de Secret API Keys, selecciona una entrada válida `sb_secret_*` y la conserva como propiedad no enumerable;
+- retira únicamente un fallback `Authorization: Bearer <secret key>` y mantiene `apikey` más el JWT real del usuario para que Auth/RLS/AAL sigan siendo efectivos;
 - normaliza cada origin a `URL.origin` y rechaza wildcard, paths, query, fragment, credenciales, duplicados y elementos vacíos;
 - en PROD rechaza HTTP, localhost, subdominios `.localhost`, loopback IPv4/IPv6, el origen del staging GitHub Pages y el project ref DEV;
 - en DEV permite localhost únicamente cuando aparece explícitamente en la lista;
@@ -69,18 +71,18 @@ Los POST server-to-server sin header `Origin` se conservan. CORS es un control d
 
 `scripts/check-edge-runtime-config.mjs` falla si el inventario cambia, falta un entrypoint, aparece una función DEV/test, reaparecen hardcodes DEV fuera del validador de rechazo, existen fallbacks URL silenciosos o un handler deja de consumir la configuración compartida.
 
-## Despliegue y validación real en DEV — Fase 2C
+## Despliegue y validación real en DEV — Fases 2C/3H
 
 La parametrización de Fase 2B fue desplegada posteriormente solo en AFUCOA V2 DEV. Las cuatro funciones quedaron `ACTIVE`:
 
 | Función | Versión DEV validada |
 | --- | ---: |
-| `request-password-recovery` | 23 |
-| `confirm-password-recovery` | 23 |
-| `push-config` | 9 |
-| `send-notification-push` | 12 |
+| `request-password-recovery` | 32 |
+| `confirm-password-recovery` | 30 |
+| `push-config` | 16 |
+| `send-notification-push` | 19 |
 
-El runtime DEV tiene `AFUCOA_ENV=dev` y una lista explícita en `AFUCOA_ALLOWED_ORIGINS`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` siguen provistas únicamente server-side; la configuración Resend y VAPID existente fue preservada. Este documento no publica valores de origins, claves, remitentes ni secretos.
+El runtime DEV tiene `AFUCOA_ENV=dev`, una lista explícita en `AFUCOA_ALLOWED_ORIGINS` y selección server-side de la nueva Secret API Key. `SUPABASE_URL`, el mapa y la clave permanecen fuera del frontend; Resend y VAPID existentes fueron preservados. Recovery, Push y MFA LIVE pasaron después de la migración. Las legacy API keys DEV quedaron desactivadas. Este documento no publica nombres internos de claves, valores de origins, claves, remitentes ni secretos.
 
 La recuperación real con el usuario sintético DEV `10000001` completó solicitud desde staging, recepción del correo, recepción y aceptación del código de ocho dígitos, cambio de contraseña y login con la contraseña nueva. La evidencia en base registró `delivery_status=sent`, `consumed=true` e `invalidated=false`. No se conserva aquí el código ni la contraseña.
 

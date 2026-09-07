@@ -19,7 +19,7 @@ Los mensajes de login no distinguen entre cédula inexistente y contraseña inco
 
 1. `request-password-recovery` recibe la cédula y siempre responde: “Si la cuenta está habilitada, recibirás un código en breve”. La respuesta es igual para identidad existente, inexistente, inactiva, sin correo, sin proveedor o limitada.
 2. Solo un perfil activo, vinculado a Auth y con correo real puede generar un código.
-3. El código tiene 8 dígitos, se genera con `crypto.getRandomValues()`, vence en 10 minutos y se guarda únicamente como HMAC-SHA-256. La clave HMAC es `SUPABASE_SERVICE_ROLE_KEY`, disponible solo dentro de la Edge Function.
+3. El código tiene 8 dígitos, se genera con `crypto.getRandomValues()`, vence en 10 minutos y se guarda únicamente como HMAC-SHA-256. La clave HMAC deriva de la Secret API Key seleccionada dentro de la Edge Function y nunca sale del runtime server-side.
 4. Crear un código invalida atómicamente todos los anteriores del mismo perfil.
 5. `confirm-password-recovery` consume el código atómicamente antes de llamar a `auth.admin.updateUserById()`. Un código consumido, invalidado, vencido o bloqueado no puede reutilizarse.
 6. Tras cinco códigos incorrectos, el código queda invalidado.
@@ -50,7 +50,7 @@ La integración con Resend está terminada dentro de `request-password-recovery`
 - `RESEND_API_KEY`
 - `RECOVERY_EMAIL_FROM`, con formato de remitente aceptado por Resend y dominio verificado
 
-La configuración compartida exige además `AFUCOA_ENV`, `AFUCOA_ALLOWED_ORIGINS`, `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`. No existen origins por defecto. `RECOVERY_ALLOWED_ORIGINS` quedó reemplazada por la lista única compartida.
+La configuración compartida exige además `AFUCOA_ENV`, `AFUCOA_ALLOWED_ORIGINS`, `SUPABASE_URL` y `SUPABASE_SECRET_KEYS`; `AFUCOA_SECRET_KEY_NAME` permite seleccionar una entrada nombrada y usa `default` cuando no se define. No existen origins por defecto. `RECOVERY_ALLOWED_ORIGINS` quedó reemplazada por la lista única compartida. DEV validó Recovery E2E y MFA LIVE con la nueva clave antes de desactivar las legacy API keys.
 
 Si Resend rechaza el envío, el código queda marcado `failed` e invalidado. El código nunca se devuelve al cliente ni se imprime en logs. En la validación Fase 2C se usó un correo real autorizado asociado al usuario sintético DEV `10000001`; el valor del correo no se documenta.
 

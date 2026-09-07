@@ -112,15 +112,19 @@ const forbiddenReferences = [
   ['imiplnspvmsrsuikulwm', 'project ref DEV'],
   ['https://jorgestraumann.github.io', 'origen GitHub Pages staging'],
   ['/app-afucoa/', 'base staging'],
-  ['localhost', 'localhost'],
-  ['127.0.0.1', 'loopback'],
   ['AFUCOA_ENV=dev', 'runtime DEV'],
 ];
 for (const [needle, label] of forbiddenReferences) {
   if (contents.toLowerCase().includes(needle.toLowerCase())) fail(`el artefacto contiene ${label}.`);
 }
+// Supabase Auth includes the literal hostname "localhost" inside its WebAuthn
+// domain validator. Reject actual loopback URLs while allowing that inert SDK
+// validation branch to remain in the minified dependency.
+if (/(?:https?|wss?):\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[\/?#"']|$)/i.test(contents)) {
+  fail('el artefacto contiene una URL localhost o loopback.');
+}
 
-if (/sb_secret_|sb_service_role_|\bservice_role\b|SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
+if (/sb_secret_[A-Za-z0-9_-]{16,}|sb_service_role_|\bservice_role\b|SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
   fail('el artefacto contiene nombres o patrones privilegiados.');
 }
 if (/VITE_[A-Z0-9_]*(?:SERVICE_ROLE|SECRET|PRIVATE_KEY|VAPID_PRIVATE|RESEND)/i.test(contents)) {

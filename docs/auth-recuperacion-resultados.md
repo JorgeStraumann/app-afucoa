@@ -56,4 +56,4 @@ Leaked Password Protection permanece deshabilitado en el plan Free: es un requis
 
 La configuración runtime DEV utiliza `AFUCOA_ENV=dev`, `AFUCOA_ALLOWED_ORIGINS` explícita y las variables Supabase provistas server-side. Resend existente fue preservado. No se publican valores ni se guardan claves en chat, Vite, GitHub Pages o repositorio.
 
-La validación DEV quedó cerrada, pero no habilita usuarios reales ni producción. B04 permanece abierto hasta disponer de email, dominio, secrets, runtime y E2E exclusivamente PROD. Pilot 01 sigue suspendido.
+La validación DEV quedó cerrada y se revalidó después de migrar las Edge Functions a una nueva Secret API Key y desactivar las legacy API keys DEV. Esto no habilita usuarios reales ni producción. B04 permanece abierto hasta disponer de email, dominio, secrets, runtime y E2E exclusivamente PROD. Pilot 01 sigue suspendido.

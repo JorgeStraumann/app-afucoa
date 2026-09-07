@@ -15,8 +15,9 @@ import { renderNotifications, bindNotifications } from './pages/notificaciones/n
 import { renderAccount, bindAccount } from './pages/cuenta/cuenta.js';
 import { renderVerification } from './pages/verificacion/verificacion.js';
 import { renderRecovery, bindRecovery } from './pages/recuperar/recuperar.js';
+import { renderMfaGate, bindMfaGate } from './pages/mfa/mfa.js';
 import { registerRoute, setRouteChangeHandler, startRouter, navigate, renderCurrentRoute } from './router/router.js';
-import { bootstrapSession, getSession, isAdminSession, refreshProfile, startDemoSession, startRealSession } from './store/session.js';
+import { bootstrapSession, getSession, isAdminSession, isMfaRequiredSession, refreshProfile, startDemoSession, startRealSession } from './store/session.js';
 import { signInWithDocument } from './services/auth-service.js';
 import { appMode } from './services/supabase.js';
 import { registerPushWorker } from './services/push-service.js';
@@ -29,6 +30,7 @@ registerPushWorker().catch(() => {});
 
 registerRoute('/login', renderLogin, { public: true, bare: true, bind: bindLogin });
 registerRoute('/recuperar', renderRecovery, { public: true, bare: true, bind: bindRecovery });
+registerRoute('/mfa', renderMfaGate, { bare: true, mfaGate: true, bind: bindMfaGate });
 registerRoute('/', renderHome);
 registerRoute('/carnet', renderCarnet, { bind: bindCarnet });
 registerRoute('/convenios', renderConvenios, { bind: bindConvenios });
@@ -55,9 +57,12 @@ registerRoute('/admin/auditoria', renderAdminAudit, { layout: 'admin', adminOnly
 registerRoute('/admin/configuracion', renderAdminSettings, { layout: 'admin', adminOnly: true, bind: bindAdminSettings });
 
 setRouteChangeHandler(async ({ path, route, params }) => {
-  const session = getSession();
+  let session = getSession();
   if (!route.public && !session) { navigate('/login'); return; }
   if (route.adminOnly && session && appMode === 'supabase') await refreshProfile();
+  session = getSession();
+  if (session?.mfa?.required && path !== '/mfa') { navigate('/mfa'); return; }
+  if (route.mfaGate && !isMfaRequiredSession()) { navigate('/'); return; }
   if (route.adminOnly && !isAdminSession()) { navigate('/'); return; }
   if (path === '/login' && session) { navigate('/'); return; }
 
