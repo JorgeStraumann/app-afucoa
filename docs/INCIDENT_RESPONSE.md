@@ -58,3 +58,5 @@ El canal operativo y contactos se definirán fuera del repositorio, en una herra
 - `docs/runbooks/DNS_TLS_INCIDENT.md`
 
 Los runbooks son guías de decisión, no autorización para cambios destructivos. Un restore, rotación de credenciales o cambio de DNS exige la autoridad y doble revisión definidas para PROD.
+
+Para Web Push PROD, consultar además `docs/PROD_WEB_PUSH.md`: observar `found`, `sent`, `failed`, `skipped`, `deactivated`, `limited`, status de incidentes y claims `sending` estancados. Nunca copiar endpoints completos. Un 404/410 debe terminar con dispositivo desactivado y ledger `inactive`; 5xx/timeout conserva el dispositivo y respeta la ventana/máximo de reintentos. La integración de alertas externas permanece en B09.

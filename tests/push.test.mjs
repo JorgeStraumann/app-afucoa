@@ -202,6 +202,18 @@ test('controles push ocultos prevalecen sobre display de botones',async()=>{
   assert.match(css,/\.push-controls \[hidden\]\s*\{\s*display:none!important/);
   const controls=await readFile(new URL('src/components/push-controls.js',root),'utf8');
   assert.ok(controls.includes('card push-controls'));
+  assert.match(controls,/Cerrar sesión no desactiva este dispositivo/);
+});
+test('harness LIVE PROD es fail-closed, sintético, interactivo y cleanup-safe',async()=>{
+  const source=await readFile(new URL('tests/push-prod-live.mjs',root),'utf8');
+  assert.match(source,/PROJECT_REF = 'rywdochyzhgfaymrmxek'/);
+  assert.match(source,/AFUCOA_PUSH_PROD_LIVE_CONFIRM/);
+  assert.match(source,/phase3i_push_prod_synthetic/);
+  assert.match(source,/assertProdEmpty\(\)/);
+  assert.match(source,/signOut\(\{ scope: 'local' \}\)/);
+  assert.match(source,/notificationIds/);
+  assert.match(source,/cleanup\(\)/);
+  assert.doesNotMatch(source,/console\.log\([^\n]*(serverKey|adminTotp|\.password|\.email|endpoint)/i);
 });
 test('envío continúa lotes acotados y agrega solo resultados públicos',async()=>{
   let calls=0;

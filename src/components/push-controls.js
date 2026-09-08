@@ -20,7 +20,7 @@ export function bindPushControls() {
     disable.hidden=!result.canDeactivate;
     note.textContent=result.state==='unsupported'?'Este navegador no admite Web Push. En iPhone/iPad se requiere una versión compatible y agregar AFUCOA a Inicio.':
       result.state==='denied'?'El permiso está bloqueado. Podés revisarlo en la configuración del navegador; no volveremos a pedirlo automáticamente.':
-      !result.enabled?'Push todavía no está disponible. Las notificaciones internas siguen funcionando.':'Podés desactivarlas cuando quieras. Al cerrar sesión se desactiva este dispositivo por privacidad.';
+      !result.enabled?'Push todavía no está disponible. Las notificaciones internas siguen funcionando.':'Podés desactivarlas cuando quieras. Cerrar sesión no desactiva este dispositivo.';
   };
   const refresh = async () => {try {paint(await getPushState());}catch {state.textContent='No se pudo consultar';note.textContent='Las notificaciones internas siguen disponibles.';enable.disabled=true;}};
   enable.addEventListener('click',async () => {

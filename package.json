@@ -27,6 +27,7 @@
     "test:mfa": "node --test tests/mfa.test.mjs",
     "test:mfa-live": "node tests/mfa-lifecycle-synthetic.mjs",
     "test:push-http": "node tests/push-http-live.mjs",
+    "test:push-prod-live": "node tests/push-prod-live.mjs",
     "test:session-live": "node tests/session-regression-live.mjs",
     "test:auth-roles": "node tests/auth-roles-live.mjs",
     "test:recovery-http": "node tests/password-recovery-http-live.mjs",
