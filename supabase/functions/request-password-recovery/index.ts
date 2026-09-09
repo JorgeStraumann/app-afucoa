@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.116.0'
 import { corsHeaders, loadRuntimeConfig, requestOriginAllowed, secretKeyClientOptions } from '../_shared/runtime-config.ts'
+import { loadRecoveryEmailConfig, sendRecoveryEmail } from '../_shared/recovery-email.ts'
 
 const PUBLIC_RESPONSE = {
   ok: true,
@@ -90,34 +91,18 @@ async function deliverCode(
   recoveryId: string,
   email: string,
   code: string,
+  emailConfig: NonNullable<ReturnType<typeof loadRecoveryEmailConfig>>,
 ) {
-  const apiKey = Deno.env.get('RESEND_API_KEY')
-  const from = Deno.env.get('RECOVERY_EMAIL_FROM')
-  if (!apiKey || !from) return
-
   let sent = false
+  let timer: ReturnType<typeof setTimeout> | undefined
   try {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 10_000)
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'authorization': `Bearer ${apiKey}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [email],
-        subject: 'Código para recuperar tu acceso a AFUCOA',
-        text: `Tu código de recuperación de AFUCOA es ${code}. Vence en 10 minutos y puede usarse una sola vez. Si no solicitaste este cambio, ignorá este mensaje.`,
-        html: `<p>Tu código de recuperación de AFUCOA es:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>Vence en 10 minutos y puede usarse una sola vez.</p><p>Si no solicitaste este cambio, ignorá este mensaje.</p>`,
-      }),
-    })
-    clearTimeout(timer)
-    sent = response.ok
+    timer = setTimeout(() => controller.abort(), 10_000)
+    sent = await sendRecoveryEmail(emailConfig, email, code, controller.signal)
   } catch {
     sent = false
+  } finally {
+    if (timer !== undefined) clearTimeout(timer)
   }
 
   await client.from('password_recovery_codes').update(sent
@@ -169,8 +154,8 @@ Deno.serve(async (request) => {
         .maybeSingle()
 
       const email = String(profile?.email || '').trim()
-      const mailConfigured = Boolean(Deno.env.get('RESEND_API_KEY') && Deno.env.get('RECOVERY_EMAIL_FROM'))
-      if (profile?.auth_user_id && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && mailConfigured) {
+      const emailConfig = loadRecoveryEmailConfig(config.env)
+      if (profile?.auth_user_id && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && emailConfig) {
         const recoveryId = crypto.randomUUID()
         const code = secureCode()
         const codeHash = await hmac(`${recoveryId}:${code}`, serverKey)
@@ -183,7 +168,7 @@ Deno.serve(async (request) => {
         })
         if (error) throw new Error('recovery_registration_failed')
         if (registered === true) {
-          const delivery = deliverCode(client, recoveryId, email, code)
+          const delivery = deliverCode(client, recoveryId, email, code, emailConfig)
           const runtime = (globalThis as typeof globalThis & {
             EdgeRuntime?: { waitUntil(promise: Promise<unknown>): void }
           }).EdgeRuntime

@@ -124,13 +124,13 @@ if (/(?:https?|wss?):\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[\/?#"']|
   fail('el artefacto contiene una URL localhost o loopback.');
 }
 
-if (/sb_secret_[A-Za-z0-9_-]{16,}|sb_service_role_|\bservice_role\b|SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(contents)) {
+if (/sb_secret_[A-Za-z0-9_-]{16,}|sb_service_role_|\bservice_role\b|SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY|BREVO_API_KEY/i.test(contents)) {
   fail('el artefacto contiene nombres o patrones privilegiados.');
 }
-if (/VITE_[A-Z0-9_]*(?:SERVICE_ROLE|SECRET|PRIVATE_KEY|VAPID_PRIVATE|RESEND)/i.test(contents)) {
+if (/VITE_[A-Z0-9_]*(?:SERVICE_ROLE|SECRET|PRIVATE_KEY|VAPID_PRIVATE|RESEND|BREVO)/i.test(contents)) {
   fail('el artefacto contiene una variable VITE_* privilegiada.');
 }
-if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|\bre_[A-Za-z0-9]{24,}/.test(contents) || privilegedJwt(contents)) {
+if (/-----BEGIN (?:[A-Z]+ )*PRIVATE KEY-----|\bre_[A-Za-z0-9]{24,}|\bxkeysib-[A-Za-z0-9_-]{16,}/.test(contents) || privilegedJwt(contents)) {
   fail('el artefacto contiene material privado, una clave de correo o un JWT privilegiado.');
 }
 

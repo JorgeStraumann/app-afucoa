@@ -1,12 +1,13 @@
 const DEV_PROJECT_REF = 'imiplnspvmsrsuikulwm';
 const STAGING_BASE = '/app-afucoa/';
 const PUBLISHABLE_KEY = /^sb_publishable_[A-Za-z0-9_-]{20,}$/;
-const FORBIDDEN_PUBLIC_NAME = /^VITE_.*(?:SERVICE_ROLE|SECRET|PRIVATE_KEY|VAPID_PRIVATE|RESEND)/i;
+const FORBIDDEN_PUBLIC_NAME = /^VITE_.*(?:SERVICE_ROLE|SECRET|PRIVATE_KEY|VAPID_PRIVATE|RESEND|BREVO)/i;
 const FORBIDDEN_SERVER_NAMES = new Set([
   'SUPABASE_SERVICE_ROLE_KEY',
   'SUPABASE_SECRET_KEY',
   'VAPID_PRIVATE_KEY',
   'RESEND_API_KEY',
+  'BREVO_API_KEY',
 ]);
 
 export class ProductionConfigError extends Error {

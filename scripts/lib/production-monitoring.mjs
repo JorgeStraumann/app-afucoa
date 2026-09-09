@@ -12,6 +12,8 @@ const CHECK_DEFINITIONS = [
   { id: 'database-health', alertId: 'database-unavailable-or-data-loss', severity: 'SEV1', component: 'supabase-database', runbook: 'docs/runbooks/DATABASE_INCIDENT.md' },
   { id: 'push-config-security', alertId: 'edge-functions-sustained-failure', severity: 'SEV2', component: 'edge-functions', runbook: 'docs/runbooks/EDGE_FUNCTION_INCIDENT.md' },
   { id: 'push-send-security', alertId: 'edge-functions-sustained-failure', severity: 'SEV2', component: 'edge-functions', runbook: 'docs/runbooks/EDGE_FUNCTION_INCIDENT.md' },
+  { id: 'recovery-request-cors', alertId: 'password-recovery-broad-failure', severity: 'SEV2', component: 'password-recovery-email', runbook: 'docs/runbooks/PASSWORD_RECOVERY_INCIDENT.md' },
+  { id: 'recovery-confirm-cors', alertId: 'password-recovery-broad-failure', severity: 'SEV2', component: 'password-recovery-email', runbook: 'docs/runbooks/PASSWORD_RECOVERY_INCIDENT.md' },
   { id: 'storage-api', alertId: 'storage-broad-failure', severity: 'SEV2', component: 'storage', runbook: 'docs/runbooks/DATABASE_INCIDENT.md' },
   { id: 'public-artifact-security', alertId: 'suspected-secret-exposure', severity: 'SEV1', component: 'security', runbook: 'docs/runbooks/SECRET_EXPOSURE.md' },
   { id: 'monitoring-simulation', alertId: 'monitoring-simulation', severity: 'SEV3', component: 'monitoring', runbook: 'docs/INCIDENT_RESPONSE.md' }
@@ -143,6 +145,23 @@ export async function runMonitoringAudit({ publishableKey, simulateFailure = fal
     }));
   }
 
+  for (const [id, slug] of [
+    ['recovery-request-cors', 'request-password-recovery'],
+    ['recovery-confirm-cors', 'confirm-password-recovery']
+  ]) {
+    checks.push(await check(id, async (startedAt) => {
+      const response = await request(`${PROD_SUPABASE_ORIGIN}/functions/v1/${slug}`, {
+        method: 'OPTIONS', headers: { ...apiHeaders, Origin: PROD_ORIGIN }
+      });
+      const allowedMethods = response.headers.get('access-control-allow-methods') || '';
+      const ok = response.status === 204
+        && response.headers.get('access-control-allow-origin') === PROD_ORIGIN
+        && /(?:^|,\s*)POST(?:,|$)/i.test(allowedMethods)
+        && /(?:^|,\s*)OPTIONS(?:,|$)/i.test(allowedMethods);
+      return result(id, ok, startedAt, { status: response.status });
+    }));
+  }
+
   checks.push(await check('storage-api', async (startedAt) => {
     const response = await request(`${PROD_SUPABASE_ORIGIN}/storage/v1/object/public/public-media/__afucoa_monitor__/not-found`, { headers: apiHeaders });
     const body = await safeJson(response);
@@ -169,7 +188,7 @@ export async function runMonitoringAudit({ publishableKey, simulateFailure = fal
       }
     }
     const combined = bodies.join('\n');
-    const privileged = /sb_secret_[A-Za-z0-9_-]{16,}|(?:service_role|secret)["'\s:=]+eyJ[A-Za-z0-9_-]{20,}|(?:VAPID_PRIVATE_KEY|RESEND_API_KEY)["'\s:=]+[A-Za-z0-9_-]{16,}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/i.test(combined);
+    const privileged = /sb_secret_[A-Za-z0-9_-]{16,}|(?:service_role|secret)["'\s:=]+eyJ[A-Za-z0-9_-]{20,}|(?:VAPID_PRIVATE_KEY|RESEND_API_KEY|BREVO_API_KEY)["'\s:=]+[A-Za-z0-9_-]{16,}|\bxkeysib-[A-Za-z0-9_-]{16,}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/i.test(combined);
     const devRef = combined.includes(DEV_PROJECT_REF);
     return result('public-artifact-security', indexResponse.status === 200 && assetPaths.length > 0 && !sourcemapFound && !privileged && !devRef, startedAt, { status: indexResponse.status });
   }));

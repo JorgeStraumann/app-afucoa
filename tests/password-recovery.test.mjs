@@ -5,6 +5,10 @@ import { validateRecoveryPassword } from '../src/services/password-policy.js';
 
 const requestSource = await readFile(new URL('../supabase/functions/request-password-recovery/index.ts', import.meta.url), 'utf8');
 const confirmSource = await readFile(new URL('../supabase/functions/confirm-password-recovery/index.ts', import.meta.url), 'utf8');
+const emailSource = await readFile(new URL('../supabase/functions/_shared/recovery-email.ts', import.meta.url), 'utf8');
+const prodLiveSource = await readFile(new URL('./password-recovery-prod-live.mjs', import.meta.url), 'utf8');
+const sandboxSource = await readFile(new URL('./brevo-sandbox-live.mjs', import.meta.url), 'utf8');
+const prodWrapper = await readFile(new URL('../scripts/run-recovery-live-prod.ps1', import.meta.url), 'utf8');
 
 test('la política exige 12–72 caracteres y cuatro clases', () => {
   assert.equal(validateRecoveryPassword('Valida-2026!x'), '');
@@ -22,8 +26,13 @@ test('la solicitud conserva respuesta neutra y no devuelve el código', () => {
   assert.match(requestSource, /HMAC/);
   assert.match(requestSource, /request_ip/);
   assert.match(requestSource, /request_identity/);
-  assert.match(requestSource, /RESEND_API_KEY/);
-  assert.match(requestSource, /RECOVERY_EMAIL_FROM/);
+  assert.match(requestSource, /loadRecoveryEmailConfig/);
+  assert.match(emailSource, /RECOVERY_EMAIL_PROVIDER/);
+  assert.match(emailSource, /RESEND_API_KEY/);
+  assert.match(emailSource, /BREVO_API_KEY/);
+  assert.match(emailSource, /RECOVERY_EMAIL_FROM/);
+  assert.match(emailSource, /https:\/\/api\.brevo\.com\/v3\/smtp\/email/);
+  assert.doesNotMatch(emailSource, /metadata|tracking/i);
 });
 
 test('las dos funciones aceptan preflight solo desde orígenes permitidos', () => {
@@ -42,4 +51,25 @@ test('la confirmación exige código de 8 dígitos y usa consumo atómico', () =
   assert.match(confirmSource, /confirm_identity/);
   assert.match(confirmSource, /updateUserById/);
   assert.doesNotMatch(confirmSource, /console\.(?:log|error)\(\s*(?:code|newPassword|document|body|request)\b/);
+});
+
+test('el harness PROD es sintético, cleanup-safe y no persiste secretos', () => {
+  assert.match(prodLiveSource, /phase_final_recovery_prod_synthetic/);
+  assert.match(prodLiveSource, /auth\.signOut\(\{ scope: 'local' \}\)/);
+  assert.match(prodLiveSource, /auth\.admin\.deleteUser/);
+  assert.match(prodLiveSource, /password_recovery_codes/);
+  assert.match(prodLiveSource, /password_recovery_rate_limits/);
+  assert.match(prodLiveSource, /storage_objects: 0/);
+  assert.match(prodLiveSource, /readMaskedCode/);
+  assert.doesNotMatch(prodLiveSource, /console\.(?:log|error)\([^\n]*(?:realCode|initialPassword|newPassword|recipient)/);
+});
+
+test('el sandbox Brevo usa drop y el wrapper mantiene secrets fuera de archivos', () => {
+  assert.match(sandboxSource, /'X-Sib-Sandbox': 'drop'/);
+  assert.match(sandboxSource, /response\.status, 201/);
+  assert.match(prodWrapper, /AFUCOA_PROD_SECRET_KEY/);
+  assert.match(prodWrapper, /BREVO_API_KEY/);
+  assert.match(prodWrapper, /Read-Host[^\n]+-MaskInput/g);
+  assert.match(prodWrapper, /functions deploy request-password-recovery confirm-password-recovery/);
+  assert.doesNotMatch(prodWrapper, /\.env|Out-File|Set-Content|Add-Content/);
 });

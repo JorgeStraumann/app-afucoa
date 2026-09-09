@@ -126,7 +126,8 @@ function scanContent(root, files) {
     /sb_secret_[A-Za-z0-9_-]{16,}/,
     /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
     /(?:service_role|secret)["'\s:=]+eyJ[A-Za-z0-9_-]{20,}/i,
-    /(?:RESEND_API_KEY|VAPID_PRIVATE_KEY)["'\s:=]+[A-Za-z0-9_-]{16,}/
+    /(?:RESEND_API_KEY|BREVO_API_KEY|VAPID_PRIVATE_KEY)["'\s:=]+[A-Za-z0-9_-]{16,}/,
+    /\bxkeysib-[A-Za-z0-9_-]{16,}/
   ];
 
   for (const file of files) {

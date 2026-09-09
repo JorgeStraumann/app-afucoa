@@ -87,7 +87,7 @@ async function smoke({ origin, manifestPath, releaseSha, deploymentId }) {
   if (/(?:https?|wss?):\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:[\/?#"']|$)/i.test(publicText)) {
     throw new Error('se detectó una URL localhost o loopback.');
   }
-  if (/sb_secret_[A-Za-z0-9_-]{16,}|\bservice_role\b|SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY/i.test(publicText)) {
+  if (/sb_secret_[A-Za-z0-9_-]{16,}|\bservice_role\b|SUPABASE_SERVICE_ROLE_KEY|VAPID_PRIVATE_KEY|RESEND_API_KEY|BREVO_API_KEY|xkeysib-[A-Za-z0-9_-]{16,}/i.test(publicText)) {
     throw new Error('se detectó material privilegiado en contenido público.');
   }
   if (/\.map(?:["'?#]|$)|sourceMappingURL/i.test(publicText)) throw new Error('se detectó referencia a source maps.');

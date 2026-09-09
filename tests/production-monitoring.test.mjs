@@ -52,10 +52,12 @@ test('health migration is parameterless, minimal and deny-by-default except anon
 });
 
 test('policy is active and every alert has one approved monitoring mode', () => {
-  const modes = new Set(['AUTOMATED_EXTERNAL', 'AUTOMATED_GITHUB', 'SUPABASE_NATIVE_MANUAL', 'INACTIVE_UNTIL_B04', 'BASELINE_PENDING_REAL_TRAFFIC']);
+  const modes = new Set(['AUTOMATED_EXTERNAL', 'AUTOMATED_GITHUB', 'SUPABASE_NATIVE_MANUAL', 'BASELINE_PENDING_REAL_TRAFFIC']);
   assert.equal(policy.status, 'ACTIVE / B09 OPERATING');
   for (const alert of policy.alerts) assert.ok(modes.has(alert.monitoringMode), `${alert.id}:${alert.monitoringMode}`);
-  assert.ok(policy.alerts.filter((item) => item.component === 'password-recovery-email').every((item) => item.monitoringMode === 'INACTIVE_UNTIL_B04'));
+  const recoveryModes = policy.alerts.filter((item) => item.component === 'password-recovery-email').map((item) => item.monitoringMode);
+  assert.deepEqual(recoveryModes.sort(), ['AUTOMATED_GITHUB', 'SUPABASE_NATIVE_MANUAL']);
+  assert.ok(policy.alerts.filter((item) => item.component === 'password-recovery-email').every((item) => item.monitoringMode !== 'INACTIVE_UNTIL_B04'));
 });
 
 test('workflow is scheduled, minimally permissioned and never uses production environment or privileged secrets', () => {
@@ -84,6 +86,12 @@ test('audit validates public contracts and simulation cannot mutate PROD', async
     if (String(url).endsWith('/push-sw.js')) return response(200, "self.addEventListener('push',()=>{}); const notification_id=true;");
     if (String(url).endsWith('/auth/v1/health')) return response(200, { name: 'GoTrue' });
     if (String(url).endsWith('/rest/v1/rpc/production_health')) return response(200, { ok: true, database: true, rls: true, storage: true, push: true, schemaContract: 19 });
+    if (String(url).includes('/functions/v1/request-password-recovery') || String(url).includes('/functions/v1/confirm-password-recovery')) {
+      return new Response(null, { status: 204, headers: {
+        'access-control-allow-origin': PROD_ORIGIN,
+        'access-control-allow-methods': 'POST, OPTIONS',
+      } });
+    }
     if (String(url).includes('/functions/v1/')) return response(401, { error: 'not_authenticated' });
     if (String(url).includes('/storage/v1/object/public/')) return response(400, { code: 'NoSuchKey', message: 'Object not found' });
     throw new Error(`unexpected:${url}`);
@@ -91,7 +99,10 @@ test('audit validates public contracts and simulation cannot mutate PROD', async
   const results = await runMonitoringAudit({ publishableKey: 'sb_publishable_test_value', simulateFailure: true }, { fetchImpl, attempts: 1 });
   assert.equal(results.filter((item) => !item.ok).length, 1);
   assert.equal(results.find((item) => !item.ok).id, 'monitoring-simulation');
-  assert.ok(calls.every((call) => ['GET', 'POST'].includes(call.method)));
+  assert.ok(calls.every((call) => ['GET', 'POST', 'OPTIONS'].includes(call.method)));
+  const recoveryCalls = calls.filter((call) => /(?:request|confirm)-password-recovery/.test(call.url));
+  assert.equal(recoveryCalls.length, 2);
+  assert.ok(recoveryCalls.every((call) => call.method === 'OPTIONS'));
   assert.ok(calls.every((call) => call.url.startsWith(PROD_ORIGIN) || call.url.startsWith(PROD_SUPABASE_ORIGIN)));
 });
 

@@ -76,6 +76,7 @@ test('cualquier nombre VITE_* privilegiado se rechaza', () => {
     'VITE_APP_SECRET',
     'VITE_VAPID_PRIVATE_KEY',
     'VITE_RESEND_API_KEY',
+    'VITE_BREVO_API_KEY',
   ]) rejected({ [name]: 'synthetic-forbidden' });
 });
 
@@ -87,7 +88,7 @@ test('nombres privilegiados en archivos de entorno que cargaría Vite también s
 });
 
 test('secretos server-side presentes en el proceso de build se rechazan', () => {
-  for (const name of ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'VAPID_PRIVATE_KEY', 'RESEND_API_KEY']) {
+  for (const name of ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'VAPID_PRIVATE_KEY', 'RESEND_API_KEY', 'BREVO_API_KEY']) {
     rejected({ [name]: 'synthetic-forbidden' });
   }
 });

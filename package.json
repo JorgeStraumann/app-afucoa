@@ -20,6 +20,8 @@
     "test:edge-config": "node --test tests/edge-runtime-config.test.mjs && node scripts/check-edge-runtime-config.mjs",
     "test:pilot": "node --test tests/pilot-import.test.mjs",
     "test:recovery": "node --test tests/password-recovery.test.mjs tests/password-recovery-handlers.test.mjs",
+    "test:recovery-brevo-sandbox": "node tests/brevo-sandbox-live.mjs",
+    "test:recovery-prod-live": "node tests/password-recovery-prod-live.mjs",
     "test:session": "node --test tests/session-regression.test.mjs",
     "test:live-auth-isolation": "node --test tests/live-auth-isolation.test.mjs",
     "test:push": "node --test tests/push.test.mjs",

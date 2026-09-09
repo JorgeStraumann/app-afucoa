@@ -8,6 +8,7 @@ for (const name of Object.keys(env)) {
     'SUPABASE_SECRET_KEY',
     'VAPID_PRIVATE_KEY',
     'RESEND_API_KEY',
+    'BREVO_API_KEY',
   ].includes(name)) delete env[name];
 }
 

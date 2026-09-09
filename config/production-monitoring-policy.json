@@ -151,7 +151,7 @@
     },
     {
       "id": "password-recovery-broad-failure",
-      "monitoringMode": "INACTIVE_UNTIL_B04",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "password-recovery-email",
       "signal": "Recovery requests, registered codes, delivery status, confirmation and provider health",
       "severity": "SEV2",
@@ -165,7 +165,7 @@
     },
     {
       "id": "password-recovery-abuse-signal",
-      "monitoringMode": "INACTIVE_UNTIL_B04",
+      "monitoringMode": "SUPABASE_NATIVE_MANUAL",
       "component": "password-recovery-email",
       "signal": "Expired codes, reuse attempts, invalid attempts and rate-limit events",
       "severity": "SEV3",

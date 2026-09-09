@@ -10,12 +10,16 @@ import { webcrypto } from 'node:crypto';
 const runtimeConfigSource = (await readFile(
   new URL('../supabase/functions/_shared/runtime-config.ts', import.meta.url), 'utf8',
 )).replace(/^export /gm, '');
+const recoveryEmailSource = (await readFile(
+  new URL('../supabase/functions/_shared/recovery-email.ts', import.meta.url), 'utf8',
+)).replace(/^export /gm, '');
 const sources = Object.fromEntries(await Promise.all(['request', 'confirm'].map(async (name) => {
   const source = await readFile(new URL(`../supabase/functions/${name}-password-recovery/index.ts`, import.meta.url), 'utf8');
-  return [name, stripTypeScriptTypes(`${runtimeConfigSource}\n${source.replace(/^import .*\r?\n/gm, '')}`, { mode: 'strip' })];
+  return [name, stripTypeScriptTypes(`${runtimeConfigSource}\n${recoveryEmailSource}\n${source.replace(/^import .*\r?\n/gm, '')}`, { mode: 'strip' })];
 })));
 const password = 'Ficticia-Solo-Test-2026!';
 const origin = 'https://jorgestraumann.github.io';
+const prodOrigin = 'https://afucoa-v2-prod.pages.dev';
 
 function fixture(options = {}) {
   const profile = { id: 'profile-dev', auth_user_id: 'auth-dev', document_number: '10000001', status: 'activo', email: 'dev@example.test', ...options.profile };
@@ -23,7 +27,9 @@ function fixture(options = {}) {
   const env = { AFUCOA_ENV: 'dev', AFUCOA_ALLOWED_ORIGINS: origin,
     SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
     SUPABASE_SECRET_KEYS: JSON.stringify({ default: 'sb_secret_only_a_synthetic_test_secret' }),
-    RESEND_API_KEY: 'only-a-synthetic-provider-key', RECOVERY_EMAIL_FROM: 'AFUCOA <test@example.test>', ...options.env };
+    RECOVERY_EMAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_only_a_synthetic_provider_key',
+    RECOVERY_EMAIL_FROM: 'AFUCOA <test@example.test>', RECOVERY_EMAIL_SENDER_NAME: 'AFUCOA', ...options.env };
+  const requestOrigin = options.origin || env.AFUCOA_ALLOWED_ORIGINS;
   const client = {
     from(table) {
       const filters = []; let patch;
@@ -85,23 +91,26 @@ function fixture(options = {}) {
       Deno: { env: { get: key => env[key] }, serve: fn => { handlers[name] = fn; } },
       EdgeRuntime: { waitUntil: promise => pending.push(promise) },
       fetch: async (url, init) => {
-        assert.equal(url, 'https://api.resend.com/emails');
-        mail.push(JSON.parse(init.body));
-        return new Response('{}', { status: options.mailFailure ? 500 : 200 });
+        const headers = new Headers(init.headers);
+        const body = JSON.parse(init.body);
+        mail.push({ url, headers, body });
+        const successStatus = url === 'https://api.brevo.com/v3/smtp/email' ? 201 : 200;
+        return new Response('{}', { status: options.mailFailure ? 500 : successStatus });
       },
     });
     vm.runInContext(sources[name], context);
   }
   async function call(name, body, headers = {}) {
     const response = await handlers[name](new Request('https://example.test', {
-      method: 'POST', headers: { origin, 'content-type': 'application/json', ...headers }, body: JSON.stringify(body),
+      method: 'POST', headers: { origin: requestOrigin, 'content-type': 'application/json', ...headers }, body: JSON.stringify(body),
     }));
     await Promise.all(pending.splice(0));
     return { status: response.status, body: await response.json(), headers: response.headers };
   }
   async function issue() {
     const response = await call('request', { document_number: '10000001' });
-    return { response, code: mail.at(-1)?.text.match(/es (\d{8})\./)?.[1], row: rows.at(-1) };
+    const body = mail.at(-1)?.body;
+    return { response, code: (body?.text || body?.textContent)?.match(/es (\d{8})\./)?.[1], row: rows.at(-1) };
   }
   const confirm = code => call('confirm', { document_number: '10000001', code, new_password: password });
   return { issue, confirm, call, handlers, profile, rows, mail, changes, logs };
@@ -109,12 +118,65 @@ function fixture(options = {}) {
 
 test('neutral para existente, inexistente, inactivo, sin correo y proveedor sin configurar', async () => {
   const normal = fixture(); const result = await normal.issue();
-  for (const f of [fixture({profile:{status:'inactivo'}}), fixture({profile:{email:null}}), fixture({env:{RESEND_API_KEY:undefined}})]) {
+  for (const f of [
+    fixture({profile:{status:'inactivo'}}), fixture({profile:{email:null}}),
+    fixture({env:{RESEND_API_KEY:undefined}}), fixture({env:{RECOVERY_EMAIL_PROVIDER:undefined}}),
+    fixture({env:{RECOVERY_EMAIL_PROVIDER:'unknown'}}), fixture({env:{RECOVERY_EMAIL_PROVIDER:'brevo'}}),
+  ]) {
     assert.deepEqual((await f.issue()).response.body, result.response.body);
     assert.equal(f.mail.length, 0);
   }
   assert.deepEqual((await normal.call('request', {document_number:'99999999'})).body, result.response.body);
   assert.equal(Object.hasOwn(result.response.body, 'code'), false);
+});
+
+test('Resend DEV conserva su contrato y el contenido mínimo', async () => {
+  const f = fixture(); await f.issue();
+  assert.equal(f.mail.length, 1);
+  const delivery = f.mail[0];
+  assert.equal(delivery.url, 'https://api.resend.com/emails');
+  assert.equal(delivery.headers.get('authorization'), 'Bearer re_only_a_synthetic_provider_key');
+  assert.deepEqual(Object.keys(delivery.body).sort(), ['from', 'html', 'subject', 'text', 'to']);
+  assert.equal(delivery.body.subject, 'Código para recuperar tu acceso a AFUCOA');
+  assert.doesNotMatch(JSON.stringify(delivery.body), /10000001|profile-dev|auth-dev/);
+});
+
+test('Brevo PROD usa API HTTPS, remitente separado y payload mínimo sin metadata', async () => {
+  const f = fixture({
+    origin: prodOrigin,
+    env: {
+      AFUCOA_ENV: 'prod', AFUCOA_ALLOWED_ORIGINS: prodOrigin,
+      SUPABASE_URL: 'https://rywdochyzhgfaymrmxek.supabase.co',
+      RECOVERY_EMAIL_PROVIDER: 'brevo', RESEND_API_KEY: undefined,
+      BREVO_API_KEY: 'brevo-only-a-synthetic-provider-key',
+      RECOVERY_EMAIL_FROM: 'sender@example.test', RECOVERY_EMAIL_SENDER_NAME: 'AFUCOA',
+    },
+  });
+  const { row } = await f.issue();
+  assert.equal(row.delivery_status, 'sent');
+  const delivery = f.mail[0];
+  assert.equal(delivery.url, 'https://api.brevo.com/v3/smtp/email');
+  assert.equal(delivery.headers.get('api-key'), 'brevo-only-a-synthetic-provider-key');
+  assert.deepEqual(Object.keys(delivery.body).sort(), ['htmlContent', 'sender', 'subject', 'textContent', 'to']);
+  assert.deepEqual(delivery.body.sender, { email: 'sender@example.test', name: 'AFUCOA' });
+  assert.deepEqual(delivery.body.to, [{ email: 'dev@example.test' }]);
+  assert.doesNotMatch(JSON.stringify(delivery.body), /10000001|profile-dev|auth-dev|tracking|metadata/i);
+});
+
+test('Brevo sandbox agrega únicamente el control drop y no altera el contrato real', async () => {
+  const f = fixture({
+    origin: prodOrigin,
+    env: {
+      AFUCOA_ENV: 'prod', AFUCOA_ALLOWED_ORIGINS: prodOrigin,
+      SUPABASE_URL: 'https://rywdochyzhgfaymrmxek.supabase.co',
+      RECOVERY_EMAIL_PROVIDER: 'brevo', RESEND_API_KEY: undefined,
+      BREVO_API_KEY: 'brevo-only-a-synthetic-provider-key', RECOVERY_EMAIL_SANDBOX: 'drop',
+      RECOVERY_EMAIL_FROM: 'sender@example.test', RECOVERY_EMAIL_SENDER_NAME: 'AFUCOA',
+    },
+  });
+  await f.issue();
+  assert.deepEqual(f.mail[0].body.headers, { 'X-Sib-Sandbox': 'drop' });
+  assert.equal(f.mail[0].headers.get('x-sib-sandbox'), null);
 });
 
 test('correo, HMAC y cambio correcto; reutilización rechazada', async () => {
