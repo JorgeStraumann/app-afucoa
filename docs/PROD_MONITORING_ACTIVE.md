@@ -43,6 +43,17 @@ La entrada `simulate_failure` afecta solo un resultado local y nunca cambia URLs
 
 El cron `7,22,37,52 * * * *` entrega una cadencia nominal de 15 minutos sin concentrar trabajos en el minuto cero. La ejecución programada de GitHub Actions es best-effort: puede comenzar algunos minutos después de la hora nominal y no se afirma SLA. Para la etapa previa al cutover, esta cadencia es proporcional a los contratos SEV2 Edge/Storage y complementa los cinco probes UptimeRobot de disponibilidad principal.
 
+Primera ejecución automática validada después del cambio de cadencia:
+
+- run `34328893538`, commit `80007b150efc3b5aa7f9f4d162adc1fbe9422196`;
+- evento real `schedule`, rama `afucoa-v2`, estado final `success`;
+- slot nominal `2026-09-09T08:22:00Z`, inicio real `2026-09-09T08:24:00Z`: retraso observado de 2 minutos;
+- auditoría pública PROD `11/11 PASS` en 18 segundos;
+- 0 Issues abiertos después del run y ningún incidente nuevo;
+- prueba estrictamente de lectura: PROD no fue modificado.
+
+Los slots anteriores no aparecieron como runs y GitHub documenta el schedule como best-effort; la primera ejecución automática efectiva confirma el circuito sin convertirlo en un SLA.
+
 ## Baseline y game days
 
 Ventana observada hasta `2026-09-09T03:19:03Z`. Todos los monitores permanentes permanecieron `UP`, sin incidente ni falsa alarma. Cada uno superó los seis ciclos requeridos:
@@ -98,7 +109,8 @@ No se copian logs con PII al repositorio.
 - `test:prod-hosting` 18/18;
 - `test:prod-artifact` 16/16 y build sintético PASS;
 - `test:edge-config` 14/14; recovery 13/13; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
-- `test:staging` PASS y workflow staging run `34295461091` SUCCESS.
+- primera ejecución automática de monitoreo: run `34328893538`, evento `schedule`, rama `afucoa-v2`, 11/11 PASS, 0 Issues abiertos;
+- `test:staging` PASS y workflow staging run `34295461091` SUCCESS para Fase 3J; el run final de Fase 3K se registra al publicar este cierre documental.
 
 No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió ejecutar un deploy Cloudflare PROD.
 

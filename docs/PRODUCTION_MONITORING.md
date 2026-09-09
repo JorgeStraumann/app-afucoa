@@ -69,4 +69,6 @@ Por bucket: errores de upload/download, URLs firmadas, tamaño, MIME rechazado, 
 
 B09 queda cerrado por cobertura automática real y combinada: UptimeRobot externo, GitHub-hosted runners externos, email probado, baseline, game days, issues deduplicados, recuperación automática, ownership y runbooks. No se exige que todos los contratos dependan de un único proveedor.
 
+La cadencia GitHub quedó demostrada con el primer run automático `34328893538`: evento `schedule`, rama `afucoa-v2`, slot nominal `2026-09-09T08:22:00Z`, inicio `2026-09-09T08:24:00Z`, retraso de 2 minutos y auditoría `11/11 PASS`. Terminó sin abrir un Issue y sin modificar PROD.
+
 Riesgos residuales aceptados: una región UptimeRobot FREE; schedule GitHub best-effort sin SLA; contratos Edge/Storage cada 15 minutos; thresholds estadísticos pendientes de tráfico real hasta B10; Recovery permanece `INACTIVE_UNTIL_B04`. Estos riesgos no bloquean B09 ni habilitan por sí solos usuarios reales.
