@@ -59,7 +59,7 @@ test('policy is active and every alert has one approved monitoring mode', () => 
 });
 
 test('workflow is scheduled, minimally permissioned and never uses production environment or privileged secrets', () => {
-  assert.match(workflow, /cron: '17 \*\/6 \* \* \*'/);
+  assert.match(workflow, /cron: '7,22,37,52 \* \* \* \*'/);
   assert.match(workflow, /contents: read[\s\S]*issues: write/);
   assert.doesNotMatch(workflow, /write-all|environment:\s*production|sb_secret_|service_role|CLOUDFLARE_API_TOKEN|VAPID_PRIVATE_KEY/i);
   assert.match(workflow, /SIMULATE_FAILURE/);

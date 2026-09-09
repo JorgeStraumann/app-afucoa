@@ -1,8 +1,8 @@
 # AFUCOA V2 — Modelo de monitoring de producción
 
-Estado: infraestructura operativa parcial; consultar `docs/PROD_MONITORING_ACTIVE.md`.
+Estado: infraestructura operativa; B09 CLOSED. Consultar `docs/PROD_MONITORING_ACTIVE.md`.
 
-**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B09 está PARTIAL.** UptimeRobot FREE opera cinco monitores externos cada 5 minutos y GitHub Actions audita todos los contratos cada 6 horas. El proveedor gratuito bloquea método/headers/status personalizados para Edge y Storage; no se contrató un plan pago ni se declaró cobertura inexistente. La matriz de `config/production-monitoring-policy.json` ya es operativa, pero sus umbrales estadísticos continúan provisionales.
+**AFUCOA V2 NO ESTÁ HABILITADA PARA USUARIOS REALES. B09 está CLOSED.** UptimeRobot FREE opera cinco monitores externos cada 5 minutos y GitHub-hosted runners auditan todos los contratos cada 15 minutos. El proveedor gratuito bloquea método/headers/status personalizados para Edge y Storage; estos tres contratos se conservan completos en GitHub, sin contratar un plan pago ni degradarlos. La matriz de `config/production-monitoring-policy.json` es operativa, aunque sus umbrales estadísticos continúan provisionales hasta B10.
 
 ## Principios
 
@@ -59,18 +59,14 @@ Por bucket: errores de upload/download, URLs firmadas, tamaño, MIME rechazado, 
 
 ## Operación de alertas
 
-1. UptimeRobot evalúa los cinco probes compatibles con FREE; GitHub Actions evalúa la auditoría técnica completa.
+1. UptimeRobot evalúa cada 5 minutos los cinco probes compatibles con FREE; GitHub-hosted runners evalúan cada 15 minutos la auditoría técnica completa desde infraestructura independiente de Cloudflare y Supabase.
 2. La primera persona de guardia valida que no sea mantenimiento o probe defectuoso.
 3. Si cumple condición, declara SEV y abre timeline conforme a `docs/INCIDENT_RESPONSE.md`.
 4. Cada cambio de severidad y mitigación queda registrado con hora UTC, evidencia redacted y SHA.
 5. Tras preproducción y las primeras semanas de PROD, se revisan falsos positivos, tiempos y baseline; toda modificación de threshold requiere PR y aprobación.
 
-## Pendientes para cerrar B09
+## Cierre B09 y pendientes no bloqueantes
 
-- cubrir externamente los contratos Edge `POST→401` y Storage `400 NoSuchKey` sin violar la restricción de costo cero;
-- completar y registrar seis ciclos de los cinco monitores activos;
-- confirmar recepción del email y completar game day DOWN/UP;
-- ejecutar el game day GitHub de issue deduplicado y recovery automático;
-- recalibrar umbrales estadísticos cuando exista tráfico real en B10.
+B09 queda cerrado por cobertura automática real y combinada: UptimeRobot externo, GitHub-hosted runners externos, email probado, baseline, game days, issues deduplicados, recuperación automática, ownership y runbooks. No se exige que todos los contratos dependan de un único proveedor.
 
-La existencia del diseño y la cobertura parcial no cierran B09.
+Riesgos residuales aceptados: una región UptimeRobot FREE; schedule GitHub best-effort sin SLA; contratos Edge/Storage cada 15 minutos; thresholds estadísticos pendientes de tráfico real hasta B10; Recovery permanece `INACTIVE_UNTIL_B04`. Estos riesgos no bloquean B09 ni habilitan por sí solos usuarios reales.

@@ -2,7 +2,7 @@
 
 Estado: propuesta no aprobada; medición técnica PROD inicial en curso.
 
-Todos los objetivos numéricos de este documento son **PROVISIONAL / PENDIENTE DE APROBACIÓN**. UptimeRobot FREE ya mide cinco contratos cada 5 minutos y GitHub audita el conjunto técnico cada 6 horas, pero la muestra inicial no constituye un SLO aprobado. B09 permanece PARTIAL.
+Todos los objetivos numéricos de este documento son **PROVISIONAL / PENDIENTE DE APROBACIÓN**. UptimeRobot FREE mide cinco contratos cada 5 minutos y GitHub-hosted runners auditan el conjunto técnico cada 15 minutos. B09 está CLOSED por cobertura operativa, pero la muestra inicial no constituye un SLO aprobado ni un SLA de GitHub Actions.
 
 ## Definiciones
 
@@ -33,4 +33,4 @@ El ledger puede demostrar que AFUCOA intentó el envío, recibió aceptación o 
 
 ## Criterio de aprobación
 
-Antes de convertir esta propuesta en compromiso: ejecutar preproducción, medir al menos una ventana representativa, validar costos/retención, acordar horarios de soporte, revisar dependencias y obtener aprobación formal de AFUCOA. Hasta entonces, estos valores no son SLA ni cierran B09.
+Antes de convertir esta propuesta en compromiso: ejecutar preproducción, medir al menos una ventana representativa, validar costos/retención, acordar horarios de soporte, revisar dependencias y obtener aprobación formal de AFUCOA. Hasta entonces, estos valores no son SLA; B09 cerrado acredita el circuito operativo, no la aprobación de estos objetivos.

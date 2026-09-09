@@ -96,7 +96,7 @@ test('existen únicamente los workflows PROD aprobados y el template histórico 
     }
     if (name === 'afucoa-v2-production.yml') assert.match(workflow, /rywdochyzhgfaymrmxek/);
     if (name === 'afucoa-v2-production-monitoring.yml') {
-      assert.match(workflow, /schedule:[\s\S]*17 \*\/6 \* \* \*/);
+      assert.match(workflow, /schedule:[\s\S]*7,22,37,52 \* \* \* \*/);
       assert.match(workflow, /contents: read[\s\S]*issues: write/);
       assert.doesNotMatch(workflow, /environment:\s*production|write-all/);
     }

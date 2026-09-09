@@ -2,12 +2,12 @@
 
 Fecha de activación: 8 de septiembre de 2026 (America/Montevideo)
 
-Estado: **PARTIAL — B09 no puede cerrarse todavía**. La capa gratuita opera para cinco controles externos y GitHub cubre técnicamente los ocho contratos, pero UptimeRobot FREE bloquea los tres probes que requieren método, headers o status de éxito personalizados. AFUCOA V2 no queda declarada lista para producción.
+Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. Esta decisión no habilita todavía AFUCOA V2 para usuarios reales: B04 y B10 continúan abiertos.
 
 ## Arquitectura operativa
 
 - UptimeRobot FREE, USD 0/mes, intervalo mínimo 5 minutos y una región automática: monitor externo principal y email al único Owner operativo.
-- GitHub Actions `AFUCOA V2 production monitoring`, cada 6 horas y manual: auditoría técnica complementaria, issues deduplicados y cierre automático al recuperarse.
+- GitHub Actions `AFUCOA V2 production monitoring`, cuatro veces por hora (`7,22,37,52`) y manual: segundo monitor externo, auditoría técnica, issues deduplicados y cierre automático al recuperarse. El schedule es best-effort y no tiene SLA de ejecución.
 - Supabase Dashboard/Logs/Usage: diagnóstico interno manual, sin exportar PII.
 - Modelo actual: **SINGLE-OPERATOR TEMPORARY MODEL**. Jorge es Incident Commander y responsable de Web, Database, Identity, Backend, Messaging y Security hasta que AFUCOA designe otra persona.
 
@@ -26,7 +26,7 @@ No se guardan en el repositorio el email del Owner, publishable key ni valores p
 | `AFUCOA PROD - Push Send Security` | BLOCKED BY FREE PLAN | — | GitHub valida `POST`, Origin canónico, sin JWT, 401 exacto |
 | `AFUCOA PROD - Storage API` | BLOCKED BY FREE PLAN | — | GitHub valida 400, `NoSuchKey` y `Object not found` sin crear objeto |
 
-El intento con los API oficiales v2 y v3 confirmó que las operaciones de lectura están permitidas, pero UptimeRobot responde `403` cuando la definición usa ajustes no disponibles en el plan FREE. No se contrató plan, no se cargó tarjeta y no se degradó el contrato para simular cobertura. La API key temporal fue eliminada al terminar la configuración.
+El intento con los API oficiales v2 y v3 confirmó que las operaciones de lectura están permitidas, pero UptimeRobot responde `403` cuando la definición usa ajustes no disponibles en el plan FREE. No se contrató plan, no se cargó tarjeta y no se degradó el contrato para simular cobertura. La API key temporal fue eliminada al terminar la configuración. Los tres contratos bloqueados en UptimeRobot permanecen activos desde GitHub-hosted runners, infraestructura independiente de Cloudflare Pages y Supabase.
 
 ## Auditoría GitHub
 
@@ -40,6 +40,8 @@ El workflow usa únicamente el origin canónico, la variable pública `AFUCOA_PR
 - ausencia pública de referencias DEV, sourcemaps y material privilegiado.
 
 La entrada `simulate_failure` afecta solo un resultado local y nunca cambia URLs, requests ni infraestructura. Los incidentes tienen título `[PROD MONITOR][<alert-id>] <componente>`, labels `production-monitoring` y `sev1|sev2|sev3`; una recurrencia actualiza/reabre el issue y una recuperación comenta `RECOVERED` con UTC y lo cierra.
+
+El cron `7,22,37,52 * * * *` entrega una cadencia nominal de 15 minutos sin concentrar trabajos en el minuto cero. La ejecución programada de GitHub Actions es best-effort: puede comenzar algunos minutos después de la hora nominal y no se afirma SLA. Para la etapa previa al cutover, esta cadencia es proporcional a los contratos SEV2 Edge/Storage y complementa los cinco probes UptimeRobot de disponibilidad principal.
 
 ## Baseline y game days
 
@@ -104,7 +106,8 @@ No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió e
 
 - B04 Recovery/email PROD permanece `INACTIVE_UNTIL_B04` y no se interpreta como fallo de monitoring.
 - Señales basadas en tráfico real permanecen `BASELINE_PENDING_REAL_TRAFFIC` hasta B10.
-- UptimeRobot FREE aporta una única región y no permite los tres contratos avanzados externos; GitHub los cubre cada 6 horas, no cada 5 minutos.
+- UptimeRobot FREE aporta una única región.
+- GitHub Actions no ofrece SLA del scheduler y los contratos Edge/Storage se comprueban nominalmente cada 15 minutos, no cada 5 minutos.
 - Uptime y status de entrega no garantizan experiencia del navegador, Web Push exactly-once ni ausencia total de incidentes.
 
 Runbooks: `docs/INCIDENT_RESPONSE.md` y `docs/runbooks/`.
