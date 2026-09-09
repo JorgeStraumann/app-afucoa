@@ -43,6 +43,18 @@ La entrada `simulate_failure` afecta solo un resultado local y nunca cambia URLs
 
 ## Baseline y game days
 
+Ventana observada hasta `2026-09-09T03:19:03Z`. Todos los monitores permanentes permanecieron `UP`, sin incidente ni falsa alarma. Cada uno superó los seis ciclos requeridos:
+
+| Monitor | Muestras | Mínimo | Promedio | Máximo | Disponibilidad observada |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Frontend HTTPS | 32 | 42 ms | 64 ms | 194 ms | 100% en la muestra |
+| Auth Health | 23 | 171 ms | 527 ms | 733 ms | 100% en la muestra |
+| Database Health | 23 | 176 ms | 547 ms | 746 ms | 100% en la muestra |
+| Manifest | 33 | 33 ms | 104 ms | 1.289 ms | 100% en la muestra |
+| Push Worker | 32 | 33 ms | 129 ms | 2.053 ms | 100% en la muestra |
+
+La dispersión mayor en manifest/worker no generó fallos y una muestra corta no justifica tuning agresivo.
+
 Game day externo ejecutado sin tumbar PROD:
 
 - monitor temporal `AFUCOA PROD - GAME DAY TEST`, creado `2026-09-09T00:18:39Z` con una palabra deliberadamente inexistente;
@@ -52,7 +64,14 @@ Game day externo ejecutado sin tumbar PROD:
 - el incidente quedó `Resolved`, duración informada por UptimeRobot: 534 segundos;
 - recuperación técnica UP confirmada; el monitor temporal se elimina después de preservar esta evidencia.
 
-El baseline de disponibilidad y response time exige seis ciclos completos de cada monitor permanente. Los umbrales absolutos de caída quedan activos; thresholds estadísticos y de tráfico continúan provisionales hasta B10.
+Game day GitHub:
+
+- run `34295615469`, `simulate_failure=true`: fallo sintético esperado, Issue `#1` creado con `production-monitoring` y `sev3`;
+- run `34295674756`, `simulate_failure=false`: auditoría 11/11, comentario `RECOVERED` a `2026-09-09T00:35:49.518Z` y cierre automático como `completed`;
+- el Issue no incluyó PII, response bodies, credenciales ni endpoints privados;
+- staging run `34295461091` del commit de Fase 3J: SUCCESS en 55 segundos.
+
+Los umbrales absolutos de caída quedan activos; thresholds estadísticos y de tráfico continúan provisionales hasta B10.
 
 ## Revisión Supabase
 
@@ -65,6 +84,19 @@ Durante la etapa previa al cutover: revisión diaria, además de inmediatamente 
 - Security Advisor y Performance Advisor.
 
 No se copian logs con PII al repositorio.
+
+## Validación técnica
+
+- migraciones DEV 19/19 y PROD 19/19; dry-run PROD sin pendientes;
+- auditoría LIVE pública PROD 11/11;
+- `test:monitoring` 7/7;
+- `test:prod-operations` 12/12 y contrato 22 archivos/17 alertas/7 smoke checks;
+- `test:prod-hosting` 18/18;
+- `test:prod-artifact` 16/16 y build sintético PASS;
+- `test:edge-config` 14/14; recovery 13/13; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
+- `test:staging` PASS y workflow staging run `34295461091` SUCCESS.
+
+No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió ejecutar un deploy Cloudflare PROD.
 
 ## Riesgos residuales
 
