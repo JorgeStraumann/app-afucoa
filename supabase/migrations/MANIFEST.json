@@ -3,7 +3,7 @@
   "source": {
     "projectRef": "imiplnspvmsrsuikulwm",
     "table": "supabase_migrations.schema_migrations",
-    "capturedAt": "2026-09-06",
+    "capturedAt": "2026-09-08",
     "mode": "read-only"
   },
   "checksum": {
@@ -119,6 +119,12 @@
       "name": "privileged_aal2_enforcement",
       "file": "20260906182340_privileged_aal2_enforcement.sql",
       "sha256": "49fe29f051598786e00b349fc89d600dcdb68d54654ee294751eaf6a86839a55"
+    },
+    {
+      "version": "20260908180819",
+      "name": "production_monitoring_health",
+      "file": "20260908180819_production_monitoring_health.sql",
+      "sha256": "98a65f0f99ad00db617666d065dfedf868322512a7c717506f5f45996baecd87"
     }
   ]
 }

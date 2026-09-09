@@ -1,6 +1,6 @@
 # AFUCOA V2 — Respuesta a incidentes
 
-Estado: procedimiento diseñado; equipo, canal y turnos pendientes de aprobación.
+Estado: circuito técnico activo; modelo temporal de un único operador.
 
 ## Detección y declaración
 
@@ -22,7 +22,7 @@ Las cadencias son provisionales y requieren aprobación de AFUCOA.
 - **Scribe:** mantiene timeline, decisiones, evidencia y responsables.
 - **Security/Privacy Owner:** obligatorio ante credenciales, acceso indebido o datos.
 
-El canal operativo y contactos se definirán fuera del repositorio, en una herramienta con acceso controlado. El repositorio nunca contiene teléfonos, secretos o datos de afectados.
+UptimeRobot envía email al Owner operativo y GitHub Issues conserva el incidente técnico redacted. El repositorio nunca contiene el email, teléfonos, secretos o datos de afectados. Mientras rige el **SINGLE-OPERATOR TEMPORARY MODEL**, Jorge ocupa todos los roles; AFUCOA debe separar responsabilidades antes de escalar la operación.
 
 ## Flujo
 
@@ -59,4 +59,6 @@ El canal operativo y contactos se definirán fuera del repositorio, en una herra
 
 Los runbooks son guías de decisión, no autorización para cambios destructivos. Un restore, rotación de credenciales o cambio de DNS exige la autoridad y doble revisión definidas para PROD.
 
-Para Web Push PROD, consultar además `docs/PROD_WEB_PUSH.md`: observar `found`, `sent`, `failed`, `skipped`, `deactivated`, `limited`, status de incidentes y claims `sending` estancados. Nunca copiar endpoints completos. Un 404/410 debe terminar con dispositivo desactivado y ledger `inactive`; 5xx/timeout conserva el dispositivo y respeta la ventana/máximo de reintentos. La integración de alertas externas permanece en B09.
+Para Web Push PROD, consultar además `docs/PROD_WEB_PUSH.md`: observar `found`, `sent`, `failed`, `skipped`, `deactivated`, `limited`, status de incidentes y claims `sending` estancados. Nunca copiar endpoints completos. Un 404/410 debe terminar con dispositivo desactivado y ledger `inactive`; 5xx/timeout conserva el dispositivo y respeta la ventana/máximo de reintentos.
+
+El workflow `AFUCOA V2 production monitoring` deduplica por `alert-id`. Fallos repetidos actualizan el mismo issue; recovery comenta `RECOVERED` con timestamp UTC y lo cierra. UptimeRobot cubre el canal externo compatible con FREE. El inventario y la limitación de los tres probes avanzados están en `docs/PROD_MONITORING_ACTIVE.md`.

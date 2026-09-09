@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "DRAFT / PENDING AFUCOA APPROVAL",
+  "status": "ACTIVE / B09 OPERATING",
   "environment": "production-only",
   "calibrationRequired": true,
   "privacy": {
@@ -11,6 +11,7 @@
   "alerts": [
     {
       "id": "frontend-total-outage",
+      "monitoringMode": "AUTOMATED_EXTERNAL",
       "component": "frontend-hosting",
       "signal": "Independent HTTPS availability probes",
       "severity": "SEV1",
@@ -24,6 +25,7 @@
     },
     {
       "id": "dns-tls-invalid",
+      "monitoringMode": "AUTOMATED_EXTERNAL",
       "component": "frontend-hosting",
       "signal": "DNS resolution, TLS handshake and certificate validity",
       "severity": "SEV1",
@@ -37,6 +39,7 @@
     },
     {
       "id": "frontend-release-contract-mismatch",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "frontend-hosting",
       "signal": "Security headers, release SHA, release manifest, service worker and deployed assets",
       "severity": "SEV2",
@@ -50,6 +53,7 @@
     },
     {
       "id": "database-unavailable-or-data-loss",
+      "monitoringMode": "AUTOMATED_EXTERNAL",
       "component": "supabase-database",
       "signal": "Database health, API failures and integrity checks",
       "severity": "SEV1",
@@ -63,6 +67,7 @@
     },
     {
       "id": "database-degradation",
+      "monitoringMode": "SUPABASE_NATIVE_MANUAL",
       "component": "supabase-database",
       "signal": "Postgres errors, connection pressure, latency, RPC failures and unexpected RLS denials",
       "severity": "SEV2",
@@ -76,6 +81,7 @@
     },
     {
       "id": "database-capacity-approaching-limit",
+      "monitoringMode": "BASELINE_PENDING_REAL_TRAFFIC",
       "component": "supabase-database",
       "signal": "Database size, storage usage, connection utilization and table growth",
       "severity": "SEV3",
@@ -89,6 +95,7 @@
     },
     {
       "id": "auth-general-outage",
+      "monitoringMode": "AUTOMATED_EXTERNAL",
       "component": "auth",
       "signal": "Synthetic login and authenticated profile lookup",
       "severity": "SEV1",
@@ -102,6 +109,7 @@
     },
     {
       "id": "auth-anomalous-activity",
+      "monitoringMode": "BASELINE_PENDING_REAL_TRAFFIC",
       "component": "auth",
       "signal": "Failed logins, session events, privileged activity, recovery limits and inactive-account attempts",
       "severity": "SEV3",
@@ -115,6 +123,7 @@
     },
     {
       "id": "edge-functions-sustained-failure",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "edge-functions",
       "signal": "Requests, 5xx, timeouts, latency and runtime configuration errors",
       "severity": "SEV2",
@@ -128,6 +137,7 @@
     },
     {
       "id": "edge-inventory-drift",
+      "monitoringMode": "SUPABASE_NATIVE_MANUAL",
       "component": "edge-functions",
       "signal": "Expected function allowlist and versions versus deployed inventory",
       "severity": "SEV2",
@@ -141,6 +151,7 @@
     },
     {
       "id": "password-recovery-broad-failure",
+      "monitoringMode": "INACTIVE_UNTIL_B04",
       "component": "password-recovery-email",
       "signal": "Recovery requests, registered codes, delivery status, confirmation and provider health",
       "severity": "SEV2",
@@ -154,6 +165,7 @@
     },
     {
       "id": "password-recovery-abuse-signal",
+      "monitoringMode": "INACTIVE_UNTIL_B04",
       "component": "password-recovery-email",
       "signal": "Expired codes, reuse attempts, invalid attempts and rate-limit events",
       "severity": "SEV3",
@@ -167,6 +179,7 @@
     },
     {
       "id": "web-push-broad-failure",
+      "monitoringMode": "BASELINE_PENDING_REAL_TRAFFIC",
       "component": "web-push",
       "signal": "Targets found, dispatch completion, provider acceptance, sent and failed deliveries",
       "severity": "SEV2",
@@ -180,6 +193,7 @@
     },
     {
       "id": "web-push-ledger-or-device-anomaly",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "web-push",
       "signal": "404/410, device deactivation, stuck claims, batch limits and internal-recipient/delivery mismatch",
       "severity": "SEV3",
@@ -193,6 +207,7 @@
     },
     {
       "id": "storage-broad-failure",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "storage",
       "signal": "Upload and download errors, signed URL failures and access denials",
       "severity": "SEV2",
@@ -206,6 +221,7 @@
     },
     {
       "id": "storage-policy-or-capacity-anomaly",
+      "monitoringMode": "BASELINE_PENDING_REAL_TRAFFIC",
       "component": "storage",
       "signal": "Per-bucket growth, object size, MIME rejection and denied access",
       "severity": "SEV3",
@@ -219,6 +235,7 @@
     },
     {
       "id": "suspected-secret-exposure",
+      "monitoringMode": "AUTOMATED_GITHUB",
       "component": "security",
       "signal": "Secret scanning, unauthorized use, leaked credential report or anomalous privileged access",
       "severity": "SEV1",

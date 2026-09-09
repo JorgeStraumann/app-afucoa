@@ -1,0 +1,54 @@
+name: AFUCOA V2 production monitoring
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: Fail only the local synthetic monitoring-circuit check
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: afucoa-v2-production-monitoring
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.ref == 'refs/heads/afucoa-v2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AFUCOA_PROD_PUBLISHABLE_KEY: ${{ vars.AFUCOA_PROD_PUBLISHABLE_KEY }}
+      SIMULATE_FAILURE: ${{ inputs.simulate_failure || 'false' }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout afucoa-v2
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Ensure monitoring labels exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh label create production-monitoring --color 1D76DB --description 'Automated AFUCOA production monitoring' --force
+          gh label create sev1 --color B60205 --description 'Critical production incident' --force
+          gh label create sev2 --color D93F0B --description 'Major production incident' --force
+          gh label create sev3 --color FBCA04 --description 'Operational production anomaly' --force
+
+      - name: Run read-only production audit and synchronize incidents
+        run: node scripts/production-monitoring-audit.mjs

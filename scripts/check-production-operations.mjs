@@ -7,6 +7,7 @@ export const repoRoot = path.resolve(here, '..');
 
 export const requiredDocuments = [
   'docs/PRODUCTION_MONITORING.md',
+  'docs/PROD_MONITORING_ACTIVE.md',
   'docs/PRODUCTION_SLO.md',
   'docs/INCIDENT_RESPONSE.md',
   'docs/BACKUP_RESTORE.md',
@@ -28,6 +29,7 @@ export const requiredDocuments = [
 
 const declarativeFiles = [
   'config/production-monitoring-policy.json',
+  'config/uptimerobot-monitors.json',
   'config/production-smoke-checks.json'
 ];
 
@@ -42,6 +44,7 @@ function hasNumber(value) {
 export function validatePolicy(policy, root = repoRoot) {
   const errors = [];
   if (policy?.schemaVersion !== 1) errors.push('monitoring policy: schemaVersion must be 1');
+  if (policy?.status !== 'ACTIVE / B09 OPERATING') errors.push('monitoring policy: status must be operational');
   if (policy?.environment !== 'production-only') errors.push('monitoring policy: environment must be production-only');
   if (policy?.calibrationRequired !== true) errors.push('monitoring policy: calibrationRequired must be true');
   if (policy?.privacy?.allowPII !== false) errors.push('monitoring policy: PII must be forbidden');
@@ -53,6 +56,13 @@ export function validatePolicy(policy, root = repoRoot) {
 
   const ids = new Set();
   const allowedSeverities = new Set(['SEV1', 'SEV2', 'SEV3']);
+  const allowedMonitoringModes = new Set([
+    'AUTOMATED_EXTERNAL',
+    'AUTOMATED_GITHUB',
+    'SUPABASE_NATIVE_MANUAL',
+    'INACTIVE_UNTIL_B04',
+    'BASELINE_PENDING_REAL_TRAFFIC'
+  ]);
   for (const [index, alert] of policy.alerts.entries()) {
     const label = alert?.id || `index ${index}`;
     for (const field of ['id', 'component', 'signal', 'severity', 'window', 'condition', 'owner', 'action', 'runbook']) {
@@ -63,6 +73,7 @@ export function validatePolicy(policy, root = repoRoot) {
     if (ids.has(alert?.id)) errors.push(`alert ${label}: duplicate id`);
     ids.add(alert?.id);
     if (!allowedSeverities.has(alert?.severity)) errors.push(`alert ${label}: invalid severity`);
+    if (!allowedMonitoringModes.has(alert?.monitoringMode)) errors.push(`alert ${label}: invalid monitoringMode`);
     if (typeof alert?.immediate !== 'boolean') errors.push(`alert ${label}: immediate must be boolean`);
     if ((hasNumber(alert?.window) || hasNumber(alert?.condition)) && alert?.provisional !== true) {
       errors.push(`alert ${label}: numeric threshold/window must be provisional`);

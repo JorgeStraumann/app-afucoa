@@ -1,8 +1,8 @@
 # AFUCOA V2 — SLI/SLO propuestos
 
-Estado: propuesta no aprobada, sin medición PROD.
+Estado: propuesta no aprobada; medición técnica PROD inicial en curso.
 
-Todos los objetivos numéricos de este documento son **PROVISIONAL / PENDIENTE DE APROBACIÓN**. Deben validarse contra capacidad, presupuesto, dependencia de terceros y métricas reales. B09 continúa OPEN.
+Todos los objetivos numéricos de este documento son **PROVISIONAL / PENDIENTE DE APROBACIÓN**. UptimeRobot FREE ya mide cinco contratos cada 5 minutos y GitHub audita el conjunto técnico cada 6 horas, pero la muestra inicial no constituye un SLO aprobado. B09 permanece PARTIAL.
 
 ## Definiciones
 

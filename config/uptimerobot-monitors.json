@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "provider": "UptimeRobot",
+  "plan": "FREE",
+  "monthlyCostUsd": 0,
+  "intervalSeconds": 300,
+  "regions": 1,
+  "requiredMonitorCount": 8,
+  "activeExternalCount": 5,
+  "blockedByFreePlanCount": 3,
+  "status": "PARTIAL / FREE PLAN LIMIT DOCUMENTED",
+  "regionNote": "FREE permits one selected region; GitHub Actions is the independent complementary probe.",
+  "alertContact": "OWNER_EMAIL_PRIVATE_NOT_VERSIONED",
+  "canonicalOrigin": "https://afucoa-v2-prod.pages.dev",
+  "supabaseOrigin": "https://rywdochyzhgfaymrmxek.supabase.co",
+  "privacy": {
+    "pii": false,
+    "privateSecrets": false,
+    "privateUrls": false,
+    "publishableKey": "AFUCOA_PROD_PUBLISHABLE_KEY runtime value only; never copied to documentation"
+  },
+  "monitors": [
+    {
+      "id": "frontend-https",
+      "name": "AFUCOA PROD - Frontend HTTPS",
+      "type": "keyword",
+      "method": "GET",
+      "url": "https://afucoa-v2-prod.pages.dev/",
+      "expectedStatus": 200,
+      "keyword": "AFUCOA",
+      "redirects": "fail-on-arbitrary-redirect",
+      "uptimeRobotStatus": "ACTIVE"
+    },
+    {
+      "id": "auth-health",
+      "name": "AFUCOA PROD - Auth Health",
+      "type": "api",
+      "method": "GET",
+      "url": "https://rywdochyzhgfaymrmxek.supabase.co/auth/v1/health",
+      "headers": { "apikey": "RUNTIME_PUBLISHABLE_KEY" },
+      "expectedStatus": 200,
+      "assertions": { "json": true, "service": "GoTrue" },
+      "uptimeRobotStatus": "ACTIVE"
+    },
+    {
+      "id": "database-health",
+      "name": "AFUCOA PROD - Database Health",
+      "type": "api",
+      "method": "POST",
+      "url": "https://rywdochyzhgfaymrmxek.supabase.co/rest/v1/rpc/production_health",
+      "headers": { "apikey": "RUNTIME_PUBLISHABLE_KEY", "Content-Type": "application/json" },
+      "body": {},
+      "expectedStatus": 200,
+      "assertions": { "ok": true, "database": true, "rls": true, "storage": true, "push": true, "schemaContract": 19 },
+      "uptimeRobotStatus": "ACTIVE",
+      "exactContractAlsoCheckedBy": "AUTOMATED_GITHUB"
+    },
+    {
+      "id": "push-config-security",
+      "name": "AFUCOA PROD - Push Config Security",
+      "type": "api",
+      "method": "POST",
+      "url": "https://rywdochyzhgfaymrmxek.supabase.co/functions/v1/push-config",
+      "headers": { "apikey": "RUNTIME_PUBLISHABLE_KEY", "Origin": "https://afucoa-v2-prod.pages.dev" },
+      "authorization": "none",
+      "expectedStatus": 401,
+      "uptimeRobotStatus": "BLOCKED_BY_FREE_PLAN_CUSTOM_METHOD_HEADERS_STATUS",
+      "activeCheck": "AUTOMATED_GITHUB"
+    },
+    {
+      "id": "push-send-security",
+      "name": "AFUCOA PROD - Push Send Security",
+      "type": "api",
+      "method": "POST",
+      "url": "https://rywdochyzhgfaymrmxek.supabase.co/functions/v1/send-notification-push",
+      "headers": { "apikey": "RUNTIME_PUBLISHABLE_KEY", "Origin": "https://afucoa-v2-prod.pages.dev" },
+      "authorization": "none",
+      "expectedStatus": 401,
+      "uptimeRobotStatus": "BLOCKED_BY_FREE_PLAN_CUSTOM_METHOD_HEADERS_STATUS",
+      "activeCheck": "AUTOMATED_GITHUB"
+    },
+    {
+      "id": "storage-api",
+      "name": "AFUCOA PROD - Storage API",
+      "type": "api",
+      "method": "GET",
+      "url": "https://rywdochyzhgfaymrmxek.supabase.co/storage/v1/object/public/public-media/__afucoa_monitor__/not-found",
+      "headers": { "apikey": "RUNTIME_PUBLISHABLE_KEY" },
+      "expectedStatus": 400,
+      "assertions": { "code": "NoSuchKey", "message": "Object not found" },
+      "createsObject": false,
+      "uptimeRobotStatus": "BLOCKED_BY_FREE_PLAN_CUSTOM_SUCCESS_STATUS",
+      "activeCheck": "AUTOMATED_GITHUB"
+    },
+    {
+      "id": "manifest",
+      "name": "AFUCOA PROD - Manifest",
+      "type": "api",
+      "method": "GET",
+      "url": "https://afucoa-v2-prod.pages.dev/manifest.webmanifest",
+      "expectedStatus": 200,
+      "assertions": { "json": true, "display": "standalone" },
+      "uptimeRobotStatus": "ACTIVE",
+      "exactContractAlsoCheckedBy": "AUTOMATED_GITHUB"
+    },
+    {
+      "id": "push-worker",
+      "name": "AFUCOA PROD - Push Worker",
+      "type": "keyword",
+      "method": "GET",
+      "url": "https://afucoa-v2-prod.pages.dev/push-sw.js",
+      "expectedStatus": 200,
+      "keyword": "notification_id",
+      "uptimeRobotStatus": "ACTIVE"
+    }
+  ]
+}

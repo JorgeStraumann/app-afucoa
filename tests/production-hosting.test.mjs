@@ -80,9 +80,10 @@ test('cache diferencia shell HTML, worker, manifest y assets con hash', () => {
   assert.match(rules.get('hashed-assets').headers['Cache-Control'], /immutable/);
 });
 
-test('existen únicamente los workflows PROD manuales aprobados y el template histórico sigue inactivo', async () => {
+test('existen únicamente los workflows PROD aprobados y el template histórico sigue inactivo', async () => {
   const workflows = await readdir(new URL('.github/workflows/', root));
   assert.deepEqual(workflows.filter((name) => /prod(?:uction)?/i.test(name)).sort(), [
+    'afucoa-v2-production-monitoring.yml',
     'afucoa-v2-production-rollback.yml',
     'afucoa-v2-production.yml',
   ]);
@@ -94,6 +95,11 @@ test('existen únicamente los workflows PROD manuales aprobados y el template hi
       assert.ok(!workflow.toLowerCase().includes(forbidden.toLowerCase()));
     }
     if (name === 'afucoa-v2-production.yml') assert.match(workflow, /rywdochyzhgfaymrmxek/);
+    if (name === 'afucoa-v2-production-monitoring.yml') {
+      assert.match(workflow, /schedule:[\s\S]*17 \*\/6 \* \* \*/);
+      assert.match(workflow, /contents: read[\s\S]*issues: write/);
+      assert.doesNotMatch(workflow, /environment:\s*production|write-all/);
+    }
   }
   const template = await readFile(new URL('ops/templates/afucoa-v2-production-workflow.yml', root), 'utf8');
   assert.ok(template.startsWith('# TEMPLATE - NOT EXECUTED BY GITHUB ACTIONS.'));

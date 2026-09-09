@@ -1,8 +1,8 @@
 # AFUCOA V2 — Modelo de monitoring de producción
 
-Estado: diseño previo a infraestructura; no hay proveedor ni alertas activas.
+Estado: infraestructura operativa parcial; consultar `docs/PROD_MONITORING_ACTIVE.md`.
 
-**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B09 continúa OPEN.** La matriz de `config/production-monitoring-policy.json` es un contrato declarativo y sus umbrales numéricos son provisionales. Deben recalibrarse con métricas de preproducción y PROD, ser aprobados por AFUCOA y recién entonces activarse en el proveedor elegido.
+**AFUCOA V2 NO ESTÁ HABILITADA PARA PRODUCCIÓN. B09 está PARTIAL.** UptimeRobot FREE opera cinco monitores externos cada 5 minutos y GitHub Actions audita todos los contratos cada 6 horas. El proveedor gratuito bloquea método/headers/status personalizados para Edge y Storage; no se contrató un plan pago ni se declaró cobertura inexistente. La matriz de `config/production-monitoring-policy.json` ya es operativa, pero sus umbrales estadísticos continúan provisionales.
 
 ## Principios
 
@@ -59,7 +59,7 @@ Por bucket: errores de upload/download, URLs firmadas, tamaño, MIME rechazado, 
 
 ## Operación de alertas
 
-1. El proveedor futuro evalúa la matriz versionada.
+1. UptimeRobot evalúa los cinco probes compatibles con FREE; GitHub Actions evalúa la auditoría técnica completa.
 2. La primera persona de guardia valida que no sea mantenimiento o probe defectuoso.
 3. Si cumple condición, declara SEV y abre timeline conforme a `docs/INCIDENT_RESPONSE.md`.
 4. Cada cambio de severidad y mitigación queda registrado con hora UTC, evidencia redacted y SHA.
@@ -67,11 +67,10 @@ Por bucket: errores de upload/download, URLs firmadas, tamaño, MIME rechazado, 
 
 ## Pendientes para cerrar B09
 
-- seleccionar e integrar proveedor, retención y acceso;
-- instrumentar release, frontend y probes sintéticos;
-- crear dashboards y activar alertas;
-- obtener baseline real y recalibrar umbrales provisionales;
-- probar el circuito de guardia/escalamiento;
-- ejecutar game day y registrar tiempos observados.
+- cubrir externamente los contratos Edge `POST→401` y Storage `400 NoSuchKey` sin violar la restricción de costo cero;
+- completar y registrar seis ciclos de los cinco monitores activos;
+- confirmar recepción del email y completar game day DOWN/UP;
+- ejecutar el game day GitHub de issue deduplicado y recovery automático;
+- recalibrar umbrales estadísticos cuando exista tráfico real en B10.
 
-La existencia de esta especificación no cierra B09.
+La existencia del diseño y la cobertura parcial no cierran B09.

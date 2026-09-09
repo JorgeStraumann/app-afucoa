@@ -29,6 +29,7 @@ const expectedChain = [
   ['20260904024725', 'web_push_active_device_limit'],
   ['20260905002735', 'reconcile_existing_push_subscription'],
   ['20260906182340', 'privileged_aal2_enforcement'],
+  ['20260908180819', 'production_monitoring_health'],
 ];
 
 function fail(message) {
@@ -66,7 +67,7 @@ const expectedFiles = manifest.migrations.map((migration) => migration.file);
 if (diskFiles.some((file) => obsoleteFiles.has(file))) {
   fail('persisten versiones 20260831 obsoletas.');
 }
-if (diskFiles.length !== 18) fail(`se encontraron ${diskFiles.length} archivos SQL; se esperaban 18.`);
+if (diskFiles.length !== 19) fail(`se encontraron ${diskFiles.length} archivos SQL; se esperaban 19.`);
 if (JSON.stringify(diskFiles) !== JSON.stringify([...expectedFiles].sort())) {
   fail('los archivos SQL no coinciden exactamente con el manifiesto.');
 }
@@ -114,7 +115,7 @@ console.log(JSON.stringify({
   migrations: manifest.migrations.length,
   firstVersion: manifest.migrations[0].version,
   lastVersion: manifest.migrations.at(-1).version,
-  checksums: '18/18',
+  checksums: '19/19',
   obsoleteVersions: 0,
   storageBuckets: 3,
   storageObjectsCopied: false,
