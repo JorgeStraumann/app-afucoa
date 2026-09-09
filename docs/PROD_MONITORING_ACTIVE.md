@@ -26,7 +26,7 @@ No se guardan en el repositorio el email del Owner, publishable key ni valores p
 | `AFUCOA PROD - Push Send Security` | BLOCKED BY FREE PLAN | — | GitHub valida `POST`, Origin canónico, sin JWT, 401 exacto |
 | `AFUCOA PROD - Storage API` | BLOCKED BY FREE PLAN | — | GitHub valida 400, `NoSuchKey` y `Object not found` sin crear objeto |
 
-El intento con los API oficiales v2 y v3 confirmó que las operaciones de lectura están permitidas, pero UptimeRobot responde `403` cuando la definición usa ajustes no disponibles en el plan FREE. No se contrató plan, no se cargó tarjeta y no se degradó el contrato para simular cobertura. La API key temporal se elimina al terminar la configuración.
+El intento con los API oficiales v2 y v3 confirmó que las operaciones de lectura están permitidas, pero UptimeRobot responde `403` cuando la definición usa ajustes no disponibles en el plan FREE. No se contrató plan, no se cargó tarjeta y no se degradó el contrato para simular cobertura. La API key temporal fue eliminada al terminar la configuración.
 
 ## Auditoría GitHub
 
@@ -62,7 +62,7 @@ Game day externo ejecutado sin tumbar PROD:
 - el Owner confirmó recepción del email DOWN;
 - la condición se corrigió sin cambiar el frontend ni Supabase;
 - el incidente quedó `Resolved`, duración informada por UptimeRobot: 534 segundos;
-- recuperación técnica UP confirmada; el monitor temporal se elimina después de preservar esta evidencia.
+- recuperación técnica UP confirmada; el monitor temporal fue eliminado después de preservar esta evidencia.
 
 Game day GitHub:
 
@@ -72,6 +72,8 @@ Game day GitHub:
 - staging run `34295461091` del commit de Fase 3J: SUCCESS en 55 segundos.
 
 Los umbrales absolutos de caída quedan activos; thresholds estadísticos y de tráfico continúan provisionales hasta B10.
+
+Cleanup final UptimeRobot: 5 monitores permanentes, 5 `UP`, 0 `DOWN`, 0 pausados, 100% de uptime observado y 0 incidentes permanentes. No quedó monitor game day ni Main API key temporal.
 
 ## Revisión Supabase
 
