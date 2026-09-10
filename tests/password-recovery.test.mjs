@@ -61,6 +61,7 @@ test('el harness PROD es sintético, cleanup-safe y no persiste secretos', () =>
   assert.match(prodLiveSource, /password_recovery_rate_limits/);
   assert.match(prodLiveSource, /storage_objects: 0/);
   assert.match(prodLiveSource, /readMaskedCode/);
+  assert.match(prodLiveSource, /AFUCOA_RECOVERY_LOCAL_RELAY/);
   assert.doesNotMatch(prodLiveSource, /console\.(?:log|error)\([^\n]*(?:realCode|initialPassword|newPassword|recipient)/);
 });
 
@@ -69,7 +70,10 @@ test('el sandbox Brevo usa drop y el wrapper mantiene secrets fuera de archivos'
   assert.match(sandboxSource, /response\.status, 201/);
   assert.match(prodWrapper, /AFUCOA_PROD_SECRET_KEY/);
   assert.match(prodWrapper, /BREVO_API_KEY/);
-  assert.match(prodWrapper, /Read-Host[^\n]+-MaskInput/g);
+  assert.match(prodWrapper, /Read-Host[^\n]+-AsSecureString/g);
+  assert.match(prodWrapper, /SecureStringToBSTR/);
+  assert.match(prodWrapper, /ZeroFreeBSTR/);
+  assert.doesNotMatch(prodWrapper, /-MaskInput/);
   assert.match(prodWrapper, /functions deploy request-password-recovery confirm-password-recovery/);
   assert.doesNotMatch(prodWrapper, /\.env|Out-File|Set-Content|Add-Content/);
 });

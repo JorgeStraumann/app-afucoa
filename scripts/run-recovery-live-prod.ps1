@@ -12,8 +12,20 @@ if (-not $pnpmExecutable) { throw 'No se encontro pnpm en PATH ni en el runtime 
 if ([string]::IsNullOrWhiteSpace($env:BREVO_API_KEY)) { throw 'BREVO_API_KEY no esta cargada en esta terminal.' }
 if ([string]::IsNullOrWhiteSpace($env:AFUCOA_PROD_SECRET_KEY)) { throw 'AFUCOA_PROD_SECRET_KEY no esta cargada en esta terminal.' }
 
-$sender = Read-Host 'Pega el email del Sender verificado en Brevo y presiona Enter' -MaskInput
-$recipient = Read-Host 'Pega el inbox real de prueba controlado y presiona Enter' -MaskInput
+function Read-SecretText {
+  param([Parameter(Mandatory = $true)][string]$Prompt)
+
+  $secureValue = Read-Host $Prompt -AsSecureString
+  $pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureValue)
+  try {
+    return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
+  } finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
+  }
+}
+
+$sender = Read-SecretText 'Pega el email del Sender verificado en Brevo y presiona Enter'
+$recipient = Read-SecretText 'Pega el inbox real de prueba controlado y presiona Enter'
 if ([string]::IsNullOrWhiteSpace($sender) -or [string]::IsNullOrWhiteSpace($recipient)) {
   throw 'Sender e inbox de prueba son obligatorios.'
 }

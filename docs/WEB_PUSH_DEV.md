@@ -45,7 +45,7 @@ allowPush=false bloquea nuevas altas y envíos; el centro interno permanece disp
 | test:edge-config | 12/12 + inventario/hardcodes PASS; exclusivamente local |
 | test:staging | PASS; 5 archivos, sin source maps ni secretos privilegiados |
 | test:session | 11/11 |
-| test:recovery | 13/13; no se reenvió correo real |
+| test:recovery | 18/18; no se reenvió correo real DEV |
 | test:pilot | 6/6, exclusivamente sintética |
 | test:push | 44/44 |
 | test:navigation | 5/5 |

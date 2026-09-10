@@ -1,6 +1,6 @@
 # AFUCOA V2 — configuración runtime de Edge Functions
 
-Estado: código versionado en `afucoa-v2`; las cuatro funciones están validadas en DEV y las dos funciones Push fueron desplegadas y validadas E2E en PROD durante Fase 3I
+Estado: código versionado en `afucoa-v2`; las cuatro funciones están validadas en DEV y PROD, con Push y Recovery confirmados E2E
 
 Alcance: recuperación de acceso y Web Push
 
@@ -26,10 +26,12 @@ No se agregó ninguna variable al frontend. La clave privilegiada permanece excl
 
 Las cuatro Edge Functions usan `SUPABASE_URL` y una entrada de `SUPABASE_SECRET_KEYS`. DEV migró y validó este contrato antes de desactivar sus legacy API keys. El código ya no lee `SUPABASE_SERVICE_ROLE_KEY`.
 
-Variables adicionales que conservan su semántica:
+Variables adicionales:
 
-- recuperación: `RESEND_API_KEY`, `RECOVERY_EMAIL_FROM`;
+- recuperación: `RECOVERY_EMAIL_PROVIDER`, `RECOVERY_EMAIL_FROM`, `RECOVERY_EMAIL_SENDER_NAME`; DEV usa `RESEND_API_KEY` con provider `resend` y PROD usa `BREVO_API_KEY` con provider `brevo`;
 - push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+
+El provider de email falla cerrado si no coincide con el ambiente (`resend` en DEV, `brevo` en PROD), falta su API key o el remitente es inválido. Las claves se conservan como propiedades no enumerables y nunca llegan al frontend.
 
 `RECOVERY_ALLOWED_ORIGINS` ya no se lee. Todos los handlers usan exclusivamente `AFUCOA_ALLOWED_ORIGINS` para evitar listas divergentes.
 
@@ -88,13 +90,13 @@ La recuperación real con el usuario sintético DEV `10000001` completó solicit
 
 Web Push también fue revalidado después del despliegue: con `10000001` deslogueado, logout conservó las notificaciones y un envío administrativo produjo toast en Windows/Chrome. La última notificación generó dos deliveries enviados, cero fallidos y cero inactivos porque el perfil tenía dos endpoints web activos distintos. No fue una duplicación sobre el mismo endpoint; representa dos suscripciones válidas y el diseño admite múltiples dispositivos o contextos. No corresponde desactivar ni limpiar esas suscripciones como parte de este cierre documental.
 
-## Despliegue PROD Push — Fase 3I
+## Despliegue PROD — Fases 3I y cierre B04
 
-Desde el SHA `aff2a701590cb60ba14067ed5139478e2ba3b87c` se desplegaron únicamente `push-config` v1 y `send-notification-push` v1 en `rywdochyzhgfaymrmxek`. Quedaron `ACTIVE` con `AFUCOA_ENV=prod`, origin canónico exclusivo, Secret API Key PROD seleccionada y un par VAPID nuevo/exclusivo cuyo subject es `https://afucoa-v2-prod.pages.dev`. Recovery no fue desplegado.
+Push se desplegó y validó en Fase 3I. En el cierre B04 se desplegaron exclusivamente `request-password-recovery` v1 y `confirm-password-recovery` v1 desde código versionado; ambas quedaron `ACTIVE`. El inventario actual suma cuatro funciones `ACTIVE`, con `AFUCOA_ENV=prod`, origin canónico exclusivo y selección de Secret API Key PROD.
 
 Las Secret API Keys opacas no son JWT; las funciones usan gateway `verify_jwt=false` y validan obligatoriamente el JWT real del usuario dentro del handler mediante `auth.getUser`, perfil activo y AAL2 para envío administrativo. La clave server-side nunca sustituye ese JWT.
 
-La evidencia de seguridad, entrega real Windows/Chrome, ledger, retry, logout, reconciliación, baja y cleanup está en `docs/PROD_WEB_PUSH.md`. B05 quedó cerrado; B04/Recovery permanece abierto y no recibió configuración ni deploy PROD.
+La evidencia Push está en `docs/PROD_WEB_PUSH.md`. Recovery usó Brevo Free, pasó sandbox/drop y un E2E real con identidad sintética, recepción, cambio de contraseña, estados negativos y cleanup a cero; ver `docs/PROD_PASSWORD_RECOVERY.md`. B03, B04 y B05 están cerrados; B10 permanece abierto.
 
 ## Verificación local
 

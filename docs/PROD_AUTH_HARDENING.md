@@ -2,7 +2,7 @@
 
 Fecha: 5 de septiembre de 2026 (America/Montevideo)
 
-Estado: hardening base de Auth y URL canónica configurados; **AFUCOA V2 no está habilitada completamente para producción**.
+Estado: hardening Auth, URL canónica, MFA y Recovery PROD validados; **AFUCOA V2 no está habilitada para usuarios reales hasta B10 GO/NO-GO**.
 
 ## Destino y alcance
 
@@ -55,7 +55,7 @@ Estos valores fueron capturados en modo read-only y no se cambiaron en esta fase
 | Rate limit token refresh | 150 |
 | Rate limit anonymous users | 30 |
 
-La recuperación propia de AFUCOA sigue pendiente en PROD: las Edge Functions, email/dominio y secretos de producción no fueron desplegados ni configurados. B04 permanece abierto.
+Recovery propio quedó desplegado con Brevo Free y credenciales exclusivas server-side. `request-password-recovery` y `confirm-password-recovery` v1 están `ACTIVE`; sandbox/drop y E2E real sintético confirmaron recepción, cambio, reuso/incorrecto/expirado y límites. B04 está **CLOSED**.
 
 ## Decisión sobre confirmación de email
 
@@ -70,7 +70,7 @@ El alias Auth de cédula no representa el correo de contacto del socio. Antes de
 - No se agregaron localhost, GitHub Pages, preview, deployment hash, DEV ni comodines amplios.
 - El origin canónico y su TLS/HSTS fueron verificados antes de actualizar Auth.
 
-B03 permanece **PARTIAL** únicamente por Recovery PROD/B04 E2E; la URL, MFA privilegiado y ciclo operativo de cuentas ya no son pendientes.
+B03 está **CLOSED**: política fuerte, HIBP, signup cerrado, URL canónica, MFA privilegiado, ciclo de cuentas y Recovery PROD están evidenciados. B10 sigue siendo el único gate abierto.
 
 ## MFA
 
@@ -102,8 +102,8 @@ No fue necesario ejecutar cleanup porque no se creó ninguna identidad.
 
 ## Invariantes posteriores
 
-- Historial remoto: **18 migraciones canónicas**, sin migration repair y con dry-run posterior vacío.
-- Edge Functions PROD: **0**.
+- Historial remoto: **19 migraciones canónicas**, sin migration repair y con dry-run posterior vacío.
+- Edge Functions PROD: **4 ACTIVE**.
 - Usuarios Auth PROD: **0**.
 - Profiles PROD: **0**.
 - Pilot 01: **PARKED**.
@@ -112,22 +112,22 @@ No fue necesario ejecutar cleanup porque no se creó ninguna identidad.
 - Factores MFA PROD: **0** después del cleanup sintético.
 - Objetos Storage y datos de negocio PROD: **0**.
 - B02: **CLOSED**.
-- B03: **PARTIAL**.
-- B04–B05: **OPEN**.
+- B03: **CLOSED**.
+- B04–B05: **CLOSED**.
 - B06: **CLOSED** para el origin canónico Pages.dev; ver `docs/PROD_CANONICAL_ORIGIN.md`.
-- B07–B08: **CLOSED**; B09–B10: **OPEN**.
+- B07–B09: **CLOSED**; B10: **OPEN**.
 
 ## Validación local
 
 | Comando | Resultado |
 | --- | --- |
-| `pnpm test:migrations` | PASS — 18/18 checksums, 0 obsoletas |
+| `pnpm test:migrations` | PASS — 19/19 checksums, 0 obsoletas |
 | `pnpm test:prod-operations` | PASS — 12/12 y contrato operativo PASS |
 | `pnpm test:prod-hosting` | PASS — 18/18 |
 | `pnpm test:prod-artifact` | PASS — 16/16 y build sintético sin referencias DEV, source maps ni clave privilegiada |
 | `pnpm test:edge-config` | PASS — 14/14 y check estático |
-| `pnpm test:recovery` | PASS — 13/13 |
-| `pnpm test:push` | PASS — 46/46 |
+| `pnpm test:recovery` | PASS — 18/18 |
+| `pnpm test:push` | PASS — 47/47 |
 | `pnpm test:session` | PASS — 11/11 |
 | `pnpm test:navigation` | PASS — 5/5 |
 | `pnpm test:mfa` | PASS — 14/14 |

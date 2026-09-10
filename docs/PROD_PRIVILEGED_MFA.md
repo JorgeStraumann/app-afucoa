@@ -2,7 +2,7 @@
 
 Fecha de validación: 7 de septiembre de 2026 (America/Montevideo)
 
-Estado: **VALIDADO** para `admin` y `superadmin`. Los socios continúan admitidos con AAL1. B03 permanece **PARTIAL** únicamente por recuperación PROD/B04 E2E.
+Estado: **VALIDADO** para `admin` y `superadmin`. Los socios continúan admitidos con AAL1. Recovery PROD fue aprobado posteriormente; B03 y B04 están **CLOSED**.
 
 ## Alcance y destinos
 

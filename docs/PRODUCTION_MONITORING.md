@@ -71,4 +71,4 @@ B09 queda cerrado por cobertura automática real y combinada: UptimeRobot extern
 
 La cadencia GitHub quedó demostrada con el primer run automático `34328893538`: evento `schedule`, rama `afucoa-v2`, slot nominal `2026-09-09T08:22:00Z`, inicio `2026-09-09T08:24:00Z`, retraso de 2 minutos y auditoría `11/11 PASS`. Terminó sin abrir un Issue y sin modificar PROD.
 
-Riesgos residuales aceptados: una región UptimeRobot FREE; schedule GitHub best-effort sin SLA; contratos Edge/Storage cada 15 minutos; thresholds estadísticos pendientes de tráfico real hasta B10; Recovery permanece `INACTIVE_UNTIL_B04`. Estos riesgos no bloquean B09 ni habilitan por sí solos usuarios reales.
+Riesgos residuales aceptados: una región UptimeRobot FREE; schedule GitHub best-effort sin SLA; contratos Edge/Storage cada 15 minutos y thresholds estadísticos pendientes de tráfico real hasta B10. Recovery está `ACTIVE`: el auditor usa `OPTIONS` canónico read-only sobre request/confirm, sin generar códigos, consumir rate limit ni enviar correo. Estos riesgos no bloquean B09 ni habilitan por sí solos usuarios reales.

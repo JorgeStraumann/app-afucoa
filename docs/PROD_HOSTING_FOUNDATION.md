@@ -132,7 +132,7 @@ La URL canónica `pages.dev` fue configurada en Auth. No se agregaron localhost,
 | `pnpm test:prod-hosting` | 18/18 PASS, incluidos 6 casos específicos del adaptador Cloudflare |
 | `pnpm test:prod-artifact` | 16/16 PASS y build sintético PASS |
 | `pnpm test:edge-config` | 12/12 PASS y check estático PASS |
-| `pnpm test:recovery` | 13/13 PASS |
+| `pnpm test:recovery` | 18/18 PASS actual; 13/13 en la fase histórica |
 | `pnpm test:push` | 44/44 PASS |
 | `pnpm test:session` | 11/11 PASS |
 | `pnpm test:navigation` | 5/5 PASS |
@@ -142,4 +142,4 @@ No se ejecutaron pruebas LIVE con identidades. Cloudflare Pages procesa `_header
 
 ## Estado de cutover
 
-B06 queda **CLOSED** para el origin Pages.dev aprobado: HTTPS, HSTS, headers, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado fueron validados. B07–B10 permanecen abiertos, B03 sigue PARTIAL por MFA privilegiado, ciclo operativo de cuentas y recovery PROD, y AFUCOA V2 no está declarada lista para producción.
+B06 queda **CLOSED** para el origin Pages.dev aprobado: HTTPS, HSTS, headers, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado fueron validados. Estado actual: B03–B09 se cerraron en fases posteriores; B10 sigue abierto y AFUCOA V2 no está habilitada para usuarios reales.

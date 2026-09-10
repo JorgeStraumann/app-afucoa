@@ -59,6 +59,8 @@ UptimeRobot envía email al Owner operativo y GitHub Issues conserva el incident
 
 Los runbooks son guías de decisión, no autorización para cambios destructivos. Un restore, rotación de credenciales o cambio de DNS exige la autoridad y doble revisión definidas para PROD.
 
+Una credencial que aparezca en pantalla, terminal o salida de herramienta se considera expuesta aunque no haya llegado a Git. Se debe detener su uso, crear un reemplazo por un canal seguro, validar el reemplazo, rotar/revocar la anterior y comprobar consumidores. En el cierre B04, las claves Brevo candidatas visibles se desactivaron, las API keys legacy PROD se deshabilitaron y la firma HS256 anterior se revocó; Recovery y Push ya usan las nuevas Secret API Keys. No se documentan valores.
+
 Para Web Push PROD, consultar además `docs/PROD_WEB_PUSH.md`: observar `found`, `sent`, `failed`, `skipped`, `deactivated`, `limited`, status de incidentes y claims `sending` estancados. Nunca copiar endpoints completos. Un 404/410 debe terminar con dispositivo desactivado y ledger `inactive`; 5xx/timeout conserva el dispositivo y respeta la ventana/máximo de reintentos.
 
 El workflow `AFUCOA V2 production monitoring` deduplica por `alert-id`. Fallos repetidos actualizan el mismo issue; recovery comenta `RECOVERED` con timestamp UTC y lo cierra. UptimeRobot cubre el canal externo compatible con FREE. El inventario y la limitación de los tres probes avanzados están en `docs/PROD_MONITORING_ACTIVE.md`.

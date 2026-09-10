@@ -69,6 +69,6 @@ No se agregaron localhost, GitHub Pages, previews, deployment hash ni DEV.
 
 ## Alcance y pendientes
 
-Esta decisión cierra B06 respecto del hosting/origin canónico. No despliega Edge Functions ni configura Resend, VAPID, secrets o recuperación PROD. B03 continúa PARTIAL por MFA privilegiado, ciclo operativo de cuentas y recovery PROD; B04, B05 y B07–B10 continúan OPEN. Pilot 01 permanece PARKED.
+Esta decisión cerró B06 respecto del hosting/origin canónico. En esa fase no se desplegaron Edge Functions ni se configuraron email, VAPID o Recovery. Estado actual: B03–B09 fueron cerrados por fases posteriores; B10 continúa OPEN y Pilot 01 permanece PARKED.
 
 La futura configuración server-side deberá usar exactamente este valor en `AFUCOA_ALLOWED_ORIGINS`; no se debe copiar configuración DEV.

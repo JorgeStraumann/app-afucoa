@@ -108,7 +108,7 @@ No se copian logs con PII al repositorio.
 - `test:prod-operations` 12/12 y contrato 22 archivos/17 alertas/7 smoke checks;
 - `test:prod-hosting` 18/18;
 - `test:prod-artifact` 16/16 y build sintético PASS;
-- `test:edge-config` 14/14; recovery 13/13; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
+- `test:edge-config` 14/14; recovery 18/18; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
 - primera ejecución automática de monitoreo: run `34328893538`, evento `schedule`, rama `afucoa-v2`, 11/11 PASS, 0 Issues abiertos;
 - `test:staging` PASS y workflow staging run `34295461091` SUCCESS para Fase 3J; el run final de Fase 3K se registra al publicar este cierre documental.
 
@@ -116,7 +116,7 @@ No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió e
 
 ## Riesgos residuales
 
-- B04 Recovery/email PROD permanece `INACTIVE_UNTIL_B04` y no se interpreta como fallo de monitoring.
+- Recovery/email PROD está `ACTIVE`. Los probes periódicos request/confirm son `OPTIONS` read-only y no envían email ni crean/consumen códigos o rate limits.
 - Señales basadas en tráfico real permanecen `BASELINE_PENDING_REAL_TRAFFIC` hasta B10.
 - UptimeRobot FREE aporta una única región.
 - GitHub Actions no ofrece SLA del scheduler y los contratos Edge/Storage se comprueban nominalmente cada 15 minutos, no cada 5 minutos.

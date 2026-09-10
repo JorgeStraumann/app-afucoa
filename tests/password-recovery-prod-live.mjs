@@ -193,6 +193,14 @@ async function requestRecoveryAndAssertNeutral() {
 }
 
 async function readMaskedCode() {
+  if (process.env.AFUCOA_RECOVERY_LOCAL_RELAY === '1') {
+    const terminal = createInterface({ input, output });
+    try {
+      return (await terminal.question('Pega el codigo de 8 digitos recibido y presiona Enter: ')).trim();
+    } finally {
+      terminal.close();
+    }
+  }
   if (!input.isTTY || typeof input.setRawMode !== 'function') throw new Error('Se requiere una terminal interactiva para introducir el codigo.');
   output.write('Pega el codigo de 8 digitos recibido y presiona Enter: ');
   input.setRawMode(true);

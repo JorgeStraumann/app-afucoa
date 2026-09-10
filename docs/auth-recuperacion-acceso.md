@@ -83,7 +83,7 @@ Los grants permanecen mínimos y las nuevas primitivas de recuperación no son `
 
 ## Pruebas
 
-- `pnpm test:recovery`: 13/13; política, contratos, fail-closed y ejecución de los handlers reales con I/O simulado (Supabase y correo).
+- `pnpm test:recovery`: 18/18; política, contratos, provider abstraction Resend/Brevo, sandbox, fail-closed y handlers reales con I/O simulado.
 - `pnpm test:edge-config`: 12/12 más check estático; configuración/CORS e inventario PROD, sin red ni secretos.
 - `tests/password-recovery-state-machine.sql`: transacción sintética que valida código correcto, invalidación del anterior, expiración, reutilización, cinco intentos y rate limiting; siempre hace rollback.
 - `pnpm test:rls` y `pnpm test:integration`: matriz real contra DEV con credenciales efímeras fuera del repositorio.
