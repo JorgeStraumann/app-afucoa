@@ -8,8 +8,7 @@
 <meta name="theme-color" content="#1a237e">
 <title>AFUCOA</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="tokens.css">
-  <style>
+<style>
   :root{
     --verde:#1a237e;      /* azul índigo profundo (institucional) */
     --verde-claro:#283593;
@@ -1539,7 +1538,10 @@
           <button class="lista-filtro" onclick="adminLista('todos', this)">Todos</button>
         </div>
         <div class="lista-acciones">
-          <button class="btn dorado lista-btn" onclick="descargarListaWord()">Descargar Word</button>
+          <button class="btn dorado lista-btn" onclick="descargarPadronExcel()">Descargar Excel (cuota social)</button>
+          <button class="btn dorado lista-btn" onclick="descargarPadronTxt()">Descargar TXT (débitos)</button>
+        </div>
+        <div class="lista-acciones">
           <button class="btn dorado lista-btn" onclick="descargarListaPDF()">Descargar PDF / Imprimir</button>
         </div>
         <button class="btn-respaldo" onclick="descargarRespaldo()">
@@ -1635,6 +1637,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <!-- Librería para generar códigos QR del carnet -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
 /* ==================================================================
@@ -4739,7 +4742,81 @@ function tituloLista(){
   return 'Padrón de ' + cual + ' — AFUCOA (' + hoy + ')';
 }
 
-// DESCARGAR en Word
+// Trae SIEMPRE los socios activos con cuota y fecha de ingreso (padrón para débitos).
+// No depende del filtro visible: la cuota social es solo de activos.
+async function traerPadronActivos(){
+  const r = await llamarAdmin('admin_padron_activos', { clave: claveAdmin });
+  if(!Array.isArray(r)) throw new Error('respuesta');
+  return r;
+}
+
+// convierte una fecha ISO (YYYY-MM-DD) a DD/MM/YYYY
+function fechaDDMMYYYY(iso){
+  if(!iso) return '';
+  const p = String(iso).slice(0,10).split('-');
+  if(p.length !== 3) return '';
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+
+// DESCARGAR EXCEL (hoja CUOTA) — solo socios activos, formato del padrón oficial
+window.descargarPadronExcel = async function(){
+  if(typeof XLSX === 'undefined'){ mostrarResultadoAdmin('No se pudo cargar el generador de Excel. Revisá tu conexión y probá de nuevo.', false); return; }
+  mostrarResultadoAdmin('Generando Excel...', true);
+  try{
+    const socios = await traerPadronActivos();
+    if(socios.length === 0){ mostrarResultadoAdmin('No hay socios activos para descargar.', false); return; }
+    const hoy = new Date();
+    const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+    const titulo = 'AFUCOA CUOTA SOCIAL ' + meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+    const aoa = [
+      [titulo],
+      ['Documento','Primer Nombre','Primer Apellido','Numero','Importe']
+    ];
+    socios.forEach(s=>{
+      aoa.push([
+        Number(s.documento),
+        s.primer_nombre || '',
+        s.primer_apellido || '',
+        Number(s.numero),
+        Number(s.cuota != null ? s.cuota : 150)
+      ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:12},{wch:16},{wch:18},{wch:9},{wch:10}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'CUOTA');
+    const mm = String(hoy.getMonth()+1).padStart(2,'0');
+    const yy = String(hoy.getFullYear()).slice(2);
+    XLSX.writeFile(wb, 'AFUCOA_' + mm + '-' + yy + '_actualizado.xlsx');
+    mostrarResultadoAdmin('Excel generado: ' + socios.length + ' socios activos.', true);
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo generar el Excel. Intentá de nuevo.', false);
+  }
+};
+
+// DESCARGAR TXT (débitos) — solo socios activos, formato CI|cuota|fecha_ingreso
+window.descargarPadronTxt = async function(){
+  mostrarResultadoAdmin('Generando TXT...', true);
+  try{
+    const socios = await traerPadronActivos();
+    if(socios.length === 0){ mostrarResultadoAdmin('No hay socios activos para descargar.', false); return; }
+    const lineas = socios.map(s=>{
+      const cuota = (s.cuota != null ? s.cuota : 150);
+      return s.documento + '|' + cuota + '|' + fechaDDMMYYYY(s.fecha_ingreso);
+    });
+    const contenido = lineas.join('\r\n') + '\r\n';
+    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    const hoy = new Date();
+    const mm = String(hoy.getMonth()+1).padStart(2,'0');
+    const yy = String(hoy.getFullYear()).slice(2);
+    descargarArchivo(blob, 'AFUCOACuo_' + mm + '-' + yy + '.txt');
+    mostrarResultadoAdmin('TXT generado: ' + socios.length + ' socios activos.', true);
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo generar el TXT. Intentá de nuevo.', false);
+  }
+};
+
+// (reemplazada) descarga antigua en Word — ya no se usa
 window.descargarListaWord = function(){
   if(listaDatosActual.length === 0){ mostrarResultadoAdmin('No hay datos para descargar.', false); return; }
   const titulo = tituloLista();
