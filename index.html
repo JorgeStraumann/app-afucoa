@@ -4758,7 +4758,7 @@ function fechaDDMMYYYY(iso){
   return p[2] + '/' + p[1] + '/' + p[0];
 }
 
-// DESCARGAR EXCEL (hoja CUOTA) — solo socios activos, formato del padrón oficial
+// DESCARGAR EXCEL (hojas CUOTA + CONVENIO) — solo socios activos, formato del padrón oficial
 window.descargarPadronExcel = async function(){
   if(typeof XLSX === 'undefined'){ mostrarResultadoAdmin('No se pudo cargar el generador de Excel. Revisá tu conexión y probá de nuevo.', false); return; }
   mostrarResultadoAdmin('Generando Excel...', true);
@@ -4767,9 +4767,11 @@ window.descargarPadronExcel = async function(){
     if(socios.length === 0){ mostrarResultadoAdmin('No hay socios activos para descargar.', false); return; }
     const hoy = new Date();
     const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SETIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-    const titulo = 'AFUCOA CUOTA SOCIAL ' + meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+    const mesAnio = meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+
+    // ---- HOJA CUOTA (dinámica: socios activos del momento + total) ----
     const aoa = [
-      [titulo],
+      ['AFUCOA CUOTA SOCIAL ' + mesAnio],
       ['Documento','Primer Nombre','Primer Apellido','Numero','Importe']
     ];
     socios.forEach(s=>{
@@ -4781,10 +4783,35 @@ window.descargarPadronExcel = async function(){
         Number(s.cuota != null ? s.cuota : 150)
       ]);
     });
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{wch:12},{wch:16},{wch:18},{wch:9},{wch:10}];
+    // fila de TOTAL: "TOTAL" en columna C y fórmula SUM en columna E (mismo formato que el original)
+    const primeraDato = 3;                       // los datos empiezan en la fila 3
+    const ultimaDato = 2 + socios.length;        // última fila con socio
+    const filaTotalNum = ultimaDato + 1;         // fila donde va el TOTAL
+    aoa.push(['', '', 'TOTAL', '', '']);         // reservo la fila; la fórmula se escribe abajo
+
+    const wsCuota = XLSX.utils.aoa_to_sheet(aoa);
+    // total: fórmula SUM + valor calculado (SheetJS descarta la celda de fórmula si no lleva valor)
+    const sumaCuota = socios.reduce((acc,s)=> acc + Number(s.cuota != null ? s.cuota : 150), 0);
+    wsCuota['E' + filaTotalNum] = { t: 'n', f: 'SUM(E' + primeraDato + ':E' + ultimaDato + ')', v: sumaCuota };
+    wsCuota['!cols'] = [{wch:11.3},{wch:25.3},{wch:21.1},{wch:8},{wch:11.4}];
+    wsCuota['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:4} }]; // A1:E1 combinadas, como el original
+
+    // ---- HOJA CONVENIO (fija, tal cual el original — no cambia salvo pedido) ----
+    const aoaConv = [
+      ['AFUCOA CONVENIO JULIO 2026 '],
+      [],
+      ['Documento','Primer Nombre','Primer Apellido','Numero','Importe'],
+      [30835582, 'PAOLA', 'PEREZ', 974, 693],
+      ['', '', '', 'TOTAL', '']
+    ];
+    const wsConv = XLSX.utils.aoa_to_sheet(aoaConv);
+    wsConv['E5'] = { t: 'n', f: 'SUM(E4)', v: 693 }; // total del convenio, igual al original
+    wsConv['!cols'] = [{wch:11.3},{wch:14.9},{wch:15.3},{wch:8.1},{wch:8},{wch:11.4}];
+    wsConv['!merges'] = [{ s:{r:0,c:0}, e:{r:0,c:4} }];
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'CUOTA');
+    XLSX.utils.book_append_sheet(wb, wsCuota, 'CUOTA');
+    XLSX.utils.book_append_sheet(wb, wsConv, 'CONVENIO');
     const mm = String(hoy.getMonth()+1).padStart(2,'0');
     const yy = String(hoy.getFullYear()).slice(2);
     XLSX.writeFile(wb, 'AFUCOA_' + mm + '-' + yy + '_actualizado.xlsx');
