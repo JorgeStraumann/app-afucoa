@@ -458,6 +458,19 @@
   }
   a.conv-contacto.enlace{color:var(--verde);text-decoration:none;font-weight:500}
   a.conv-contacto.enlace:active{opacity:.6}
+  /* documentos descargables del convenio */
+  .conv-archivos{display:flex;flex-direction:column;gap:8px}
+  .conv-archivo{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 13px;border:1px solid var(--linea);border-radius:12px;
+    background:var(--fondo-suave,#fafafa);
+    color:var(--tinta);text-decoration:none;font-size:14px;font-weight:600;
+    transition:border-color .15s, background .15s;
+  }
+  .conv-archivo:hover{border-color:var(--verde);background:#fff}
+  .conv-archivo:active{opacity:.7}
+  .conv-archivo svg{width:22px;height:22px;color:var(--verde);flex-shrink:0}
+  .conv-archivo span{flex:1;min-width:0;line-height:1.3}
   .convenio .btn{margin-top:12px}
   .form-convenio{
     border-top:1px solid var(--linea);margin-top:14px;padding-top:4px;
@@ -1587,6 +1600,10 @@
           <textarea id="conv-adm-contactos" rows="4" placeholder="texto|Contacto: Juan Pérez&#10;tel|2901 9376&#10;mail|contacto@correo.com&#10;web|sitio.com&#10;instagram|usuario"></textarea>
           <p class="conv-nota-datos">Formato: <b>tipo|valor</b>. Tipos: texto, tel, mail, web, instagram.</p>
         </div>
+        <div class="campo"><label>PDFs para descargar (uno por renglón, opcional)</label>
+          <textarea id="conv-adm-archivos" rows="3" placeholder="Propuesta educativa 2026|documentos-convenios/santa-teresa-propuesta.pdf&#10;Educación Inicial|documentos-convenios/santa-teresa-inicial.pdf"></textarea>
+          <p class="conv-nota-datos">Formato: <b>Título|ruta del archivo</b>. Subí los PDF a GitHub (carpeta "documentos-convenios") y poné acá su nombre.</p>
+        </div>
         <input type="hidden" id="conv-adm-id" value="">
         <button class="btn" id="conv-adm-guardar" onclick="guardarConvenio()">Crear convenio</button>
         <button class="btn-conf-no" id="conv-adm-cancelar" onclick="cancelarEdicionConvenio()" style="display:none;width:100%;margin-top:8px;padding:12px">Cancelar edición</button>
@@ -2337,6 +2354,18 @@ function pintarConvenios(){
         ${c.contactos.map(contactoHTML).join('')}
       </div>` : ``;
 
+    const archivos = (c.archivos && c.archivos.length) ? `
+      <div class="conv-bloque">
+        <div class="conv-subtit">Documentos para descargar</div>
+        <div class="conv-archivos">
+          ${c.archivos.map(a=>`
+            <a class="conv-archivo" href="${a.ruta}" download target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3 3 3-3"/></svg>
+              <span>${a.nombre}</span>
+            </a>`).join('')}
+        </div>
+      </div>` : ``;
+
     return `
     <article class="convenio">
       ${galeria}
@@ -2346,6 +2375,7 @@ function pintarConvenios(){
         ${beneficios}
         ${requisitos}
         ${contactos}
+        ${archivos}
         <div class="conv-botones">
           <button class="btn dorado" onclick="mostrarFormConvenio(${i})">Solicitar convenio</button>
           <button class="btn-compartir-conv" onclick="compartirConvenio(${i})" aria-label="Compartir este convenio">
@@ -4311,10 +4341,11 @@ function leerFormConvenio(){
     beneficios: document.getElementById('conv-adm-beneficios').value.trim(),
     requisitos: document.getElementById('conv-adm-requisitos').value.trim(),
     contactos: document.getElementById('conv-adm-contactos').value.trim(),
+    archivos: document.getElementById('conv-adm-archivos').value.trim(),
   };
 }
 function limpiarFormConvenio(){
-  ['titulo','rubro','imagenes','beneficios','requisitos','contactos','id'].forEach(c=>{
+  ['titulo','rubro','imagenes','beneficios','requisitos','contactos','archivos','id'].forEach(c=>{
     document.getElementById('conv-adm-'+c).value = '';
   });
   document.getElementById('conv-adm-guardar').textContent = 'Crear convenio';
@@ -4332,10 +4363,10 @@ window.guardarConvenio = async function(){
     let r;
     if(id){
       r = await llamarAdmin('admin_editar_convenio', { clave: claveAdmin, p_id: parseInt(id,10),
-        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos });
+        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos, p_archivos: f.archivos });
     }else{
       r = await llamarAdmin('admin_crear_convenio', { clave: claveAdmin,
-        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos });
+        p_titulo: f.titulo, p_rubro: f.rubro, p_imagenes: f.imagenes, p_beneficios: f.beneficios, p_requisitos: f.requisitos, p_contactos: f.contactos, p_archivos: f.archivos });
     }
     const ok = String(r).indexOf('OK') === 0;
     mostrarResultadoAdmin(r, ok);
@@ -4352,6 +4383,7 @@ window.editarConvenio = function(c){
   document.getElementById('conv-adm-beneficios').value = c.beneficios||'';
   document.getElementById('conv-adm-requisitos').value = c.requisitos||'';
   document.getElementById('conv-adm-contactos').value = c.contactos||'';
+  document.getElementById('conv-adm-archivos').value = c.archivos||'';
   document.getElementById('conv-adm-guardar').textContent = 'Guardar cambios';
   document.getElementById('conv-adm-cancelar').style.display = 'block';
   document.getElementById('v-admin').scrollIntoView({behavior:'smooth'});
@@ -5222,13 +5254,20 @@ function convenioDesdeBase(c){
     if(idx === -1) return { tipo:'texto', valor:l };
     return { tipo: l.slice(0,idx), valor: l.slice(idx+1) };
   });
+  // archivos descargables: cada línea "Título del PDF|ruta/al/archivo.pdf"
+  const archivos = lineas(c.archivos).map(l=>{
+    const idx = l.indexOf('|');
+    if(idx === -1) return { nombre: l, ruta: l };
+    return { nombre: l.slice(0,idx).trim(), ruta: l.slice(idx+1).trim() };
+  });
   return {
     titulo: c.titulo || '',
     rubro: c.rubro || '',
     imagenes: lineas(c.imagenes),
     beneficios: lineas(c.beneficios),
     requisitos: c.requisitos || '',
-    contactos: contactos
+    contactos: contactos,
+    archivos: archivos
   };
 }
 
