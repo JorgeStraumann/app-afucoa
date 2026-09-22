@@ -250,7 +250,7 @@ export async function listAdminProposals() {
   if (appMode === 'demo') return adminProposals;
   const client = requireSupabase();
   const { data, error } = await client.from('proposals')
-    .select('id,title,status,created_at,response,profile:profiles(first_name,last_name),supports:proposal_supports(count)')
+    .select('id,title,status,created_at,response,profile:profiles!proposals_profile_id_fkey(first_name,last_name),supports:proposal_supports(count)')
     .order('created_at', { ascending:false });
   if (error) throw error;
   return (data || []).map(x => ({ id:x.id, title:x.title, status:label(x.status), author:`${x.profile?.first_name || ''} ${x.profile?.last_name || ''}`.trim() || 'Socio', supports:x.supports?.[0]?.count || 0, received:fmtDate(x.created_at), raw:x }));
