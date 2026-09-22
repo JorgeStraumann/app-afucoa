@@ -2,7 +2,7 @@
 
 Fecha de activación: 8 de septiembre de 2026 (America/Montevideo)
 
-Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. Esta decisión no habilita todavía AFUCOA V2 para usuarios reales: B04 y B10 continúan abiertos.
+Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. Esta decisión no habilita todavía AFUCOA V2 para usuarios reales: B04 está **CLOSED**, B10 continúa **OPEN** y Fase 4A emitió `NO-GO` por un blocker funcional ajeno al sistema de monitoring.
 
 ## Arquitectura operativa
 
@@ -103,13 +103,14 @@ No se copian logs con PII al repositorio.
 ## Validación técnica
 
 - migraciones DEV 19/19 y PROD 19/19; dry-run PROD sin pendientes;
-- auditoría LIVE pública PROD 11/11;
+- auditoría LIVE pública PROD actual `13/13 PASS`; la ejecución histórica inicial fue `11/11` antes de ampliar la matriz;
 - `test:monitoring` 7/7;
 - `test:prod-operations` 12/12 y contrato 22 archivos/17 alertas/7 smoke checks;
 - `test:prod-hosting` 18/18;
 - `test:prod-artifact` 16/16 y build sintético PASS;
 - `test:edge-config` 14/14; recovery 18/18; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
-- primera ejecución automática de monitoreo: run `34328893538`, evento `schedule`, rama `afucoa-v2`, 11/11 PASS, 0 Issues abiertos;
+- primera ejecución automática de monitoreo: run `34328893538`, evento `schedule`, rama `afucoa-v2`, `11/11 PASS`, 0 Issues abiertos (evidencia histórica);
+- última auditoría observada al cierre de Fase 4A: run `35668648021`, SUCCESS sobre el commit candidato `1573a3c386df93902095ec74f384fcd187da541a`; la matriz pública vigente permanece `13/13 PASS`, con 0 Issues `production-monitoring` abiertos y PROD sin cambios;
 - `test:staging` PASS y workflow staging run `34295461091` SUCCESS para Fase 3J; el run final de Fase 3K se registra al publicar este cierre documental.
 
 No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió ejecutar un deploy Cloudflare PROD.
