@@ -3050,11 +3050,8 @@ window.pedirCodigoRecuperacion = async function(){
       err.innerHTML = 'No tenés un correo registrado, o la cédula no tiene clave creada.<br>Para restablecer tu clave, escribinos a afucoa@gmail.com o por WhatsApp al 098 469 285.';
       return;
     }
-    // 2) mandar el correo con el código, vía Google Apps Script
-    await fetch(URL_PUENTE, {
-      method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify({ tipo:'recuperacion', email: r.email, codigo: r.codigo })
-    });
+    // 2) el correo lo envía Supabase directamente (servidor→servidor).
+    //    El código nunca vuelve al navegador, por seguridad.
     // 3) pasar al paso 2
     cedulaRecuperacion = cedula;
     document.getElementById('rec-paso1').style.display = 'none';
