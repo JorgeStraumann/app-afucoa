@@ -1090,6 +1090,20 @@
   </div>
 </div>
 
+<script>
+/* Guard TEMPRANO: si la app se abrió para verificar un carnet (?verificar=CODIGO),
+   ocultar el splash de inmediato y mostrar la pantalla de verificación, antes de
+   que se dibuje la app principal. Así el que escanea el QR NUNCA ve la app. */
+(function(){
+  if(new URLSearchParams(location.search).get('verificar')){
+    var sp = document.getElementById('splash');
+    if(sp) sp.style.display = 'none';
+    var v = document.getElementById('verificacion-pantalla');
+    if(v) v.style.display = 'flex';
+  }
+})();
+</script>
+
 <!-- ======== PANTALLA DE INGRESO (solo socios) ======== -->
 
 <div id="login-pantalla">
@@ -3410,6 +3424,9 @@ window.cerrarSesion = function(){
 
 // al abrir la app: si tiene sesión vigente (no vencida), entra directo
 async function revisarSesion(){
+  // Si la app se abrió para verificar un carnet (?verificar=CODIGO), NO arrancar
+  // la app normal: ese celular solo debe ver la pantalla de verificación.
+  if(new URLSearchParams(location.search).get('verificar')) return;
   const guardada = leerSesion();  // devuelve null si venció
   if(guardada){
     // re-verificar por si le dieron de baja desde que entró la última vez
@@ -5558,6 +5575,8 @@ window.cerrarSplash = function(){
 })();
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
 window.addEventListener('load', ()=>{
+  // si es una verificación de carnet, no tocar el splash/app: lo maneja revisarVerificacion
+  if(new URLSearchParams(location.search).get('verificar')) return;
   const doc = localStorage.getItem('afucoa_socio');
   const vence = parseInt(localStorage.getItem('afucoa_sesion_vence') || '0', 10);
   const vigente = doc && vence && Date.now() <= vence;
