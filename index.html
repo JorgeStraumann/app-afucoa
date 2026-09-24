@@ -77,10 +77,15 @@
     margin-top:30px;background:var(--dorado);color:#3a2e08;
     border:none;border-radius:30px;font-family:inherit;font-size:16px;font-weight:800;
     padding:14px 48px;cursor:pointer;letter-spacing:.5px;
-    box-shadow:0 6px 20px rgba(240,216,120,.4);transition:transform .15s ease;
+    box-shadow:0 6px 20px rgba(240,216,120,.4);transition:transform .12s ease, filter .12s ease;
     animation:splashBtnLatir 2s ease-in-out infinite;
+    /* elimina el retraso de ~300ms del navegador y el resaltado gris del tap */
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
   }
-  .splash-btn:active{transform:scale(.96)}
+  .splash-btn:active,
+  .splash-btn.tocado{transform:scale(.94);filter:brightness(.94);animation:none}
   @keyframes splashEntra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   @keyframes splashLatir{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
   @keyframes splashBtnLatir{0%,100%{box-shadow:0 6px 20px rgba(240,216,120,.4)}50%{box-shadow:0 6px 28px rgba(240,216,120,.7)}}
@@ -1081,7 +1086,7 @@
       «Mi autoridad emana de vosotros y ella cesa por vuestra presencia soberana»
       <span class="splash-frase-aut">— Artigas</span>
     </div>
-    <button class="splash-btn" onclick="cerrarSplash()">Acceder</button>
+    <button class="splash-btn" id="splash-btn" type="button">Acceder</button>
   </div>
 </div>
 
@@ -5530,10 +5535,27 @@ async function activarNotificaciones(){
     });
   }catch(e){ /* si algo falla, la app sigue funcionando normal */ }
 }
+let _splashCerrado = false;
 window.cerrarSplash = function(){
+  if(_splashCerrado) return;   // evita que un segundo toque haga algo raro
+  _splashCerrado = true;
   const sp = document.getElementById('splash');
-  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 500); }
+  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 400); }
 };
+// Enganchar el botón Acceder para que reaccione al toque AL INSTANTE (sin el
+// retraso de ~300ms del click en móviles) y dar feedback visual inmediato.
+(function engancharSplashBtn(){
+  const btn = document.getElementById('splash-btn');
+  if(!btn) return;
+  const activar = (e)=>{
+    if(e){ e.preventDefault(); }   // evita el click "fantasma" posterior
+    btn.classList.add('tocado');   // feedback visual inmediato
+    cerrarSplash();
+  };
+  // pointerdown cubre touch y mouse; click queda de respaldo por accesibilidad
+  btn.addEventListener('pointerdown', activar, { passive:false });
+  btn.addEventListener('click', activar);
+})();
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
 window.addEventListener('load', ()=>{
   const doc = localStorage.getItem('afucoa_socio');
