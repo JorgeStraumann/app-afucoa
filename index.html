@@ -861,6 +861,24 @@
   .admin-estado.inactivo{background:#fdeaea;color:#c0392b}
   .admin-buscando,.admin-nohay{font-size:14px;color:var(--tinta-suave);text-align:center;margin:0}
   .admin-aviso{font-size:14px;color:var(--tinta-suave);text-align:center;margin:8px 0 0;font-style:italic}
+  /* resultados de búsqueda en vivo y lista de inactivos (panel admin) */
+  .admin-resultados-vivos:not(:empty){margin-top:6px}
+  .admin-inactivos-lista{margin-top:12px;max-height:340px;overflow-y:auto}
+  .admin-socio-item{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:#fff;border:1px solid var(--linea);border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;cursor:pointer;
+    transition:border-color .12s, background .12s;
+  }
+  .admin-socio-item:hover{border-color:var(--verde);background:var(--arena-2)}
+  .admin-socio-item:active{transform:scale(.995)}
+  .admin-socio-info{min-width:0}
+  .admin-socio-nombre{font-size:14px;font-weight:600;color:var(--tinta);line-height:1.3}
+  .admin-socio-meta{font-size:12px;color:var(--tinta-suave)}
+  .admin-socio-flecha{color:var(--verde);flex-shrink:0;font-size:18px;font-weight:700}
+  .stat-card.clickable{cursor:pointer;transition:transform .12s, box-shadow .12s}
+  .stat-card.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(26,35,126,.12)}
+  .stat-card.clickable:active{transform:scale(.98)}
   .admin-confirmar{margin-top:10px;padding:14px;background:#fdeaea;border:1px solid #f0b4b4;border-radius:10px}
   .admin-confirmar-txt{font-size:14px;color:#c0392b;text-align:center;margin:0 0 12px;font-weight:600}
   .admin-confirmar-btns{display:flex;gap:8px}
@@ -1557,25 +1575,26 @@
 
       <!-- BAJA -->
       <div class="admin-panel" id="admin-panel-baja" style="display:none">
-        <p class="propuestas-intro">Buscá el socio por su número para ver sus datos antes de darlo de baja. No se borra: queda inactivo y se puede reactivar.</p>
-        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-baja-numero" inputmode="numeric" placeholder="Ej: 350"></div>
-        <button class="btn dorado" onclick="adminBuscar('baja')">Buscar socio</button>
+        <p class="propuestas-intro">Buscá el socio por su número o su nombre para ver sus datos antes de darlo de baja. No se borra: queda inactivo y se puede reactivar.</p>
+        <div class="campo"><label>Número o nombre del socio</label><input type="text" id="adm-baja-numero" placeholder="Ej: 350 o Juan Pérez" oninput="buscarSocioVivo('baja')"></div>
+        <div class="admin-resultados-vivos" id="adm-baja-resultados"></div>
         <div class="admin-ficha" id="adm-baja-ficha" style="display:none"></div>
       </div>
 
       <!-- REACTIVAR -->
       <div class="admin-panel" id="admin-panel-reactivar" style="display:none">
-        <p class="propuestas-intro">Buscá el socio por su número para ver sus datos antes de reactivarlo.</p>
-        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="adm-react-numero" inputmode="numeric" placeholder="Ej: 350"></div>
-        <button class="btn dorado" onclick="adminBuscar('reactivar')">Buscar socio</button>
+        <p class="propuestas-intro">Estos son los socios inactivos. Tocá uno para reactivarlo, o buscá por número o nombre.</p>
+        <div class="campo"><label>Buscar (opcional)</label><input type="text" id="adm-react-numero" placeholder="Ej: 350 o Juan Pérez" oninput="buscarSocioVivo('reactivar')"></div>
+        <div class="admin-resultados-vivos" id="adm-react-resultados"></div>
+        <div class="admin-inactivos-lista" id="adm-react-inactivos"><p class="admin-buscando">Cargando inactivos...</p></div>
         <div class="admin-ficha" id="adm-react-ficha" style="display:none"></div>
       </div>
 
       <!-- RESTABLECER CLAVE -->
       <div class="admin-panel" id="admin-panel-resetclave" style="display:none">
-        <p class="propuestas-intro">Si un socio olvidó su clave de acceso, buscalo y restablecé su clave. Después, la próxima vez que ingrese, podrá crear una nueva.</p>
-        <div class="campo"><label>Número de socio / Ficha</label><input type="text" id="reset-numero" inputmode="numeric" placeholder="Ej: 350"></div>
-        <button class="btn dorado" onclick="adminBuscarParaReset()">Buscar socio</button>
+        <p class="propuestas-intro">Si un socio olvidó su clave de acceso, buscalo por número o nombre y restablecé su clave. Después, la próxima vez que ingrese, podrá crear una nueva.</p>
+        <div class="campo"><label>Número o nombre del socio</label><input type="text" id="reset-numero" placeholder="Ej: 350 o Juan Pérez" oninput="buscarSocioVivo('reset')"></div>
+        <div class="admin-resultados-vivos" id="reset-resultados"></div>
         <div class="admin-ficha" id="reset-ficha" style="display:none"></div>
       </div>
 
@@ -4355,6 +4374,7 @@ window.adminTabSelect = function(cual){
   if(cual==='convenios') cargarConveniosPanel();
   if(cual==='estadisticas') cargarEstadisticas();
   if(cual==='propuestas') cargarPropuestasPanel();
+  if(cual==='reactivar') cargarInactivos();
 };
 
 // crear una propuesta desde el panel
@@ -4468,7 +4488,7 @@ async function cargarEstadisticas(){
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-num">${d.socios_total}</div><div class="stat-lbl">Total</div></div>
         <div class="stat-card verde"><div class="stat-num">${d.socios_activos}</div><div class="stat-lbl">Activos</div></div>
-        <div class="stat-card rojo"><div class="stat-num">${d.socios_inactivos}</div><div class="stat-lbl">Inactivos</div></div>
+        <div class="stat-card rojo clickable" onclick="irAInactivos()"><div class="stat-num">${d.socios_inactivos}</div><div class="stat-lbl">Inactivos ›</div></div>
       </div>
       <div class="stats-grupo">Afiliaciones</div>
       <div class="stats-grid">
@@ -5194,6 +5214,7 @@ window.adminAlta = async function(){
       document.getElementById('adm-alta-cedula').value = '';
       document.getElementById('adm-alta-nombre').value = '';
       document.getElementById('adm-alta-apellido').value = '';
+      invalidarCacheSocios();  // el padrón cambió
     }
   }catch(e){
     mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
@@ -5202,13 +5223,13 @@ window.adminAlta = async function(){
 
 // BUSCAR socio (para baja o reactivar): muestra sus datos y el botón de acción
 // buscar un socio para restablecer su clave
-window.adminBuscarParaReset = async function(){
-  const numero = document.getElementById('reset-numero').value.trim();
+window.adminBuscarParaReset = async function(numeroDirecto){
+  const numero = (numeroDirecto != null) ? String(numeroDirecto) : document.getElementById('reset-numero').value.trim();
   const ficha = document.getElementById('reset-ficha');
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   ficha.style.display = 'none'; ficha.innerHTML = '';
-  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número o nombre del socio.', false); return; }
   ficha.style.display = 'block';
   ficha.innerHTML = '<p class="admin-buscando">Buscando...</p>';
   try{
@@ -5257,15 +5278,120 @@ window.confirmarResetClave = async function(documento){
   }catch(e){ mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false); }
 };
 
-window.adminBuscar = async function(tipo){
+// ===== Buscador de socios por número o nombre (reutilizable) =====
+// Cachea la lista para no consultar en cada tecla.
+let _cacheSocios = null;
+let _cacheSociosTiempo = 0;
+async function traerTodosLosSocios(){
+  // cache de 60 segundos
+  if(_cacheSocios && (Date.now() - _cacheSociosTiempo) < 60000) return _cacheSocios;
+  const r = await llamarAdmin('admin_listar_socios', { clave: claveAdmin, filtro: 'todos' });
+  _cacheSocios = Array.isArray(r) ? r : [];
+  _cacheSociosTiempo = Date.now();
+  return _cacheSocios;
+}
+// invalida el cache (llamar tras alta/baja/reactivar)
+function invalidarCacheSocios(){ _cacheSocios = null; }
+
+const _cfgBuscar = {
+  baja:      { input:'adm-baja-numero',  res:'adm-baja-resultados',  soloInactivos:false },
+  reactivar: { input:'adm-react-numero', res:'adm-react-resultados', soloInactivos:false },
+  reset:     { input:'reset-numero',     res:'reset-resultados',     soloInactivos:false },
+};
+
+// se dispara al tipear en los buscadores de socio
+window.buscarSocioVivo = async function(tipo){
+  const cfg = _cfgBuscar[tipo];
+  const texto = document.getElementById(cfg.input).value.trim();
+  const cont = document.getElementById(cfg.res);
+  if(texto.length < 2){ cont.innerHTML = ''; return; }  // esperar al menos 2 caracteres
+  cont.innerHTML = '<p class="admin-buscando">Buscando...</p>';
+  try{
+    const socios = await traerTodosLosSocios();
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const q = norm(texto);
+    const esNumero = /^\d+$/.test(texto);
+    let matches = socios.filter(s=>{
+      if(esNumero) return String(s.numero).includes(texto);
+      const nombreCompleto = norm((s.primer_nombre||'') + ' ' + (s.primer_apellido||'') + ' ' + (s.primer_apellido||'') + ' ' + (s.primer_nombre||''));
+      return nombreCompleto.includes(q);
+    });
+    matches = matches.slice(0, 20);  // no abrumar
+    if(matches.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No se encontró ningún socio.</p>';
+      return;
+    }
+    cont.innerHTML = matches.map(s=>{
+      const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
+      const estado = s.activo ? 'Activo' : 'Inactivo';
+      return `<div class="admin-socio-item" onclick="seleccionarSocio('${tipo}', ${s.numero})">
+        <div class="admin-socio-info">
+          <div class="admin-socio-nombre">${nombre}</div>
+          <div class="admin-socio-meta">Ficha N.º ${s.numero} · ${estado}</div>
+        </div>
+        <span class="admin-socio-flecha">›</span>
+      </div>`;
+    }).join('');
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudo buscar. Intentá de nuevo.</p>';
+  }
+};
+
+// al tocar un socio de la lista de resultados, cargar su ficha (baja/reactivar/reset)
+window.seleccionarSocio = function(tipo, numero){
+  // poner el número en el input y limpiar resultados
+  const cfg = _cfgBuscar[tipo];
+  document.getElementById(cfg.input).value = numero;
+  document.getElementById(cfg.res).innerHTML = '';
+  if(tipo === 'reset'){ adminBuscarParaReset(numero); }
+  else{ adminBuscar(tipo, numero); }
+};
+
+// desde la tarjeta "Inactivos" de estadísticas, ir al panel de reactivar (que los lista)
+window.irAInactivos = function(){
+  const menu = document.getElementById('admin-menu');
+  if(menu) menu.value = 'reactivar';
+  adminTabSelect('reactivar');
+};
+
+// carga y muestra la lista de socios INACTIVOS en el panel de reactivar
+async function cargarInactivos(){
+  const cont = document.getElementById('adm-react-inactivos');
+  if(!cont) return;
+  cont.innerHTML = '<p class="admin-buscando">Cargando inactivos...</p>';
+  try{
+    const socios = await traerTodosLosSocios();
+    const inactivos = socios.filter(s => s.activo === false);
+    if(inactivos.length === 0){
+      cont.innerHTML = '<p class="admin-nohay">No hay socios inactivos.</p>';
+      return;
+    }
+    inactivos.sort((a,b)=> (a.primer_apellido||'').localeCompare(b.primer_apellido||''));
+    cont.innerHTML = `<div class="stats-grupo">${inactivos.length} socio(s) inactivo(s)</div>` +
+      inactivos.map(s=>{
+        const nombre = formatearNombre((s.primer_apellido||'') + ', ' + (s.primer_nombre||''));
+        return `<div class="admin-socio-item" onclick="seleccionarSocio('reactivar', ${s.numero})">
+          <div class="admin-socio-info">
+            <div class="admin-socio-nombre">${nombre}</div>
+            <div class="admin-socio-meta">Ficha N.º ${s.numero}</div>
+          </div>
+          <span class="admin-socio-flecha">›</span>
+        </div>`;
+      }).join('');
+  }catch(e){
+    cont.innerHTML = '<p class="admin-nohay">No se pudieron cargar los inactivos. Intentá de nuevo.</p>';
+  }
+}
+
+window.adminBuscar = async function(tipo, numeroDirecto){
   const campoNum = (tipo==='baja') ? 'adm-baja-numero' : 'adm-react-numero';
   const contFicha = (tipo==='baja') ? 'adm-baja-ficha' : 'adm-react-ficha';
-  const numero = document.getElementById(campoNum).value.trim();
+  const numero = (numeroDirecto != null) ? String(numeroDirecto) : document.getElementById(campoNum).value.trim();
   const ficha = document.getElementById(contFicha);
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   ficha.style.display = 'none'; ficha.innerHTML = '';
-  if(!numero){ mostrarResultadoAdmin('Ingresá el número de socio.', false); return; }
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número o nombre del socio.', false); return; }
   ficha.style.display = 'block';
   ficha.innerHTML = '<p class="admin-buscando">Buscando...</p>';
   try{
@@ -5393,6 +5519,10 @@ window.adminConfirmar = async function(tipo, numero){
       document.getElementById(contFicha).style.display = 'none';
       document.getElementById(contFicha).innerHTML = '';
       document.getElementById(campoNum).value = '';
+      invalidarCacheSocios();  // el padrón cambió: refrescar cache
+      const cr = document.getElementById('adm-react-resultados'); if(cr) cr.innerHTML = '';
+      const cb = document.getElementById('adm-baja-resultados'); if(cb) cb.innerHTML = '';
+      if(tipo==='reactivar') cargarInactivos();  // actualizar la lista de inactivos
     }
   }catch(e){
     mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
