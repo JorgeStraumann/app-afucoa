@@ -1,4 +1,4 @@
-# AFUCOA V2 — Validación pre-go-live PROD (Fase 4A)
+# AFUCOA V2 — Validación pre-go-live PROD (Fases 4A–4C)
 
 Fecha de cierre: 21 de septiembre de 2026, America/Montevideo (`2026-09-22T00:19:56Z`)
 
@@ -10,11 +10,21 @@ Supabase PROD: `rywdochyzhgfaymrmxek`
 
 Frontend público: `https://afucoa-v2-prod.pages.dev`
 
-## Dictamen
+## Estado actual después de Fase 4C
 
-**NO-GO.** La revisión pública encontró un blocker funcional reproducible en Administración → Propuestas. La consulta real falla con `PGRST201` porque el embed `profile:profiles(...)` no identifica la FK y PostgREST reconoce más de una ruta entre `proposals` y `profiles`: la relación directa de autor y la relación muchos-a-muchos vía `proposal_supports`. La pantalla muestra `No se pudieron cargar las propuestas.` y conserva filas locales de fallback; esas filas no constituyen evidencia de datos live.
+**GO TÉCNICO.** El SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f` fue promovido mediante el workflow PROD `35800017711` y validado sobre `https://afucoa-v2-prod.pages.dev/`. Administración → Propuestas carga la relación directa `profiles!proposals_profile_id_fkey`, muestra autor y apoyos correctos, permite moderación, representa el estado vacío y no vuelve a producir `PGRST201` ni fallback demo engañoso.
 
-Fase 4A fue audit-only. No se corrigió el defecto, no se cambió SQL, no se desplegó nada y no se creó un commit. Debe abrirse una fase funcional acotada para desambiguar la relación —la FK PROD confirmada es `proposals_profile_id_fkey`—, agregar una regresión y repetir la validación antes de reconsiderar el go-live.
+La revalidación usó únicamente tres identidades sintéticas con roles socio, admin y superadmin. El socio no vio Administración y fue rechazado al intentar `#/admin`; admin y superadmin accedieron con AAL2. La navegación autenticada y el layout se comprobaron en 390×844, 768×1024 y 1440×900. El cleanup final dejó en cero usuarios Auth, factores MFA, profiles, propuestas, apoyos, eventos de moderación y auditoría creados para la prueba.
+
+Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`.
+
+B01–B09 permanecen `CLOSED`. B10 continúa `OPEN`, Pilot 01 sigue `PARKED` y este GO técnico no autoriza personas reales.
+
+## Dictamen histórico de Fase 4A
+
+**NO-GO histórico.** La revisión pública encontró un blocker funcional reproducible en Administración → Propuestas. La consulta real fallaba con `PGRST201` porque el embed `profile:profiles(...)` no identificaba la FK y PostgREST reconocía más de una ruta entre `proposals` y `profiles`: la relación directa de autor y la relación muchos-a-muchos vía `proposal_supports`. La pantalla mostraba `No se pudieron cargar las propuestas.` y conservaba filas locales de fallback; esas filas no constituían evidencia de datos live.
+
+Fase 4A fue audit-only. El defecto se corrigió después en Fase 4B sin cambios SQL/RLS y quedó validado en Fase 4C. Este apartado se conserva como registro histórico del hallazgo.
 
 B01–B09 conservan su evidencia histórica `CLOSED`. B10 permanece `OPEN`. Pilot 01 continúa `PARKED` y no se autoriza incorporar personas reales.
 
@@ -133,15 +143,13 @@ Riesgos aceptados o ya conocidos:
 - La revalidación Fase 4A de Recovery y Push físico quedó incompleta; existe evidencia E2E histórica, pero no se presenta como un PASS nuevo.
 - Falta una matriz general RLS/integración PROD cleanup-safe; la ausencia se registra como brecha de evidencia.
 
-Decisiones humanas necesarias, en orden:
+Decisiones humanas necesarias:
 
-1. Autorizar una fase funcional acotada para corregir el embed ambiguo de Administración → Propuestas y agregar regresión.
-2. Aprobar la revalidación pública posterior: socio/admin, RLS relevante, tres resoluciones y workflows sobre el SHA corregido.
-3. Celebrar el gate institucional B10 y decidir `GO`, `GO CON CONDICIONES` o `NO-GO` con soporte, datos y operación aprobados.
-4. Mantener Pilot 01 `PARKED` hasta que B10 concluya en GO explícito.
+1. Celebrar el gate institucional B10 y decidir `GO`, `GO CON CONDICIONES` o `NO-GO` con soporte, datos y operación aprobados.
+2. Mantener Pilot 01 `PARKED` hasta que B10 concluya en GO explícito.
 
 ## Integridad del alcance
 
-No se modificaron `main`, V1, Supabase DEV, Pilot 01, datos reales, Cloudflare, Edge Functions, Auth settings, secretos, DNS ni infraestructura. No se ejecutó deploy PROD. Al detectarse el blocker funcional tampoco se hizo commit, push ni se dispararon workflows nuevos; el SHA candidato permanece sin cambios.
+Fase 4A no modificó `main`, V1, Supabase DEV, Pilot 01, datos reales, Cloudflare, Edge Functions, Auth settings, secretos, DNS ni infraestructura. Fase 4B cambió exclusivamente la consulta/fallback y sus regresiones en `afucoa-v2`; el SHA `e91327e17fa0b813f354f4d00345ef26cd55d38f` fue el único SHA funcional promovido para esta corrección. Fase 4C no modificó código ni infraestructura: validó ese deploy, eliminó todos sus datos sintéticos y cerró documentación.
 
-El último workflow staging ya existente para el SHA candidato es el run `34421549074`, SUCCESS. El monitor PROD continuó por su schedule normal y el último run observado fue `35668648021`, SUCCESS. Ninguno fue disparado por esta auditoría.
+La promoción PROD fue el run `35800017711`, `SUCCESS`; deployment Cloudflare `81c04089-9f91-4712-97a9-7f8b73c07c65`. No corresponde un segundo deploy PROD por el commit documental de cierre.

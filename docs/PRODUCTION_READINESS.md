@@ -8,15 +8,15 @@ Baseline al iniciar la auditoría: `1044fcd91eb35abcfa9346d295e16cfb4be7141e`
 
 Entornos documentados: Supabase `AFUCOA V2 DEV` (`imiplnspvmsrsuikulwm`), staging público y PROD aislado (`rywdochyzhgfaymrmxek`)
 
-Tipo de documento: auditoría viva de readiness; Fase 4A pre-go-live con dictamen `NO-GO`
+Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉCNICO`
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para usuarios reales.** B01–B09 conservan su evidencia histórica **CLOSED** y B10 GO/NO-GO sigue **OPEN**, pero la revisión pública de Fase 4A detectó un blocker funcional nuevo: Administración → Propuestas no puede cargar la consulta real por un embed PostgREST ambiguo (`PGRST201`). El dictamen actual es **NO-GO** hasta corregir y revalidar ese flujo. Detalle y evidencia: `docs/PROD_PRE_GO_LIVE_VALIDATION.md`.
+**AFUCOA V2 todavía no está habilitada para usuarios reales.** B01–B09 conservan su evidencia **CLOSED** y B10 GO/NO-GO sigue **OPEN**. El blocker funcional de Fase 4A en Administración → Propuestas fue corregido en Fase 4B y revalidado sobre PROD en Fase 4C; el estado actual es **GO TÉCNICO**, no aprobación institucional de cutover. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md` y `docs/PROD_PRE_GO_LIVE_VALIDATION.md`.
 
-Los riesgos técnicos más inmediatos son:
+Los riesgos y gates más inmediatos son:
 
-1. Corregir en una fase funcional separada la consulta de Administración → Propuestas, indicando de forma explícita la relación `proposals_profile_id_fkey`, y revalidar socio/admin, RLS y las tres resoluciones públicas.
+1. Resolver B10 mediante un GO/NO-GO institucional antes de incorporar personas reales; Pilot 01 permanece `PARKED`.
 2. Recovery PROD usa configuración fail-closed, Brevo Free y solo el origin canónico. Fase 4A confirmó solicitud neutra y aceptación del envío, pero la revalidación completa se canceló antes de leer el código porque el control de navegador no pudo verificar Gmail; el E2E histórico de B04 permanece válido, aunque esta ejecución es **incompleta**.
 3. Web Push conserva su E2E histórico de B05. Fase 4A confirmó los controles server-side del harness, pero el navegador integrado mantuvo el permiso bloqueado y no permitió repetir la recepción física; esta ejecución es una **brecha de evidencia**, no un PASS inventado.
 
@@ -53,13 +53,13 @@ La primera ejecución automática posterior al cambio de cadencia fue el run `34
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
-### Gate adicional detectado en Fase 4A
+### Gate adicional detectado en Fase 4A y cerrado en Fase 4C
 
 | Hallazgo | Clasificación | Impacto | Estado |
 | --- | --- | --- | --- |
-| `listAdminProposals()` usa `profile:profiles(...)` sin desambiguar. PostgREST también reconoce la relación muchos-a-muchos vía `proposal_supports`, devuelve `PGRST201` y la UI muestra `No se pudieron cargar las propuestas.` | **BLOCKER PROD** | La moderación administrativa no puede confiar en datos live; la lista visible que queda en pantalla es contenido local de fallback y no prueba operatividad | **OPEN — no corregido en Fase 4A audit-only** |
+| `listAdminProposals()` usaba `profile:profiles(...)` sin desambiguar. PostgREST también reconocía la relación muchos-a-muchos vía `proposal_supports` y devolvía `PGRST201`. | **BLOCKER PROD histórico** | La moderación administrativa no podía confiar en datos live; el fallback local era engañoso | **CLOSED — Fase 4B usa `profiles!proposals_profile_id_fkey`; Fase 4C validó PROD sin PGRST201, sin fallback demo y con autor/apoyos/moderación correctos** |
 
-La consulta read-only al catálogo PROD confirmó la FK directa `proposals_profile_id_fkey`; la corrección probable debe referenciarla explícitamente en el embed. Esta observación no autoriza cambiar código, SQL ni `SECURITY DEFINER` dentro de Fase 4A.
+La consulta read-only al catálogo PROD confirmó la FK directa `proposals_profile_id_fkey`. La corrección se limitó al repositorio/frontend y no cambió SQL, RLS, permisos ni funciones `SECURITY DEFINER`.
 
 ## 1. Auth y seguridad
 
@@ -398,4 +398,4 @@ Fase 3H ejecutó una suite LIVE dedicada con identidades PROD inequívocamente s
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. B01–B09 conservan su evidencia **CLOSED**; B10 permanece **OPEN** y Pilot 01 sigue **PARKED**. Fase 4A emite **NO-GO** por el blocker de Administración → Propuestas y exige una corrección funcional acotada seguida de revalidación antes de cualquier decisión institucional.
+Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. Fases 4B/4C corrigieron y validaron el único blocker funcional detectado en Fase 4A. B01–B09 conservan su evidencia **CLOSED**; no quedan blockers técnicos abiertos conocidos. B10 permanece **OPEN**, Pilot 01 sigue **PARKED** y el estado `GO TÉCNICO` no autoriza personas reales.
