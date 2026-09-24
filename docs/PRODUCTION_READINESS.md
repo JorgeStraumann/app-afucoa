@@ -49,7 +49,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B09 — **CLOSED** | Health #19, matriz, cinco monitores UptimeRobot FREE cada 5 min y auditor GitHub externo cada 15 min | USD 0; schedule GitHub best-effort y una región UptimeRobot | Cobertura combinada real, email, baseline, game days, issues deduplicados, recovery, ownership y runbooks. Edge `POST→401` y Storage `400 NoSuchKey` conservan su contrato completo en GitHub-hosted runners. Evidencia: `docs/PROD_MONITORING_ACTIVE.md`. |
 
 La primera ejecución automática posterior al cambio de cadencia fue el run `34328893538` (`schedule`, `afucoa-v2`): `11/11 PASS`, inicio 2 minutos después del slot nominal, 0 Issues abiertos y PROD sin cambios. Esta evidencia cierra el circuito automático sin atribuir SLA al scheduler de GitHub.
-| B10 — **OPEN** | Cutover gate documentado; alta/cutover de personas reales no aprobados | Operación y soporte; Pilot 01 permanece PARKED | Cerrar todos los blockers, aprobar datos/consentimiento/soporte y celebrar go/no-go. Reactivar Pilot solo mediante autorización posterior explícita; no migrar contraseñas V1. |
+| B10 — **OPEN** | GO técnico alcanzado; decisión institucional y altas reales no aprobadas | I01 soporte, I02 datos/privacidad y I03 alcance/cohorte; Pilot 01 permanece PARKED | Completar `docs/PROD_GO_NO_GO_PACKET.md`, aprobar soporte y datos, registrar GO/NO-GO. Cualquier alta o Pilot exige autorización posterior explícita; no migrar contraseñas V1. |
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
@@ -329,11 +329,13 @@ Resumen de findings:
 
 ### Fase 4 — validación preproducción
 
-- [ ] Ejecutar suites sintéticas, RLS, integración, recovery E2E, push E2E y matriz responsive sobre la URL final.
-- [ ] Ejecutar pruebas de carga/abuso controladas para login, recovery, Storage y push.
-- [ ] Verificar Advisors; resolver blockers y justificar cada aceptación con dueño/fecha.
+- [x] Ejecutar suites sintéticas, Recovery/Push E2E y matriz responsive sobre la URL final; Fase 4C cerró el único defecto funcional observado.
+- [ ] Crear/ejecutar una matriz general RLS/integración PROD con identidades sintéticas y cleanup propios, o aceptar formalmente la evidencia DEV como riesgo E01 de B10.
+- [ ] Ejecutar pruebas de carga/abuso representativas o aprobar límites conservadores y observación inicial como riesgo E02 de B10.
+- [x] Verificar Advisors; clasificar hallazgos y conservar las funciones `SECURITY DEFINER` necesarias.
 - [ ] Ejecutar revisión de privacidad, términos, soporte, incidente y continuidad.
-- [ ] Congelar SHA candidato, generar evidencia y celebrar go/no-go.
+- [x] Congelar y validar el SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f`; generar evidencia técnica.
+- [ ] Completar `docs/PROD_GO_NO_GO_PACKET.md` y celebrar go/no-go institucional.
 
 ### Fase 5 — piloto/cutover, solo con nueva autorización
 

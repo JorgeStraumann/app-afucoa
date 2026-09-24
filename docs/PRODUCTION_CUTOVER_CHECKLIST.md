@@ -2,21 +2,23 @@
 
 Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, importaciones ni datos reales.
 
-## Gates obligatorios antes de solicitar go/no-go
+## Estado de gates antes de solicitar go/no-go
 
-- [ ] **B01 cerrado:** fresh-db aislado desde las migraciones canónicas, comparación estructural, RLS/RPC/Storage y evidencia aprobada.
-- [ ] **Supabase PROD aislado:** proyecto, región, plan, accesos, billing y datos separados; cero reutilización de secretos/usuarios DEV.
-- [ ] **Auth endurecido:** signup, redirects, sesiones, política, Leaked Password Protection y control privilegiado aprobados/probados.
-- [ ] **Email PROD:** dominio/remitente, SPF/DKIM/DMARC según política, secret exclusivo, rate limits y recovery E2E sintético.
-- [ ] **Web Push PROD:** VAPID exclusiva, worker/scope final, ledger, limpieza 404/410, monitoreo y E2E sintético multidispositivo.
-- [ ] **Hosting/dominio:** URL HTTPS canónica, DNS/TLS, headers, cache, PWA, assets, refresh y release manifest verificados.
-- [ ] **Workflow/protecciones:** artefacto inmutable, Environment/aprobación, branch rules, secret scanning y rollback probado.
-- [ ] **Backup/restore:** RPO/RTO aprobados, backups DB/Storage reales, responsables y restore drill aislado con tiempos observados.
-- [ ] **Monitoring/SLO:** proveedor integrado, dashboards sin PII, alertas activas/calibradas, guardia y escalamiento ensayados.
-- [ ] **Runbooks:** incidentes, secret rotation, restore y rollback revisados; dueños/contactos accesibles fuera del repo.
+- [x] **B01 cerrado:** fresh-db aislado desde las migraciones canónicas, comparación estructural, RLS/RPC/Storage y evidencia aprobada.
+- [x] **Supabase PROD aislado:** proyecto, región, plan, accesos, billing y datos separados; cero reutilización de secretos/usuarios DEV.
+- [x] **Auth endurecido:** signup, redirects, sesiones, política, Leaked Password Protection y control privilegiado aprobados/probados.
+- [x] **Email PROD:** provider/remitente PROD, secret exclusivo, rate limits y recovery E2E sintético; dominio branded queda como mejora post go-live según la política vigente.
+- [x] **Web Push PROD:** VAPID exclusiva, worker/scope final, ledger, limpieza 404/410, monitoreo y E2E sintético multidispositivo.
+- [x] **Hosting/dominio:** URL HTTPS canónica, TLS, headers, cache, PWA, assets, refresh y release manifest verificados.
+- [x] **Workflow/protecciones:** artefacto inmutable, Environment/aprobación, branch rules, secret scanning y rollback probado.
+- [x] **Backup/restore:** RPO/RTO técnicos documentados, backups DB/Storage, responsables y restore drill aislado con tiempos observados.
+- [x] **Monitoring:** cobertura combinada, alertas, responsables y game days; SLO estadístico continúa provisional hasta existir tráfico aprobado.
+- [x] **Runbooks técnicos:** incidentes, secret rotation, restore y rollback versionados y ensayados.
 - [ ] **Soporte:** canales, horarios, clasificación, escalamiento, comunicaciones y procedimiento de identidad aprobados.
 - [ ] **Datos reales:** inventario/finalidad/retención/consentimiento y revisión legal/business aprobados.
-- [ ] **Piloto:** cohorte exacta, dry-run, reporte, rollback, criterios de suspensión y soporte de alta definidos.
+- [x] **Mecanismo de piloto:** dry-run, reporte, rollback, idempotencia y criterios técnicos validados sintéticamente.
+- [ ] **Activación de cohorte real:** lista nominal, consentimiento, canal de alta, soporte y ventana todavía no autorizados; Pilot 01 permanece `PARKED`.
+- [ ] **Decisión B10:** completar y aprobar `docs/PROD_GO_NO_GO_PACKET.md`.
 
 ## Paquete de evidencia go/no-go
 
@@ -26,10 +28,16 @@ Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, im
 - reporte de security/advisors y riesgos aceptados con dueño/fecha;
 - resultado de restore drill, RPO/RTO observado y backups vigentes;
 - health checks, dashboards, alertas y game day;
-- aprobaciones técnica, seguridad/privacidad, negocio y operación.
+- [x] aprobación/evidencia técnica B01–B09 y Fase 4C;
+- [ ] aprobación de seguridad/privacidad y datos;
+- [ ] aprobación de negocio y alcance;
+- [ ] aprobación de operación/soporte;
+- [ ] registro final GO/GO CON CONDICIONES/NO-GO.
 
 ## Decisión
 
 **GO** requiere todos los gates, cero blocker abierto, rollback viable y aprobaciones registradas. **NO-GO** aplica ante cualquier blocker, evidencia incompleta, drift, secreto DEV, backup/restore no probado, alerta no operativa o falta de soporte.
 
 Un GO de infraestructura no reactiva automáticamente Pilot 01. Reactivarlo y aplicar un lote de personas reales requiere una autorización posterior, explícita y acotada. Hasta entonces: **PILOT 01 PARKED; cero importaciones y cero usuarios reales.**
+
+Paquete de decisión: `docs/PROD_GO_NO_GO_PACKET.md`. Plantillas pendientes: `docs/PRODUCTION_SUPPORT_MODEL.md` y `docs/PRODUCTION_DATA_APPROVAL.md`.
