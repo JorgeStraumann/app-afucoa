@@ -111,9 +111,18 @@
   .marca h1{font-size:17px;letter-spacing:.5px;font-weight:700;line-height:1}
   .marca p{font-size:10px;opacity:.75;margin-top:3px;letter-spacing:1.3px;text-transform:uppercase}
 
-  /* Botón de menú (☰) a la derecha del encabezado */
+  /* Accesos rápidos (Manual, Preguntas) + botón de menú (☰) a la derecha */
+  .header-acciones{margin-left:auto;display:flex;align-items:center;gap:7px;flex:none}
+  .header-accion{
+    background:rgba(255,255,255,.15);border:none;cursor:pointer;
+    width:36px;height:36px;border-radius:9px;display:grid;place-items:center;
+    color:#fff;flex:none;transition:.15s;
+  }
+  .header-accion:active{transform:scale(.9)}
+  .header-accion:hover{background:rgba(255,255,255,.28)}
+  .header-accion svg{width:21px;height:21px}
   .menu-btn{
-    margin-left:auto;background:rgba(255,255,255,.15);border:none;cursor:pointer;
+    background:rgba(255,255,255,.15);border:none;cursor:pointer;
     width:36px;height:36px;border-radius:9px;display:grid;place-items:center;
     color:#fff;flex:none;transition:.15s;
   }
@@ -601,15 +610,6 @@
   /* mientras el login está activo, no dejar ver la app detrás */
   body.con-login{overflow:hidden}
 
-  /* ---------- Trámites ---------- */
-  .tramite{
-    background:#fff;border:1px solid var(--linea);border-radius:14px;
-    padding:18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(26,35,126,.06);
-  }
-  .tramite-tit{font-size:16px;color:var(--verde);margin-bottom:12px}
-  .tramite-pasos{margin:0;padding-left:20px}
-  .tramite-pasos li{font-size:14px;color:var(--tinta);line-height:1.5;margin-bottom:8px}
-
   /* ---------- Documentos ---------- */
   .documento{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
@@ -641,6 +641,49 @@
   .faq-resp{max-height:0;overflow:hidden;transition:max-height .25s ease}
   .faq-item.abierta .faq-resp{max-height:500px}
   .faq-resp p{padding:0 16px 16px;font-size:14px;color:var(--tinta-suave);line-height:1.55;margin:0}
+
+  /* ---------- Manual de la app ---------- */
+  .btn-descargar-manual{
+    display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    background:var(--dorado);color:#fff;border:none;cursor:pointer;
+    font-family:inherit;font-size:15.5px;font-weight:700;
+    padding:14px;border-radius:12px;margin-bottom:18px;
+    box-shadow:0 2px 10px rgba(61,90,254,.25);transition:transform .15s ease, filter .15s ease;
+  }
+  .btn-descargar-manual:hover{filter:brightness(1.06)}
+  .btn-descargar-manual:active{transform:scale(.98)}
+  .btn-descargar-manual svg{width:21px;height:21px;flex:none}
+  .manual-cap{
+    display:flex;gap:14px;background:#fff;border:1px solid var(--linea);
+    border-radius:14px;padding:16px 16px 16px 14px;margin-bottom:12px;
+    box-shadow:0 2px 10px rgba(26,35,126,.06);
+  }
+  .manual-num{
+    flex:none;width:30px;height:30px;border-radius:50%;
+    background:var(--verde);color:#fff;font-weight:700;font-size:15px;
+    display:grid;place-items:center;
+  }
+  .manual-cuerpo{flex:1;min-width:0}
+  .manual-cuerpo h3{font-size:16.5px;color:var(--verde);margin:3px 0 7px;line-height:1.25}
+  .manual-cuerpo p{font-size:15px;color:var(--tinta);line-height:1.6;margin:0}
+  .manual-pasos{margin:10px 0 0;padding-left:20px}
+  .manual-pasos li{font-size:14.5px;color:var(--tinta);line-height:1.55;margin-bottom:7px}
+
+  /* Al imprimir el manual, mostrar SOLO el manual (sin cabecera, menú ni barra) */
+  @media print{
+    body.imprimiendo-manual *{visibility:hidden}
+    body.imprimiendo-manual #v-manual,
+    body.imprimiendo-manual #v-manual *{visibility:visible}
+    body.imprimiendo-manual #v-manual{
+      position:absolute;left:0;top:0;width:100%;padding:0;display:block;
+    }
+    body.imprimiendo-manual .btn-descargar-manual{display:none}
+    body.imprimiendo-manual .manual-cap{
+      break-inside:avoid;page-break-inside:avoid;
+      box-shadow:none;border-color:#bbb;
+    }
+    body.imprimiendo-manual .titulo-seccion{color:#000}
+  }
   /* Privacidad y datos */
   .priv-bloque{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:6px 18px 18px}
   .priv-bloque h3{font-size:16px;color:var(--verde);margin:18px 0 4px}
@@ -1293,9 +1336,17 @@
         <p>Comisión Administrativa</p>
       </div>
     </div>
-    <button class="menu-btn" id="menu-btn" aria-label="Menú">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
+    <div class="header-acciones">
+      <button class="header-accion" onclick="abrirDesdeMenu('v-manual')" aria-label="Manual de la app" title="Manual de la app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5z"/><path d="M8 7h7M8 10h7"/></svg>
+      </button>
+      <button class="header-accion" onclick="abrirDesdeMenu('v-faq')" aria-label="Preguntas frecuentes" title="Preguntas frecuentes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 0 1 5 0c0 1.6-2.5 2-2.5 3.6"/><circle cx="12" cy="16.8" r="0.6" fill="currentColor"/></svg>
+      </button>
+      <button class="menu-btn" id="menu-btn" aria-label="Menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
   </div>
   <!-- Menú desplegable de Información general -->
   <div class="menu-desplegable" id="menu-desplegable">
@@ -1316,13 +1367,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/></svg>
       Contacto y redes
     </button>
-    <button class="menu-item" onclick="abrirDesdeMenu('v-tramites')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      Trámites
-    </button>
     <button class="menu-item" onclick="abrirDesdeMenu('v-documentos')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>
       Documentos
+    </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-manual')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5z"/><path d="M8 7h7M8 10h7"/></svg>
+      Manual de la app
     </button>
     <button class="menu-item" onclick="abrirDesdeMenu('v-faq')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
@@ -1485,7 +1536,7 @@
 
     <!-- Mi correo -->
     <div class="cuenta-tarjeta">
-      <h3 class="cuenta-tit">Mi correo electrónico</h3>
+      <h3 class="cuenta-tit">Modificar mi correo</h3>
       <p class="cuenta-nota">Sirve para recuperar tu clave si algún día la olvidás. Podés agregarlo o cambiarlo cuando quieras.</p>
       <div class="campo"><label>Correo electrónico</label><input type="email" id="cta-mail" placeholder="tucorreo@ejemplo.com" autocomplete="off"></div>
       <button class="btn dorado" onclick="guardarMiMail()">Guardar correo</button>
@@ -1513,13 +1564,6 @@
     <div id="lista-contacto"></div>
   </section>
 
-  <!-- ======== TRÁMITES ======== -->
-  <section class="vista" id="v-tramites">
-    <div class="titulo-seccion">Trámites</div>
-    <p class="propuestas-intro">Guías paso a paso para hacer tus gestiones en AFUCOA.</p>
-    <div id="lista-tramites"></div>
-  </section>
-
   <!-- ======== DOCUMENTOS ======== -->
   <section class="vista" id="v-documentos">
     <div class="titulo-seccion">Documentos</div>
@@ -1532,6 +1576,17 @@
     <div class="titulo-seccion">Preguntas frecuentes</div>
     <p class="propuestas-intro">Las dudas más comunes de los socios sobre la app y la Asociación.</p>
     <div id="lista-faq"></div>
+  </section>
+
+  <!-- ======== MANUAL DE LA APP ======== -->
+  <section class="vista" id="v-manual">
+    <div class="titulo-seccion">Manual de la app</div>
+    <p class="propuestas-intro">Todo lo que podés hacer en la app, explicado paso a paso. Si tenés una duda puntual, mirá también las Preguntas frecuentes.</p>
+    <button class="btn-descargar-manual" onclick="descargarManual()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></svg>
+      Descargar / imprimir el manual
+    </button>
+    <div id="lista-manual"></div>
   </section>
 
   <!-- ======== PRIVACIDAD Y DATOS ======== -->
@@ -2048,22 +2103,6 @@ const CONTACTOS_AFUCOA = [
   { tipo:"facebook",  etiqueta:"Facebook (grupo)",      valor:"https://www.facebook.com/share/1CCyhAfFBU/?mibextid=wwXIfr", muestra:"Socios de Afucoa" },
 ];
 
-/* ===== TRÁMITES =====
-   Cada trámite tiene un título y unos pasos. Para agregar uno, copiá un
-   bloque y cambiá el texto. Los pasos van entre comillas, separados por coma. */
-
-const TRAMITES = [
-  {
-    titulo: "Cómo solicitar un convenio",
-    pasos: [
-      "Entrá a la sección Convenios.",
-      "Elegí el convenio que te interesa y tocá \"Solicitar convenio\".",
-      "Completá tus datos y marcá la autorización.",
-      "Enviá la solicitud. Recibirás la respuesta por los medios de contacto."
-    ]
-  },
-];
-
 /* ===== DOCUMENTOS =====
    Para agregar un documento: subí el PDF a GitHub (por ejemplo en una carpeta
    "documentos") y poné acá su título y la ruta al archivo.
@@ -2150,8 +2189,138 @@ const FAQ = [
     respuesta: "Cualquier socio puede proponer un tema para que la Asociación lo trate. El resto puede apoyarlo. Las propuestas más apoyadas ganan fuerza para llevarlas a la comisión."
   },
   {
+    pregunta: "¿Cómo instalo la app en el celular?",
+    respuesta: "En el celular, abrí la app en el navegador y tocá el menú del navegador; vas a ver la opción \"Agregar a pantalla de inicio\" (o \"Instalar app\"). Queda como una aplicación más, con su ícono, y se abre a pantalla completa."
+  },
+  {
+    pregunta: "¿Por qué a veces me pide la clave de nuevo?",
+    respuesta: "Por seguridad, la sesión queda abierta unas horas. Si pasás mucho tiempo sin usar la app, te vuelve a pedir la cédula y la clave la próxima vez que entrás. Es normal y protege tu cuenta."
+  },
+  {
+    pregunta: "¿Cómo activo las notificaciones?",
+    respuesta: "Al entrar por primera vez, la app te pregunta si querés recibir avisos. Si aceptás, te llegan las novedades importantes de la Asociación aunque no tengas la app abierta. Podés cambiarlo desde los ajustes del navegador o del celular."
+  },
+  {
+    pregunta: "¿La app se actualiza sola?",
+    respuesta: "Sí. Cada vez que la abrís con internet, toma automáticamente la última versión. No tenés que descargar ni reinstalar nada."
+  },
+  {
+    pregunta: "¿Necesito internet para usarla?",
+    respuesta: "Para ingresar, ver novedades y solicitar convenios sí necesitás conexión. Una vez cargada, algunas pantallas siguen visibles sin internet, pero para lo más actualizado conviene estar conectado."
+  },
+  {
+    pregunta: "Todavía no soy socio, ¿puedo afiliarme desde acá?",
+    respuesta: "Sí. En la pantalla de ingreso tocá \"Quiero afiliarme\" y completá el formulario. Tu solicitud llega a la comisión directiva, que se comunica con vos para completar el alta."
+  },
+  {
+    pregunta: "¿Dónde encuentro el manual completo de la app?",
+    respuesta: "Arriba a la derecha, en el ícono del libro. Ahí está el manual con todo explicado paso a paso, y también lo podés descargar o imprimir."
+  },
+  {
     pregunta: "¿Mis datos están seguros?",
-    respuesta: "Sí. Tus datos se usan solo para gestionar tu condición de socio y tus solicitudes, y no se comparten con terceros salvo lo necesario para un convenio que vos pidas."
+    respuesta: "Sí. Tus datos se usan solo para gestionar tu condición de socio y tus solicitudes, y no se comparten con terceros salvo lo necesario para un convenio que vos pidas. Podés ver el detalle en el menú, en \"Privacidad y datos\"."
+  },
+];
+
+/* ===== MANUAL DE LA APP =====
+   Cada capítulo tiene un título y su contenido. En "intro" va un texto
+   de presentación (opcional) y en "pasos" van los pasos numerados (opcional).
+   Para agregar o cambiar algo, editá el texto de abajo. */
+
+const MANUAL = [
+  {
+    titulo: "Qué es esta app",
+    intro: "Es la app oficial de AFUCOA para los socios. Desde el celular o la computadora podés ver las novedades de la Asociación, consultar los convenios y solicitarlos, llevar tu carnet de socio con código QR, leer documentos, y enviar sugerencias, reclamos y propuestas. Es de uso exclusivo para socios."
+  },
+  {
+    titulo: "Ingresar por primera vez",
+    intro: "La primera vez tenés que crear tu clave. Es un paso rápido y solo se hace una vez.",
+    pasos: [
+      "Escribí tu número de cédula (sin puntos ni guiones) y tocá \"Acceder\".",
+      "Si figurás en el padrón, la app te pide crear una clave. Elegí una de al menos 4 caracteres y repetila.",
+      "Cargá tu correo electrónico. Es importante: con ese correo vas a poder recuperar la clave si algún día la olvidás.",
+      "Tocá \"Crear clave e ingresar\". Listo, ya estás adentro."
+    ]
+  },
+  {
+    titulo: "Ingresar todos los días",
+    intro: "Una vez que ya tenés clave, entrar es muy simple.",
+    pasos: [
+      "Escribí tu cédula y tocá \"Acceder\".",
+      "Ingresá tu clave y tocá \"Ingresar\".",
+      "La sesión queda abierta unas horas. Si pasás mucho tiempo sin usar la app, te va a pedir la clave de nuevo por seguridad."
+    ]
+  },
+  {
+    titulo: "Si olvidás tu clave",
+    intro: "Podés recuperarla vos mismo si tenés un correo cargado.",
+    pasos: [
+      "En la pantalla de ingreso, tocá \"Recuperar mi clave\".",
+      "Te llega un código de 6 dígitos al correo que registraste (revisá también la carpeta de correo no deseado).",
+      "Escribí ese código en la app y creá una clave nueva.",
+      "Si no tenés correo cargado, escribinos a afucoa@gmail.com o al WhatsApp 098 469 285 y te ayudamos."
+    ]
+  },
+  {
+    titulo: "Novedades (pantalla principal)",
+    intro: "Es lo primero que ves al entrar. Ahí aparecen los comunicados y anuncios de la Asociación, del más nuevo al más viejo. Cuando hay novedades sin leer, se marca con un aviso. Si un anuncio tiene varias imágenes, deslizá o usá las flechas para verlas todas."
+  },
+  {
+    titulo: "Convenios",
+    intro: "En la sección Convenios están todos los beneficios y descuentos para socios, agrupados por rubro.",
+    pasos: [
+      "Entrá a Convenios desde el menú de abajo.",
+      "Tocá un convenio para ver los beneficios, las condiciones y los datos de contacto.",
+      "Si el convenio tiene archivos para descargar, aparecen dentro del convenio.",
+      "Para pedir un beneficio, tocá \"Solicitar convenio\", completá tus datos y enviá. AFUCOA gestiona el resto."
+    ]
+  },
+  {
+    titulo: "Tu carnet de socio y el QR",
+    intro: "Tu carnet es tu credencial digital. Lo encontrás en el menú (arriba a la derecha), en \"Mi carnet de socio\".",
+    pasos: [
+      "Mostrá tu carnet en un comercio con convenio como comprobante de que sos socio.",
+      "El carnet tiene un código QR. Al escanearlo, se confirma al instante que sos socio activo.",
+      "El carnet se actualiza solo con tus datos; no tenés que renovarlo."
+    ]
+  },
+  {
+    titulo: "Documentos",
+    intro: "En la sección Documentos (dentro del menú) están los reglamentos, estatutos y leyes de interés para los funcionarios. Tocá cualquiera para abrirlo o descargarlo en PDF."
+  },
+  {
+    titulo: "Enviar sugerencias, reclamos y propuestas",
+    intro: "Tu voz importa. Tenés dos formas de participar.",
+    pasos: [
+      "En la sección Enviar podés mandar una sugerencia, un reclamo o una propuesta de reestructura. Llega directo a la comisión directiva.",
+      "En la sección Propuestas podés proponer un tema para que la Asociación lo trate, y apoyar las propuestas de otros socios. Las más apoyadas ganan fuerza."
+    ]
+  },
+  {
+    titulo: "Notificaciones",
+    intro: "La app te puede avisar cuando hay novedades importantes, aunque no la tengas abierta. La primera vez te pregunta si querés recibirlas; si aceptás, quedan activadas. Podés cambiarlo después desde los ajustes de tu celular o navegador."
+  },
+  {
+    titulo: "Mi cuenta",
+    intro: "En \"Mi cuenta\" (dentro del menú) manejás tus datos.",
+    pasos: [
+      "Ver tus datos de socio.",
+      "Cambiar tu clave cuando quieras.",
+      "Agregar o modificar tu correo electrónico (el que se usa para recuperar la clave)."
+    ]
+  },
+  {
+    titulo: "Instalar la app en el celular",
+    intro: "Podés dejar la app instalada como una aplicación más, con su ícono en la pantalla de inicio.",
+    pasos: [
+      "Abrí la app en el navegador del celular.",
+      "Abrí el menú del navegador y buscá \"Agregar a pantalla de inicio\" o \"Instalar app\".",
+      "Confirmá. Queda el ícono de AFUCOA en tu celular y se abre a pantalla completa."
+    ]
+  },
+  {
+    titulo: "Privacidad y seguridad de tus datos",
+    intro: "Tus datos se usan solo para gestionar tu condición de socio y no se comparten con terceros salvo lo necesario para un convenio que vos pidas. Según la Ley N.º 18.331 podés pedir acceder a tus datos, corregirlos o eliminarlos escribiendo a afucoa@gmail.com. Encontrás el detalle completo en el menú, en \"Privacidad y datos\"."
   },
 ];
 
@@ -2193,7 +2362,6 @@ function estadoVacio(icono, titulo, texto){
   const iconos = {
     novedades: '<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
     propuestas: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
-    tramites: '<path d="M9 11H3v10h6zM21 3h-6v18h6zM15 7H9v14h6z"/>',
     documentos: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
     faq: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/>',
     envios: '<path d="m4 12 16-8-6 16-3-7-7-1Z"/>'
@@ -3895,22 +4063,6 @@ function pintarContacto(){
   cont.innerHTML = CONTACTOS_AFUCOA.map(enlace).join('');
 }
 
-// ----- Trámites -----
-function pintarTramites(){
-  const cont = document.getElementById('lista-tramites');
-  if(!TRAMITES || TRAMITES.length === 0){
-    cont.innerHTML = estadoVacio('tramites', 'Todavía no hay trámites', 'Acá vas a encontrar los trámites y gestiones disponibles para los socios.');
-    return;
-  }
-  cont.innerHTML = TRAMITES.map(t=>`
-    <article class="tramite">
-      <h3 class="tramite-tit">${t.titulo}</h3>
-      <ol class="tramite-pasos">
-        ${(t.pasos||[]).map(p=>`<li>${p}</li>`).join('')}
-      </ol>
-    </article>`).join('');
-}
-
 // ----- Documentos -----
 function pintarDocumentos(){
   const cont = document.getElementById('lista-documentos');
@@ -3953,6 +4105,39 @@ function pintarFaq(){
 // abrir/cerrar una pregunta del acordeón
 window.toggleFaq = function(i){
   document.getElementById('faq-'+i).classList.toggle('abierta');
+};
+
+// ----- Manual de la app -----
+function pintarManual(){
+  const cont = document.getElementById('lista-manual');
+  if(!cont || cont.dataset.listo === '1') return;  // se arma una sola vez
+  if(!MANUAL || MANUAL.length === 0){
+    cont.innerHTML = estadoVacio('faq', 'Manual en preparación', 'Muy pronto vas a encontrar acá la guía completa de la app.');
+    return;
+  }
+  cont.innerHTML = MANUAL.map((c,i)=>`
+    <article class="manual-cap">
+      <div class="manual-num">${i+1}</div>
+      <div class="manual-cuerpo">
+        <h3>${c.titulo}</h3>
+        ${c.intro ? `<p>${c.intro}</p>` : ``}
+        ${(c.pasos && c.pasos.length) ? `<ol class="manual-pasos">${c.pasos.map(p=>`<li>${p}</li>`).join('')}</ol>` : ``}
+      </div>
+    </article>`).join('');
+  cont.dataset.listo = '1';
+}
+
+// descargar / imprimir el manual: abre el diálogo de impresión del navegador,
+// que en el celular y la computadora permite "Guardar como PDF". No usa ninguna
+// librería externa. Se muestra solo el manual mientras se imprime.
+window.descargarManual = function(){
+  pintarManual();
+  document.body.classList.add('imprimiendo-manual');
+  const limpiar = ()=> document.body.classList.remove('imprimiendo-manual');
+  window.addEventListener('afterprint', limpiar, { once:true });
+  // respaldo por si algún navegador no dispara afterprint
+  setTimeout(limpiar, 1500);
+  window.print();
 };
 
 // tocar el logo lleva a la pantalla principal (Novedades)
@@ -4007,9 +4192,9 @@ window.abrirDesdeMenu = function(idVista){
   menuDesplegable.classList.remove('abierto');
   if(idVista === 'v-directiva') pintarDirectiva();
   if(idVista === 'v-contacto') pintarContacto();
-  if(idVista === 'v-tramites') pintarTramites();
   if(idVista === 'v-documentos') pintarDocumentos();
   if(idVista === 'v-faq') pintarFaq();
+  if(idVista === 'v-manual') pintarManual();
   irArriba();
 };
 
