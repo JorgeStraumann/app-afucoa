@@ -3209,9 +3209,11 @@ window.confirmarRecuperacion = async function(){
     const r = await resp.json();
     const texto = interpretarRespuesta(r);
     if(texto.indexOf('OK') === 0){
-      // clave cambiada: entrar directo
+      // clave cambiada: pedir token con la clave nueva y entrar
       document.getElementById('recuperacion-pantalla').style.display = 'none';
-      entrarComoSocio(cedulaRecuperacion);
+      let token = null;
+      try{ token = await obtenerTokenSesion(cedulaRecuperacion, clave); }catch(e){}
+      entrarComoSocio(cedulaRecuperacion, token);
     }else{
       btn.disabled = false; btn.textContent = 'Cambiar mi clave e ingresar';
       err.textContent = texto.replace('ERROR: ','');
@@ -3317,7 +3319,10 @@ window.ingresar = async function(){
       const r = await resp.json();
       const texto = interpretarRespuesta(r);
       if(texto.indexOf('OK') === 0){
-        entrarComoSocio(cedulaEnProceso);
+        // clave creada: pedir el token de sesión con esa misma clave
+        let token = null;
+        try{ token = await obtenerTokenSesion(cedulaEnProceso, clave); }catch(e){}
+        entrarComoSocio(cedulaEnProceso, token);
       }else{
         btn.disabled = false; btn.textContent = 'Crear clave e ingresar';
         err.textContent = texto ? texto.replace('ERROR: ','') : 'No se pudo crear la clave. Intentá de nuevo.';
@@ -3327,16 +3332,12 @@ window.ingresar = async function(){
       err.textContent = 'No se pudo crear la clave. Intentá de nuevo.';
     }
   }else{
-    // verificar clave existente
+    // verificar clave existente y obtener el token de sesión (login_socio valida y emite)
     btn.disabled = true; btn.textContent = 'Ingresando...';
     try{
-      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_clave_socio`, {
-        method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
-        body: JSON.stringify({ p_documento: cedulaEnProceso, p_clave: clave })
-      });
-      const ok = await resp.json();
-      if(ok === true){
-        entrarComoSocio(cedulaEnProceso);
+      const token = await obtenerTokenSesion(cedulaEnProceso, clave);
+      if(token){
+        entrarComoSocio(cedulaEnProceso, token);
       }else{
         btn.disabled = false; btn.textContent = 'Ingresar';
         err.textContent = 'Clave incorrecta. Si la olvidaste, escribinos a afucoa@gmail.com o WhatsApp 098 469 285 para restablecerla.';
@@ -3352,12 +3353,37 @@ window.ingresar = async function(){
 // ===== Sesión con vencimiento (dura unas horas) =====
 const HORAS_SESION = 8;  // la sesión dura 8 horas de inactividad
 
-// guarda la cédula + el momento hasta el que vale la sesión
-function guardarSesion(cedula){
+// guarda la cédula + el momento hasta el que vale la sesión (+ el token del servidor)
+function guardarSesion(cedula, token){
   const doc = cedula.replace(/[^0-9kK]/g,'');
   const vence = Date.now() + HORAS_SESION * 60 * 60 * 1000;
   localStorage.setItem('afucoa_socio', doc);
   localStorage.setItem('afucoa_sesion_vence', String(vence));
+  if(token) localStorage.setItem('afucoa_token', token);  // solo se pasa al iniciar sesión, no al renovar
+}
+
+// Pide al servidor un TOKEN de sesión validando la clave (login_socio).
+// Devuelve el token si la clave es correcta, o null si es incorrecta.
+// Lanza excepción solo si no hay conexión (para poder distinguir los casos).
+async function obtenerTokenSesion(cedula, clave){
+  const doc = String(cedula).replace(/[^0-9kK]/g,'');
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_socio`, {
+    method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ p_documento: doc, p_clave: clave })
+  });
+  if(!resp.ok) throw new Error('conexion');
+  return await resp.json();  // token (string) o null
+}
+
+// Le pregunta al servidor si el token de la sesión guardada sigue siendo válido.
+async function validarTokenServidor(cedula, token){
+  const doc = String(cedula).replace(/[^0-9kK]/g,'');
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/validar_token`, {
+    method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+    body: JSON.stringify({ p_documento: doc, p_token: token })
+  });
+  if(!resp.ok) throw new Error('conexion');
+  return (await resp.json()) === true;
 }
 
 // devuelve la cédula si la sesión sigue vigente; si venció, la borra y devuelve null
@@ -3377,8 +3403,8 @@ function leerSesion(){
 }
 
 // entra a la app como socio (guarda sesión y muestra saludo)
-async function entrarComoSocio(cedula){
-  guardarSesion(cedula);
+async function entrarComoSocio(cedula, token){
+  guardarSesion(cedula, token);
   // Antes de abrir la app, verificar que el socio tenga un correo cargado.
   // Si no lo tiene, se le muestra la ventana obligatoria y NO entra hasta guardarlo.
   const tieneMail = await socioTieneMail(cedula);
@@ -3483,8 +3509,20 @@ function abrirApp(){
 
 // cerrar sesión: olvida la cédula y vuelve al login
 window.cerrarSesion = function(){
+  // avisar al servidor que borre el token de esta sesión (best-effort)
+  const doc = localStorage.getItem('afucoa_socio');
+  const tok = localStorage.getItem('afucoa_token');
+  if(doc && tok){
+    try{
+      fetch(`${SUPABASE_URL}/rest/v1/rpc/cerrar_sesion_socio`, {
+        method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ p_documento: doc, p_token: tok })
+      });
+    }catch(e){}
+  }
   localStorage.removeItem('afucoa_socio');
   localStorage.removeItem('afucoa_sesion_vence');
+  localStorage.removeItem('afucoa_token');
   claveAdmin = "";  // olvidar la clave de administrador por seguridad
   try{ sessionStorage.removeItem('afucoa_admin_clave'); }catch(e){}  // olvidar el panel recordado
   document.body.classList.add('con-login');
@@ -3509,24 +3547,45 @@ async function revisarSesion(){
   // Si la app se abrió para verificar un carnet (?verificar=CODIGO), NO arrancar
   // la app normal: ese celular solo debe ver la pantalla de verificación.
   if(new URLSearchParams(location.search).get('verificar')) return;
-  const guardada = leerSesion();  // devuelve null si venció
-  if(guardada){
-    // re-verificar por si le dieron de baja desde que entró la última vez
-    const r = await verificarCedula(guardada);
-    if(r === 'si'){
-      // exigir el correo también al reabrir con sesión guardada
-      const tieneMail = await socioTieneMail(guardada);
-      if(!tieneMail){ mostrarMailObligatorio(guardada); return; }
-      abrirApp();
-      const datos = await traerDatosSocio(guardada);
-      mostrarSaludo(datos);
-      reabrirPanelSiCorresponde();  // si estaba en el panel antes del refresh, volver
-      return;
-    }
-    if(r === 'no'){ localStorage.removeItem('afucoa_socio'); localStorage.removeItem('afucoa_sesion_vence'); } // ya no es socio
-    // si es 'error' (sin conexión), lo dejamos entrar igual para no bloquearlo
-    if(r === 'error'){ abrirApp(); return; }
+  const guardada = leerSesion();  // devuelve null si venció localmente
+  if(!guardada) return;  // sin sesión: queda la pantalla de bienvenida/login
+
+  const token = localStorage.getItem('afucoa_token') || '';
+  if(!token){
+    // sesión vieja sin token (de una versión anterior de la app): pedir ingresar de nuevo
+    localStorage.removeItem('afucoa_socio');
+    localStorage.removeItem('afucoa_sesion_vence');
+    return;
   }
+
+  // Preguntarle al SERVIDOR si el token sigue siendo válido. Así, tener solo la
+  // cédula guardada en el navegador ya no alcanza para entrar: hace falta un token
+  // válido, que únicamente se obtiene ingresando la clave.
+  let valido;
+  try{
+    valido = await validarTokenServidor(guardada, token);
+  }catch(e){
+    // sin conexión: no bloquear al socio; confiar en la sesión local guardada
+    abrirApp();
+    const datos = await traerDatosSocio(guardada);
+    mostrarSaludo(datos);
+    reabrirPanelSiCorresponde();
+    return;
+  }
+
+  if(valido){
+    const tieneMail = await socioTieneMail(guardada);
+    if(!tieneMail){ mostrarMailObligatorio(guardada); return; }
+    abrirApp();
+    const datos = await traerDatosSocio(guardada);
+    mostrarSaludo(datos);
+    reabrirPanelSiCorresponde();
+    return;
+  }
+  // token inválido o vencido: limpiar la sesión y pedir ingresar de nuevo
+  localStorage.removeItem('afucoa_socio');
+  localStorage.removeItem('afucoa_sesion_vence');
+  localStorage.removeItem('afucoa_token');
   // si no hay sesión vigente, la pantalla de bienvenida/login queda visible
 }
 
