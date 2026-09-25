@@ -3537,12 +3537,31 @@ function guardarSesion(cedula, token){
 // Lanza excepción solo si no hay conexión (para poder distinguir los casos).
 async function obtenerTokenSesion(cedula, clave){
   const doc = String(cedula).replace(/[^0-9kK]/g,'');
-  const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_socio`, {
-    method:'POST', headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
-    body: JSON.stringify({ p_documento: doc, p_clave: clave })
+  const cab = { apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' };
+
+  // 1) Intentar login_socio: valida la clave y emite un token de servidor (punto 4).
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_socio`, {
+      method:'POST', headers:cab, body: JSON.stringify({ p_documento: doc, p_clave: clave })
+    });
+    if(resp.ok){
+      const t = await resp.json();               // token (texto) si la clave es correcta, o null
+      if(typeof t === 'string' && t.length > 0) return t;
+      if(t === null) return null;                // clave incorrecta
+    }
+    // si la respuesta NO es ok (p. ej. la función login_socio todavía no está
+    // creada en Supabase), seguimos al plan B para no dejar a nadie afuera.
+  }catch(e){ /* error de red: probamos el plan B */ }
+
+  // 2) Plan B (compatibilidad): validar con verificar_clave_socio, que siempre
+  //    existió. Permite ingresar aunque el SQL del punto 4 todavía no se haya
+  //    corrido. El token de servidor se activa solo cuando login_socio exista.
+  const resp2 = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verificar_clave_socio`, {
+    method:'POST', headers:cab, body: JSON.stringify({ p_documento: doc, p_clave: clave })
   });
-  if(!resp.ok) throw new Error('conexion');
-  return await resp.json();  // token (string) o null
+  if(!resp2.ok) throw new Error('conexion');
+  const ok = await resp2.json();
+  return ok === true ? 'sin-token' : null;       // 'sin-token': ingresó sin token de servidor
 }
 
 // Le pregunta al servidor si el token de la sesión guardada sigue siendo válido.
