@@ -56,9 +56,7 @@
     display:flex;align-items:center;justify-content:center;
     transition:opacity .5s ease;
   }
-  /* Mientras el splash se desvanece sigue capturando toques (hace de escudo):
-     así el "click fantasma" del celular no atraviesa hacia los botones de abajo. */
-  #splash.oculto{opacity:0}
+  #splash.oculto{opacity:0;pointer-events:none}
   .splash-inner{text-align:center;animation:splashEntra .7s ease;padding:0 28px;max-width:440px}
   .splash-logo{
     width:96px;height:96px;border-radius:50%;background:#fff;padding:8px;
@@ -3783,7 +3781,7 @@ window.afiliarseDesdeLogin = function(){
   // Resguardo: si este llamado llega apenas se cerró el splash (menos de ~800 ms),
   // es casi seguro un toque fantasma que atravesó desde el botón "Acceder".
   // Se ignora para no mandar a afiliación sin que la persona lo haya pedido.
-  if(Date.now() - (window.__splashCerradoEn || 0) < 800) return;
+  if(Date.now() - (window.__splashCerradoEn || 0) < 400) return;
   document.getElementById('login-pantalla').style.display = 'none';
   document.getElementById('afiliacion-pantalla').style.display = 'flex';
 };
@@ -6039,22 +6037,23 @@ window.cerrarSplash = function(){
   // caigan sobre los botones del login apenas se cierra el splash.
   window.__splashCerradoEn = Date.now();
   const sp = document.getElementById('splash');
-  // el splash sigue visible (desvaneciéndose) y capturando toques durante toda
-  // la transición de opacidad (.5s); recién ahí se quita del todo.
-  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 550); }
+  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 450); }
 };
 // Enganchar el botón Acceder para que reaccione al toque AL INSTANTE (sin el
 // retraso de ~300ms del click en móviles) y dar feedback visual inmediato.
 (function engancharSplashBtn(){
   const btn = document.getElementById('splash-btn');
   if(!btn) return;
-  const activar = (e)=>{
-    if(e){ e.preventDefault(); }   // evita el click "fantasma" posterior
-    btn.classList.add('tocado');   // feedback visual inmediato
+  let usado = false;
+  const activar = ()=>{
+    if(usado) return;              // un solo disparo
+    usado = true;
+    btn.classList.add('tocado');   // feedback visual
     cerrarSplash();
   };
-  // pointerdown cubre touch y mouse; click queda de respaldo por accesibilidad
-  btn.addEventListener('pointerdown', activar, { passive:false });
+  // Solo 'click': con touch-action:manipulation y user-scalable=no el click es
+  // instantáneo en el celular (sin el retraso viejo de 300ms), y al ser el evento
+  // FINAL del toque no genera un "click fantasma" que caiga en el botón de abajo.
   btn.addEventListener('click', activar);
 })();
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
