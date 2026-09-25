@@ -56,7 +56,9 @@
     display:flex;align-items:center;justify-content:center;
     transition:opacity .5s ease;
   }
-  #splash.oculto{opacity:0;pointer-events:none}
+  /* Mientras el splash se desvanece sigue capturando toques (hace de escudo):
+     así el "click fantasma" del celular no atraviesa hacia los botones de abajo. */
+  #splash.oculto{opacity:0}
   .splash-inner{text-align:center;animation:splashEntra .7s ease;padding:0 28px;max-width:440px}
   .splash-logo{
     width:96px;height:96px;border-radius:50%;background:#fff;padding:8px;
@@ -3759,6 +3761,10 @@ async function revisarSesion(){
 
 // botón "quiero afiliarme" desde el login: muestra SOLO el formulario, sin entrar a la app
 window.afiliarseDesdeLogin = function(){
+  // Resguardo: si este llamado llega apenas se cerró el splash (menos de ~800 ms),
+  // es casi seguro un toque fantasma que atravesó desde el botón "Acceder".
+  // Se ignora para no mandar a afiliación sin que la persona lo haya pedido.
+  if(Date.now() - (window.__splashCerradoEn || 0) < 800) return;
   document.getElementById('login-pantalla').style.display = 'none';
   document.getElementById('afiliacion-pantalla').style.display = 'flex';
 };
@@ -6010,8 +6016,13 @@ let _splashCerrado = false;
 window.cerrarSplash = function(){
   if(_splashCerrado) return;   // evita que un segundo toque haga algo raro
   _splashCerrado = true;
+  // marcar el momento del cierre: sirve para ignorar toques fantasma que
+  // caigan sobre los botones del login apenas se cierra el splash.
+  window.__splashCerradoEn = Date.now();
   const sp = document.getElementById('splash');
-  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 400); }
+  // el splash sigue visible (desvaneciéndose) y capturando toques durante toda
+  // la transición de opacidad (.5s); recién ahí se quita del todo.
+  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 550); }
 };
 // Enganchar el botón Acceder para que reaccione al toque AL INSTANTE (sin el
 // retraso de ~300ms del click en móviles) y dar feedback visual inmediato.
