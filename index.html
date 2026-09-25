@@ -3781,7 +3781,7 @@ window.afiliarseDesdeLogin = function(){
   // Resguardo: si este llamado llega apenas se cerró el splash (menos de ~800 ms),
   // es casi seguro un toque fantasma que atravesó desde el botón "Acceder".
   // Se ignora para no mandar a afiliación sin que la persona lo haya pedido.
-  if(Date.now() - (window.__splashCerradoEn || 0) < 400) return;
+  if(Date.now() - (window.__splashCerradoEn || 0) < 500) return;
   document.getElementById('login-pantalla').style.display = 'none';
   document.getElementById('afiliacion-pantalla').style.display = 'flex';
 };
@@ -6051,9 +6051,13 @@ window.cerrarSplash = function(){
     btn.classList.add('tocado');   // feedback visual
     cerrarSplash();
   };
-  // Solo 'click': con touch-action:manipulation y user-scalable=no el click es
-  // instantáneo en el celular (sin el retraso viejo de 300ms), y al ser el evento
-  // FINAL del toque no genera un "click fantasma" que caiga en el botón de abajo.
+  // 'pointerup' dispara de forma CONFIABLE al levantar el dedo: en touch el
+  // navegador captura el puntero en el botón desde que se apoya, así que aunque
+  // el dedo se mueva un poco (o el botón se achique al presionar) igual dispara.
+  // Esto arregla el "lo toco y queda ahí". 'click' queda de respaldo para mouse
+  // y accesibilidad; 'usado' evita que se ejecute dos veces. El resguardo del
+  // botón de afiliarse absorbe cualquier toque fantasma que quede suelto.
+  btn.addEventListener('pointerup', activar);
   btn.addEventListener('click', activar);
 })();
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
