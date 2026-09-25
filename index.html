@@ -19,6 +19,7 @@
     --dorado:#3d5afe;     /* acento azul brillante */
     --rojo:#c62828;
     --linea:#d9ddf0;
+    --borde-campo:#767da8;  /* borde de campos con contraste suficiente (≈4:1) */
     --ok:#2e9e5b;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -74,7 +75,7 @@
     letter-spacing:1px;margin-top:6px;color:rgba(255,255,255,.7);
   }
   .splash-btn{
-    margin-top:30px;background:var(--dorado);color:#3a2e08;
+    margin-top:30px;background:var(--dorado);color:#fff;
     border:none;border-radius:30px;font-family:inherit;font-size:16px;font-weight:800;
     padding:14px 48px;cursor:pointer;letter-spacing:.5px;
     box-shadow:0 6px 20px rgba(240,216,120,.4);transition:transform .12s ease, filter .12s ease;
@@ -640,6 +641,11 @@
   .faq-resp{max-height:0;overflow:hidden;transition:max-height .25s ease}
   .faq-item.abierta .faq-resp{max-height:500px}
   .faq-resp p{padding:0 16px 16px;font-size:14px;color:var(--tinta-suave);line-height:1.55;margin:0}
+  /* Privacidad y datos */
+  .priv-bloque{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:6px 18px 18px}
+  .priv-bloque h3{font-size:16px;color:var(--verde);margin:18px 0 4px}
+  .priv-bloque p{font-size:15px;color:var(--tinta);line-height:1.6;margin:0}
+  .priv-link{color:var(--dorado);font-weight:600;text-decoration:none}
 
   /* pantalla de afiliación desde el login */
   #afiliacion-pantalla{
@@ -688,8 +694,8 @@
   .campo label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
   .campo .ayuda{font-weight:400;color:var(--tinta-suave);font-size:12px}
   input,select,textarea{
-    width:100%;font-family:inherit;font-size:15px;color:var(--tinta);
-    background:#fff;border:1.5px solid var(--linea);border-radius:11px;
+    width:100%;font-family:inherit;font-size:16px;color:var(--tinta);
+    background:#fff;border:1.5px solid var(--borde-campo);border-radius:11px;
     padding:12px 13px;transition:border-color .15s;
   }
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde)}
@@ -711,7 +717,7 @@
   }
   .btn:hover{filter:brightness(1.06)}
   .btn:active{transform:scale(.955);box-shadow:0 2px 8px rgba(26,35,126,.22)}
-  .btn.dorado{background:var(--dorado);color:var(--verde);box-shadow:0 4px 14px rgba(240,216,120,.35)}
+  .btn.dorado{background:var(--dorado);color:#fff;box-shadow:0 4px 14px rgba(240,216,120,.35)}
   .btn.dorado:active{box-shadow:0 2px 8px rgba(240,216,120,.4)}
   /* Espacio de seguridad debajo del botón de enviar, para que la barra
      inferior no lo tape en ningún celular */
@@ -1322,6 +1328,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
       Preguntas frecuentes
     </button>
+    <button class="menu-item" onclick="abrirDesdeMenu('v-privacidad')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l8 4v6c0 4-3 7-8 10-5-3-8-6-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      Privacidad y datos
+    </button>
     <button class="menu-item menu-admin" onclick="abrirPanelAdmin()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l8 4v6c0 4-3 7-8 10-5-3-8-6-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
       Panel de gestión
@@ -1515,6 +1525,33 @@
     <div class="titulo-seccion">Documentos</div>
     <p class="propuestas-intro">Documentos importantes de AFUCOA para consultar o descargar.</p>
     <div id="lista-documentos"></div>
+  </section>
+
+  <!-- ======== PREGUNTAS FRECUENTES ======== -->
+  <section class="vista" id="v-faq">
+    <div class="titulo-seccion">Preguntas frecuentes</div>
+    <p class="propuestas-intro">Las dudas más comunes de los socios sobre la app y la Asociación.</p>
+    <div id="lista-faq"></div>
+  </section>
+
+  <!-- ======== PRIVACIDAD Y DATOS ======== -->
+  <section class="vista" id="v-privacidad">
+    <div class="titulo-seccion">Privacidad y datos</div>
+    <p class="propuestas-intro">Cómo tratamos tus datos personales en esta aplicación.</p>
+    <div class="priv-bloque">
+      <h3>Quién es responsable</h3>
+      <p>Los datos que cargás en esta app los trata la Asociación de Funcionarios de la Comisión Administrativa del Poder Legislativo (AFUCOA), como responsable de la base de datos.</p>
+      <h3>Qué datos guardamos</h3>
+      <p>Tu número de socio, cédula, nombre y apellido, y —si los aportás— tu correo electrónico, tu celular y una foto para el carnet. También quedan registradas las solicitudes de convenio, sugerencias y propuestas que envías.</p>
+      <h3>Para qué los usamos</h3>
+      <p>Únicamente para gestionar tu condición de socio: darte acceso a la app, tramitar tus solicitudes de convenio, emitir tu carnet y comunicarnos con vos. No los usamos para ninguna otra finalidad.</p>
+      <h3>Con quién se comparten</h3>
+      <p>No compartimos tus datos con terceros, salvo lo estrictamente necesario para gestionar un convenio que vos hayas solicitado (en ese caso, se informa a la empresa del convenio tu condición de socio). No vendemos ni cedemos datos con fines comerciales.</p>
+      <h3>Tus derechos</h3>
+      <p>De acuerdo con la Ley N.º 18.331 de protección de datos personales, podés pedir acceder a tus datos, corregirlos o solicitar que se eliminen. Para ejercer estos derechos, escribinos a <a href="mailto:afucoa@gmail.com" class="priv-link">afucoa@gmail.com</a> o por los canales de la sección Contacto.</p>
+      <h3>Seguridad</h3>
+      <p>Tu clave se guarda cifrada y el acceso a los datos está restringido. Aun así, ningún sistema es infalible: te pedimos cuidar tu clave y no compartirla.</p>
+    </div>
   </section>
 
   <!-- ======== PANEL DE GESTIÓN (solo administrador) ======== -->
@@ -1716,7 +1753,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <!-- Librería para generar códigos QR del carnet -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- La librería de Excel (xlsx) NO se carga al abrir la app: pesa ~880 KB y solo
+     la usa el administrador al descargar el padrón. Se carga bajo demanda (ver
+     cargarLibreriaExcel), para que la app abra rápido en celulares lentos. -->
 
 <script>
 /* ==================================================================
@@ -2084,11 +2123,35 @@ const DOCUMENTOS = [
 const FAQ = [
   {
     pregunta: "¿Quién puede usar esta aplicación?",
-    respuesta: "La aplicación es exclusiva para socios de AFUCOA. Se ingresa con la cédula de identidad."
+    respuesta: "La aplicación es exclusiva para socios de AFUCOA. Se ingresa con la cédula de identidad y una clave que creás la primera vez."
+  },
+  {
+    pregunta: "¿Cómo creo mi clave la primera vez?",
+    respuesta: "Ingresá tu cédula y, si figurás en el padrón, la app te pide crear una clave. También te pide un correo, que sirve para recuperar la clave si algún día la olvidás."
+  },
+  {
+    pregunta: "Olvidé mi clave, ¿cómo la recupero?",
+    respuesta: "En la pantalla de ingreso tocá \"Recuperar mi clave\". Te llega un código al correo que registraste y con ese código creás una nueva. Si no tenés correo registrado, escribinos y te ayudamos."
   },
   {
     pregunta: "¿Cómo accedo a los convenios?",
-    respuesta: "Entrá a la sección Convenios, elegí el que te interesa y tocá \"Solicitar convenio\". Completá tus datos y AFUCOA gestionará tu solicitud con la empresa."
+    respuesta: "Entrá a la sección Convenios, elegí el que te interesa y tocá \"Solicitar convenio\". Completá tus datos y AFUCOA gestiona tu solicitud con la empresa."
+  },
+  {
+    pregunta: "¿Para qué sirve el carnet de socio?",
+    respuesta: "Es tu credencial digital con un código QR. En un comercio con convenio pueden escanearlo para confirmar al instante que sos socio activo. Lo encontrás en el menú, en \"Mi carnet de socio\"."
+  },
+  {
+    pregunta: "¿Cómo hago llegar una sugerencia o un reclamo?",
+    respuesta: "Desde la sección Enviar. Elegí si es una sugerencia, un reclamo o una propuesta de reestructura, escribilo y mandalo. Llega directo a la comisión directiva."
+  },
+  {
+    pregunta: "¿Qué son las propuestas y los apoyos?",
+    respuesta: "Cualquier socio puede proponer un tema para que la Asociación lo trate. El resto puede apoyarlo. Las propuestas más apoyadas ganan fuerza para llevarlas a la comisión."
+  },
+  {
+    pregunta: "¿Mis datos están seguros?",
+    respuesta: "Sí. Tus datos se usan solo para gestionar tu condición de socio y tus solicitudes, y no se comparten con terceros salvo lo necesario para un convenio que vos pidas."
   },
 ];
 
@@ -4421,10 +4484,10 @@ async function cargarPropuestasPanel(){
             ${estado}
             <span class="nov-item-fecha">${p.apoyos} apoyo(s)</span>
           </div>
-          <div class="nov-item-tit">${p.titulo}</div>
+          <div class="nov-item-tit">${escapar(p.titulo)}</div>
           <div class="conv-adm-acciones">
             ${btnAprobar}
-            <button class="conv-adm-borrar" onclick="pedirBorrarPropuesta(${p.id}, '${(p.titulo||'').replace(/'/g,'')}', this)">Borrar</button>
+            <button class="conv-adm-borrar" onclick="pedirBorrarPropuesta(${p.id}, '${(p.titulo||'').replace(/[\'"<>\\]/g,'')}', this)">Borrar</button>
           </div>
         </div>`;
     }).join('');
@@ -4593,10 +4656,10 @@ async function cargarConveniosPanel(){
       return `
         <div class="nov-item" style="border-left-color:${c.activo?'#2e9e5b':'#c0392b'}">
           <div class="nov-item-top">
-            <span class="nov-item-etiq">${c.rubro||'—'}</span>
+            <span class="nov-item-etiq">${escapar(c.rubro||'—')}</span>
             <span class="admin-estado ${c.activo?'activo':'inactivo'}">${c.activo?'Activo':'Pausado'}</span>
           </div>
-          <div class="nov-item-tit">${c.titulo}</div>
+          <div class="nov-item-tit">${escapar(c.titulo)}</div>
           <div class="conv-adm-acciones">
             <button class="conv-adm-editar" onclick="editarConvenio(JSON.parse(decodeURIComponent('${cjson}')))">Editar</button>
             <button class="conv-adm-toggle" onclick="toggleConvenio(${c.id})">${c.activo?'Pausar':'Activar'}</button>
@@ -4737,10 +4800,10 @@ async function cargarNovedadesPanel(){
       return `
         <div class="nov-item">
           <div class="nov-item-top">
-            ${n.etiqueta ? `<span class="nov-item-etiq">${n.etiqueta}</span>` : '<span></span>'}
+            ${n.etiqueta ? `<span class="nov-item-etiq">${escapar(n.etiqueta)}</span>` : '<span></span>'}
             <span class="nov-item-fecha">${fecha}</span>
           </div>
-          <div class="nov-item-tit">${n.titulo}</div>
+          <div class="nov-item-tit">${escapar(n.titulo)}</div>
           <div class="nov-item-acciones">
             <button class="nov-item-push" onclick="enviarPushNovedad('${tituloEsc}', '${cuerpoEsc}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -4801,20 +4864,20 @@ async function cargarSolicitudes(){
       const fecha = f.toLocaleDateString('es-UY') + ' ' + f.toLocaleTimeString('es-UY', {hour:'2-digit', minute:'2-digit'});
       return `
         <div class="solicitud" id="solicitud-${s.id}">
-          <div class="solicitud-nombre">${nombre}</div>
+          <div class="solicitud-nombre">${escapar(nombre)}</div>
           <div class="solicitud-datos">
-            Cédula: ${s.documento||'—'}<br>
-            Ficha declarada: ${s.ficha||'—'}<br>
-            Email: ${s.email||'—'}<br>
-            Celular: ${s.celular||'—'}
+            Cédula: ${escapar(s.documento||'—')}<br>
+            Ficha declarada: ${escapar(s.ficha||'—')}<br>
+            Email: ${escapar(s.email||'—')}<br>
+            Celular: ${escapar(s.celular||'—')}
           </div>
           <div class="solicitud-fecha">Solicitó el ${fecha}</div>
           <div class="solicitud-alta">
             <label>Número de socio / Ficha a asignar</label>
-            <input type="text" id="sol-ficha-${s.id}" inputmode="numeric" value="${s.ficha||''}" placeholder="Ej: 350">
+            <input type="text" id="sol-ficha-${s.id}" inputmode="numeric" value="${escapar(s.ficha||'')}" placeholder="Ej: 350">
           </div>
           <div class="solicitud-btns">
-            <button class="btn-sol-aprobar" onclick="aprobarSolicitud(${s.id}, '${(s.documento||'').replace(/'/g,'')}', '${(s.nombre||'').replace(/'/g,'')}', '${(s.apellido||'').replace(/'/g,'')}')">Aprobar y dar de alta</button>
+            <button class="btn-sol-aprobar" onclick="aprobarSolicitud(${s.id}, '${(s.documento||'').replace(/[\'"<>\\]/g,'')}', '${(s.nombre||'').replace(/[\'"<>\\]/g,'')}', '${(s.apellido||'').replace(/[\'"<>\\]/g,'')}')">Aprobar y dar de alta</button>
             <button class="btn-sol-descartar" onclick="descartarSolicitud(${s.id})">Descartar</button>
           </div>
         </div>`;
@@ -4902,10 +4965,10 @@ window.adminLista = async function(filtro, boton){
       const estado = s.activo ? 'Activo' : 'Inactivo';
       return `<tr>
         <td>${s.numero}</td>
-        <td>${nombre}</td>
-        <td>${s.documento||''}</td>
+        <td>${escapar(nombre)}</td>
+        <td>${escapar(s.documento||'')}</td>
         <td>${estado}</td>
-        <td>${s.email||'—'}</td>
+        <td>${escapar(s.email||'—')}</td>
       </tr>`;
     }).join('');
     cont.innerHTML = `
@@ -4966,10 +5029,27 @@ function fechaDDMMYYYY(iso){
   return p[2] + '/' + p[1] + '/' + p[0];
 }
 
+// Carga la librería de Excel (xlsx) una sola vez, la primera vez que se necesita.
+// Devuelve true si quedó lista. Así la app no la baja al abrir, solo al descargar.
+let _cargandoExcel = null;
+function cargarLibreriaExcel(){
+  if(typeof XLSX !== 'undefined') return Promise.resolve(true);
+  if(_cargandoExcel) return _cargandoExcel;
+  _cargandoExcel = new Promise(resolve=>{
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = ()=> resolve(true);
+    sc.onerror = ()=>{ _cargandoExcel = null; resolve(false); };
+    document.head.appendChild(sc);
+  });
+  return _cargandoExcel;
+}
+
 // DESCARGAR EXCEL (hojas CUOTA + CONVENIO) — solo socios activos, formato del padrón oficial
 window.descargarPadronExcel = async function(){
-  if(typeof XLSX === 'undefined'){ mostrarResultadoAdmin('No se pudo cargar el generador de Excel. Revisá tu conexión y probá de nuevo.', false); return; }
   mostrarResultadoAdmin('Generando Excel...', true);
+  const listo = await cargarLibreriaExcel();
+  if(!listo || typeof XLSX === 'undefined'){ mostrarResultadoAdmin('No se pudo cargar el generador de Excel. Revisá tu conexión y probá de nuevo.', false); return; }
   try{
     const socios = await traerPadronActivos();
     if(socios.length === 0){ mostrarResultadoAdmin('No hay socios activos para descargar.', false); return; }
