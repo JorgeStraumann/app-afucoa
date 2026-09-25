@@ -6039,26 +6039,27 @@ window.cerrarSplash = function(){
   const sp = document.getElementById('splash');
   if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 450); }
 };
-// Enganchar el botón Acceder para que reaccione al toque AL INSTANTE (sin el
-// retraso de ~300ms del click en móviles) y dar feedback visual inmediato.
-(function engancharSplashBtn(){
+// Cerrar la pantalla de bienvenida: toda la pantalla es un botón. Ante CUALQUIER
+// toque (apoyar el dedo en cualquier lado), se cierra y muestra el login. Se
+// enganchan varios eventos para que sea IMPOSIBLE que quede trabada en cualquier
+// celular: pointerdown/touchstart disparan al apoyar el dedo (100% confiable en
+// touch, no dependen del click, que a veces se cancela si el dedo se mueve);
+// click queda para el mouse. 'usado' asegura un solo disparo. El resguardo de
+// tiempo del botón de afiliarse absorbe cualquier toque fantasma que quede suelto.
+(function engancharSplash(){
+  const sp = document.getElementById('splash');
   const btn = document.getElementById('splash-btn');
-  if(!btn) return;
+  if(!sp) return;
   let usado = false;
   const activar = ()=>{
-    if(usado) return;              // un solo disparo
+    if(usado) return;
     usado = true;
-    btn.classList.add('tocado');   // feedback visual
+    if(btn) btn.classList.add('tocado');
     cerrarSplash();
   };
-  // 'pointerup' dispara de forma CONFIABLE al levantar el dedo: en touch el
-  // navegador captura el puntero en el botón desde que se apoya, así que aunque
-  // el dedo se mueva un poco (o el botón se achique al presionar) igual dispara.
-  // Esto arregla el "lo toco y queda ahí". 'click' queda de respaldo para mouse
-  // y accesibilidad; 'usado' evita que se ejecute dos veces. El resguardo del
-  // botón de afiliarse absorbe cualquier toque fantasma que quede suelto.
-  btn.addEventListener('pointerup', activar);
-  btn.addEventListener('click', activar);
+  sp.addEventListener('pointerdown', activar);
+  sp.addEventListener('touchstart', activar, { passive:true });
+  sp.addEventListener('click', activar);
 })();
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
 window.addEventListener('load', ()=>{
