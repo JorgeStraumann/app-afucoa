@@ -8,6 +8,17 @@
 <meta name="theme-color" content="#1a237e">
 <title>AFUCOA</title>
 <link rel="manifest" href="manifest.json">
+<script>
+  /* Definida ACÁ, bien al principio, para que el botón "Acceder" funcione ni bien
+     aparece la pantalla de bienvenida, SIN tener que esperar a que cargue todo el
+     código de la app (que es grande y va al final). Antes, en celulares no tan
+     rápidos, se podía tocar el botón antes de que esta función existiera y el toque
+     no hacía nada hasta que terminaba de cargar todo. */
+  window.cerrarSplash = function(){
+    var sp = document.getElementById('splash');
+    if(sp){ sp.classList.add('oculto'); setTimeout(function(){ sp.style.display='none'; }, 500); }
+  };
+</script>
 <style>
   :root{
     --verde:#1a237e;      /* azul índigo profundo (institucional) */
@@ -85,8 +96,7 @@
     -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
-  .splash-btn:active,
-  .splash-btn.tocado{transform:scale(.94);filter:brightness(.94);animation:none}
+  .splash-btn:active{transform:scale(.96)}
   @keyframes splashEntra{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   @keyframes splashLatir{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
   @keyframes splashBtnLatir{0%,100%{box-shadow:0 6px 20px rgba(240,216,120,.4)}50%{box-shadow:0 6px 28px rgba(240,216,120,.7)}}
@@ -1153,7 +1163,7 @@
       «Mi autoridad emana de vosotros y ella cesa por vuestra presencia soberana»
       <span class="splash-frase-aut">— Artigas</span>
     </div>
-    <button class="splash-btn" id="splash-btn" type="button">Acceder</button>
+    <button class="splash-btn" onclick="cerrarSplash()">Acceder</button>
   </div>
 </div>
 
@@ -3778,10 +3788,6 @@ async function revisarSesion(){
 
 // botón "quiero afiliarme" desde el login: muestra SOLO el formulario, sin entrar a la app
 window.afiliarseDesdeLogin = function(){
-  // Resguardo: si este llamado llega apenas se cerró el splash (menos de ~800 ms),
-  // es casi seguro un toque fantasma que atravesó desde el botón "Acceder".
-  // Se ignora para no mandar a afiliación sin que la persona lo haya pedido.
-  if(Date.now() - (window.__splashCerradoEn || 0) < 500) return;
   document.getElementById('login-pantalla').style.display = 'none';
   document.getElementById('afiliacion-pantalla').style.display = 'flex';
 };
@@ -6029,38 +6035,8 @@ async function activarNotificaciones(){
     });
   }catch(e){ /* si algo falla, la app sigue funcionando normal */ }
 }
-let _splashCerrado = false;
-window.cerrarSplash = function(){
-  if(_splashCerrado) return;   // evita que un segundo toque haga algo raro
-  _splashCerrado = true;
-  // marcar el momento del cierre: sirve para ignorar toques fantasma que
-  // caigan sobre los botones del login apenas se cierra el splash.
-  window.__splashCerradoEn = Date.now();
-  const sp = document.getElementById('splash');
-  if(sp){ sp.classList.add('oculto'); setTimeout(()=>{ sp.style.display='none'; }, 450); }
-};
-// Cerrar la pantalla de bienvenida: toda la pantalla es un botón. Ante CUALQUIER
-// toque (apoyar el dedo en cualquier lado), se cierra y muestra el login. Se
-// enganchan varios eventos para que sea IMPOSIBLE que quede trabada en cualquier
-// celular: pointerdown/touchstart disparan al apoyar el dedo (100% confiable en
-// touch, no dependen del click, que a veces se cancela si el dedo se mueve);
-// click queda para el mouse. 'usado' asegura un solo disparo. El resguardo de
-// tiempo del botón de afiliarse absorbe cualquier toque fantasma que quede suelto.
-(function engancharSplash(){
-  const sp = document.getElementById('splash');
-  const btn = document.getElementById('splash-btn');
-  if(!sp) return;
-  let usado = false;
-  const activar = ()=>{
-    if(usado) return;
-    usado = true;
-    if(btn) btn.classList.add('tocado');
-    cerrarSplash();
-  };
-  sp.addEventListener('pointerdown', activar);
-  sp.addEventListener('touchstart', activar, { passive:true });
-  sp.addEventListener('click', activar);
-})();
+/* cerrarSplash se define arriba, en el <head>, para que el botón "Acceder"
+   funcione ni bien aparece, sin esperar a que cargue todo este código. */
 /* si el socio tiene sesión VIGENTE (no vencida), saltear la bienvenida */
 window.addEventListener('load', ()=>{
   // si es una verificación de carnet, no tocar el splash/app: lo maneja revisarVerificacion
