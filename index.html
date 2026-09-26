@@ -200,6 +200,22 @@
     font-family:Georgia,'Times New Roman',serif;font-weight:700;
     font-size:20px;color:var(--verde);line-height:1.2;
   }
+  /* Subcomisiones de trabajo */
+  .subcom-intro{font-size:13px;color:var(--tinta-suave);line-height:1.5;margin:0 0 14px}
+  .subcom{
+    background:var(--arena-2);border:1px solid var(--linea);border-radius:14px;
+    padding:15px 16px;margin-bottom:12px;
+  }
+  .subcom-area{font-size:16.5px;color:var(--verde);font-weight:700;line-height:1.25;margin-bottom:8px}
+  .subcom-nombres{font-size:15px;color:var(--tinta);font-weight:600;line-height:1.55}
+  .subcom-supl{
+    font-size:13.5px;color:var(--tinta-suave);line-height:1.5;
+    margin-top:9px;padding-top:9px;border-top:1px dashed var(--linea);
+  }
+  .subcom-supl span{
+    font-size:11px;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--dorado);font-weight:700;margin-right:7px;
+  }
   .dir-pie{
     background:var(--verde);color:#fff;text-align:center;
     padding:22px;margin-top:10px;
@@ -2088,9 +2104,19 @@ const DIRECTIVA = [
   { cargo: "Vocal",          nombre: "Daniel Sánchez",     destacado: false },
 ];
 
-// Roles fuera de la comisión directiva (se muestran aparte, abajo)
-const OTROS_ROLES = [
-  { cargo: "Encargada de convenios", nombre: "Sabrina Iglesias" },
+/* ===== SUBCOMISIONES DE TRABAJO =====
+   Grupos de trabajo por área de la Comisión Administrativa.
+   Para cada área: "titulares" (integrantes) y, si corresponde, "suplentes".
+   Para agregar o cambiar, editá los nombres entre comillas. */
+const SUBCOMISIONES = [
+  { area: "Informática parlamentaria",                 titulares: ["Valentina de Fuentes", "Martín Mariño"], suplentes: ["Emanuel Basualdo", "Jorge Carrara"] },
+  { area: "Dirección Notarial",                        titulares: ["Maite Rivas", "Jorge Carrara"] },
+  { area: "Servicios Auxiliares",                      titulares: ["Emanuel Basualdo", "Gustavo Amaral"] },
+  { area: "Concursos acordados con la Administración", titulares: ["Valentina de Fuentes", "Maite Rivas"], suplentes: ["Patricia Dicancro"] },
+  { area: "Social, Cultural y Deportivo",              titulares: ["Walter Castillos", "Emanuel Basualdo", "Sabrina Iglesias"] },
+  { area: "Reglamentos",                               titulares: ["Marcelo Pozzolo", "Julio Pintos"], suplentes: ["Martín Mariño"] },
+  { area: "Convenios",                                 titulares: ["Sabrina Iglesias", "Patricia Dicancro", "Emanuel Basualdo"] },
+  { area: "Banco",                                     titulares: ["Martín Mariño"] },
 ];
 
 /* ===== CONTACTO Y REDES =====
@@ -4039,9 +4065,15 @@ function pintarDirectiva(){
     html += vocales.map(p=>fila('Vocal', p.nombre)).join('');
   }
 
-  if(typeof OTROS_ROLES !== 'undefined' && OTROS_ROLES.length){
-    html += `<div class="dir-grupo-tit">Convenios</div>`;
-    html += OTROS_ROLES.map(p=>fila(p.cargo, p.nombre)).join('');
+  if(typeof SUBCOMISIONES !== 'undefined' && SUBCOMISIONES.length){
+    html += `<div class="dir-grupo-tit">Subcomisiones de trabajo</div>`;
+    html += `<p class="subcom-intro">Grupos de trabajo por área de la Comisión Administrativa.</p>`;
+    html += SUBCOMISIONES.map(s=>`
+      <article class="subcom">
+        <h3 class="subcom-area">${s.area}</h3>
+        <div class="subcom-nombres">${(s.titulares||[]).join(' · ')}</div>
+        ${(s.suplentes && s.suplentes.length) ? `<div class="subcom-supl"><span>${s.suplentes.length>1?'Suplentes':'Suplente'}</span>${s.suplentes.join(' · ')}</div>` : ``}
+      </article>`).join('');
   }
 
   html += `</div>
