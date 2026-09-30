@@ -2,7 +2,7 @@
 
 Estado: **NO DECISION — B10 OPEN**
 
-Fecha de preparación: 24 de septiembre de 2026 (America/Montevideo)
+Fecha de actualización: 30 de septiembre de 2026 (America/Montevideo)
 
 Rama de control: `afucoa-v2`
 
@@ -22,7 +22,7 @@ B10 continúa abierto porque todavía faltan aprobaciones institucionales sobre:
 2. privacidad, finalidades, retención, consentimiento y atención de derechos;
 3. alcance nominal, ventana y autorización separada de cualquier alta o piloto real.
 
-La decisión también debe aceptar o convertir en condición dos brechas de evidencia conocidas: la matriz general RLS/integración PROD todavía no tiene un harness sintético cleanup-safe propio, y no existe una prueba de carga representativa con tráfico real. No son defectos reproducibles, pero no deben ocultarse.
+Las brechas técnicas E01 y E02 fueron cerradas el 30 de septiembre: la matriz sintética RLS/integración PROD aprobó 112 controles y una carga acotada aprobó 30/30 health, 20/20 hosting y el límite concurrente 3/5. La evidencia no sustituye aprobaciones institucionales ni constituye una promesa de capacidad/SLA.
 
 Hasta registrar esas decisiones, el resultado obligatorio es **NO-GO OPERATIVO / GO TÉCNICO**.
 
@@ -40,6 +40,8 @@ Hasta registrar esas decisiones, el resultado obligatorio es **NO-GO OPERATIVO /
 | B08 Backup/restore | CLOSED | `docs/PROD_BACKUP_RESTORE_DRILL.md` |
 | B09 Monitoring | CLOSED | `docs/PROD_MONITORING_ACTIVE.md` |
 | Validación pública final | GO TÉCNICO | `docs/PROD_PHASE4C_VALIDATION.md` |
+| E01 RLS/integración PROD | CLOSED | `docs/PROD_SYNTHETIC_READINESS.md` |
+| E02 carga/abuso acotado | CLOSED | `docs/PROD_SYNTHETIC_READINESS.md` |
 
 Baseline aprobado:
 
@@ -56,8 +58,8 @@ Baseline aprobado:
 | I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **PENDING APPROVAL** |
 | I02 | Aprobar inventario, finalidad, base institucional/legal, información/consentimiento, retención, derechos y responsables de datos | `docs/PRODUCTION_DATA_APPROVAL.md`, `docs/DATA_RETENTION.md` | **PENDING POLICY/LEGAL/BUSINESS APPROVAL** |
 | I03 | Aprobar alcance nominal, ventana, canal de alta y criterios de suspensión para cualquier cohorte real | `docs/PRODUCTION_CUTOVER_CHECKLIST.md`, `docs/pilot-01.md` | **PENDING — PILOT 01 PARKED** |
-| E01 | Aceptar como condición o exigir antes del GO una matriz general RLS/integración PROD cleanup-safe | `docs/PROD_PRE_GO_LIVE_VALIDATION.md` | **PENDING RISK DECISION** |
-| E02 | Aprobar límites iniciales y plan de observación ante ausencia de carga representativa | `docs/PRODUCTION_SLO.md`, `docs/PROD_MONITORING_ACTIVE.md` | **PENDING RISK DECISION** |
+| E01 | Matriz general RLS/integración PROD cleanup-safe | `docs/PROD_SYNTHETIC_READINESS.md` | **CLOSED — 112/112, cleanup 0** |
+| E02 | Baseline acotado de carga y controles de abuso | `docs/PROD_SYNTHETIC_READINESS.md`, `docs/PRODUCTION_SLO.md` | **CLOSED — sin SLA inferido** |
 
 No se debe marcar un gate como aprobado con una conversación informal. La evidencia mínima es fecha, responsable, alcance exacto, condiciones y referencia a la decisión conservada fuera del repositorio cuando contenga datos personales o contactos.
 
@@ -75,7 +77,7 @@ Agenda obligatoria:
 
 1. confirmar el SHA funcional y que no existe drift;
 2. revisar B01–B09 y cualquier incidente abierto;
-3. resolver I01–I03 y E01–E02 sin decisiones implícitas;
+3. resolver I01–I03 sin decisiones implícitas y revisar la evidencia cerrada E01/E02;
 4. confirmar backup, rollback y responsables disponibles;
 5. definir ventana, alcance, criterio de suspensión y comunicación;
 6. registrar una única decisión: `GO`, `GO CON CONDICIONES` o `NO-GO`.

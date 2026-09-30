@@ -17,6 +17,8 @@ Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, im
 - [ ] **Soporte:** canales, horarios, clasificación, escalamiento, comunicaciones y procedimiento de identidad aprobados.
 - [ ] **Datos reales:** inventario/finalidad/retención/consentimiento y revisión legal/business aprobados.
 - [x] **Mecanismo de piloto:** dry-run, reporte, rollback, idempotencia y criterios técnicos validados sintéticamente.
+- [x] **RLS/integración PROD:** 112 controles sintéticos cleanup-safe aprobados; Auth y datos volvieron a cero.
+- [x] **Carga/abuso acotado:** 30/30 health, 20/20 hosting y rate limit concurrente 3 permitidos/5 bloqueados; sin inferir SLA.
 - [ ] **Activación de cohorte real:** lista nominal, consentimiento, canal de alta, soporte y ventana todavía no autorizados; Pilot 01 permanece `PARKED`.
 - [ ] **Decisión B10:** completar y aprobar `docs/PROD_GO_NO_GO_PACKET.md`.
 

@@ -330,8 +330,8 @@ Resumen de findings:
 ### Fase 4 — validación preproducción
 
 - [x] Ejecutar suites sintéticas, Recovery/Push E2E y matriz responsive sobre la URL final; Fase 4C cerró el único defecto funcional observado.
-- [ ] Crear/ejecutar una matriz general RLS/integración PROD con identidades sintéticas y cleanup propios, o aceptar formalmente la evidencia DEV como riesgo E01 de B10.
-- [ ] Ejecutar pruebas de carga/abuso representativas o aprobar límites conservadores y observación inicial como riesgo E02 de B10.
+- [x] E01 cerrado: matriz general RLS/integración PROD con identidades sintéticas y cleanup propio, 112/112 y verificación final en cero.
+- [x] E02 cerrado: carga/abuso acotado con 30/30 health, 20/20 hosting y rate limit concurrente 3/5; baseline sin inferir SLA.
 - [x] Verificar Advisors; clasificar hallazgos y conservar las funciones `SECURITY DEFINER` necesarias.
 - [ ] Ejecutar revisión de privacidad, términos, soporte, incidente y continuidad.
 - [x] Congelar y validar el SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f`; generar evidencia técnica.
@@ -394,7 +394,7 @@ La tarifa observada de Supabase parte de USD 25/mes para Pro; PITR y custom doma
 | `pnpm test:navigation` | 5/5 PASS | Visibilidad y protección Admin; logout conserva push y baja explícita desactiva. |
 | `pnpm test:mfa` | 14/14 PASS | Socio AAL1, admin/superadmin AAL1 denegado, AAL2, gate, enrollment/challenge, refresh, cuenta inactiva, secreto no persistido y guard central. |
 
-Fase 3H ejecutó una suite LIVE dedicada con identidades PROD inequívocamente sintéticas y confirmó MFA/lifecycle. Fase 3I hizo lo propio para Web Push. El cierre B04 repitió el patrón para Recovery, confirmó entrega real y dejó nuevamente 0 usuarios, 0 profiles, 0 códigos/limits, 0 objetos Storage y 0 datos de negocio. Las matrices generales RLS 40/40 e integración 34/34 permanecen como evidencia DEV; B10 decide cualquier uso real.
+Fase 3H ejecutó una suite LIVE dedicada con identidades PROD inequívocamente sintéticas y confirmó MFA/lifecycle. Fase 3I hizo lo propio para Web Push. El cierre B04 repitió el patrón para Recovery. El 30 de septiembre se ejecutó además la matriz general PROD cleanup-safe: 112/112, carga acotada 30/30 health y 20/20 hosting, rate limit concurrente 3 permitidos/5 bloqueados y verificación final de Auth/datos/Storage en cero. Evidencia: `docs/PROD_SYNTHETIC_READINESS.md`. B10 decide cualquier uso real.
 
 ## 12. Restricciones preservadas
 

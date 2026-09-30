@@ -14,8 +14,8 @@ test('B10 permanece abierto y el paquete no autoriza personas reales ni Pilot 01
   assert.match(packet, /NO-GO OPERATIVO \/ GO TÉCNICO/);
   assert.match(packet, /Pilot 01 permanece `PARKED`/);
   assert.match(packet, /autorización posterior, explícita y acotada/);
-  assert.match(packet, /E01[\s\S]*PENDING RISK DECISION/);
-  assert.match(packet, /E02[\s\S]*PENDING RISK DECISION/);
+  assert.match(packet, /E01[\s\S]*CLOSED — 112\/112, cleanup 0/);
+  assert.match(packet, /E02[\s\S]*CLOSED — sin SLA inferido/);
   assert.match(readiness, /B10 — \*\*OPEN\*\*/);
 });
 
@@ -48,6 +48,7 @@ test('paquete documental no contiene material privilegiado literal', async () =>
     read('docs/PRODUCTION_SUPPORT_MODEL.md'),
     read('docs/PRODUCTION_DATA_APPROVAL.md'),
     read('docs/PRODUCTION_CUTOVER_CHECKLIST.md'),
+    read('docs/PROD_SYNTHETIC_READINESS.md'),
   ]);
   const combined = docs.join('\n');
 
