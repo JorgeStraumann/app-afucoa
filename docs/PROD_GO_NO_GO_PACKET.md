@@ -12,6 +12,8 @@ Origin PROD: `https://afucoa-v2-prod.pages.dev/`
 
 Este documento prepara la decisión institucional. No autoriza altas reales, importaciones, Pilot 01, cambios de infraestructura ni un nuevo deploy.
 
+El borrador prellenado para resolver I01–I03 está en `docs/B10_INSTITUTIONAL_DECISION_DRAFT.md`.
+
 ## Resumen ejecutivo
 
 AFUCOA V2 alcanzó **GO técnico**: B01–B09 están `CLOSED`, la validación pública de Fase 4C cerró el defecto de Administración → Propuestas y PROD volvió a cero identidades/datos sintéticos. No quedan blockers técnicos abiertos conocidos.
@@ -62,6 +64,8 @@ Baseline aprobado:
 | E02 | Baseline acotado de carga y controles de abuso | `docs/PROD_SYNTHETIC_READINESS.md`, `docs/PRODUCTION_SLO.md` | **CLOSED — sin SLA inferido** |
 
 No se debe marcar un gate como aprobado con una conversación informal. La evidencia mínima es fecha, responsable, alcance exacto, condiciones y referencia a la decisión conservada fuera del repositorio cuando contenga datos personales o contactos.
+
+La recomendación técnica prellenada es un `GO CON CONDICIONES` limitado a un máximo de 5 socios, con dry-run previo, autorización separada de `--apply`, soporte durante la ventana y aborto fail-closed. Esta recomendación no equivale a aprobación.
 
 ## Reunión GO/NO-GO
 
