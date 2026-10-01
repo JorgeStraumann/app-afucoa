@@ -73,3 +73,16 @@ Fecha/hora: **2026-09-30 21:27, America/Montevideo**
 Los archivos de credenciales, reporte y rollback quedaron fuera de Git en `%LOCALAPPDATA%\AFUCOA\prod-cohort\`. El archivo de credenciales contiene exactamente cinco contraseñas temporales seguras; sus valores no se imprimieron, documentaron ni enviaron a GitHub. El journal conserva cinco entradas de rollback.
 
 Resultado: **COHORTE INICIAL CREADA Y VERIFICADA**. No se autoriza incorporar otra persona ni ejecutar Pilot 01 masivo.
+
+## Seguimiento de activación de acceso
+
+Fecha: **2026-10-01**
+
+- La prueba de recuperación de acceso con recepción y validación del código por el titular no se completó; quedó omitida por decisión del responsable. El smoke técnico de login indicado arriba no equivale a la activación por parte de cada socio.
+- Se enviaron solicitudes desde el formulario público de recuperación para las cinco cuentas. La respuesta pública fue neutra, como corresponde, pero eso **no confirma** la entrega de correo.
+- La fuente local de la cohorte contenía tres direcciones con formato válido y dos contactos de correo vacíos. La función requiere un correo válido en el perfil para emitir el mensaje; por eso no se puede asumir que las cinco cuentas tengan recuperación por correo operativa. No se copiaron identidades ni direcciones a esta documentación.
+- Los códigos de un solo uso expiraron. No se cambió ninguna contraseña ni se alteraron datos de contacto.
+- La vista agregada de la función mostró invocaciones sin errores reportados, pero no hubo evidencia de logs por solicitud ni confirmación de recepción para cada destinatario. La entrega permanece **sin verificar**.
+- El primer acceso realizado por cada titular y las comprobaciones funcionales posteriores siguen pendientes. No se amplió la cohorte; Pilot 01 masivo continúa suspendido.
+
+No solicitar, leer ni reutilizar códigos de recuperación en nombre de los titulares. Para completar la activación, cada persona debe tener un correo de contacto verificado y realizar el flujo de recuperación o primer acceso bajo su propio control.
