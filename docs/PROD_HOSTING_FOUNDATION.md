@@ -142,4 +142,4 @@ No se ejecutaron pruebas LIVE con identidades. Cloudflare Pages procesa `_header
 
 ## Estado de cutover
 
-B06 queda **CLOSED** para el origin Pages.dev aprobado: HTTPS, HSTS, headers, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado fueron validados. Estado actual: B03–B09 se cerraron en fases posteriores; B10 sigue abierto y AFUCOA V2 no está habilitada para usuarios reales.
+B06 queda **CLOSED** para el origin Pages.dev aprobado: HTTPS, HSTS, headers, CSP, caché, manifest, worker, fallback SPA, Auth Site URL y ausencia de material DEV/privilegiado fueron validados. B10 recibió posteriormente `GO CON CONDICIONES` para el lote exacto de cinco y ese lote fue aplicado con autorización separada; esta foundation no autoriza ampliaciones ni Pilot 01 masivo. Consulte `docs/PROD_GO_NO_GO_PACKET.md` y `docs/PROD_COHORT_DRY_RUN.md` para el estado operativo posterior.

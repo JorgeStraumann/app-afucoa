@@ -14,7 +14,7 @@ Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉ
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 aprovisionó un único lote inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES** para el batch exacto. `prod-cohort-3a15c4d1272f` quedó aplicado y validado técnicamente `5/5`; falta confirmar la activación individual de acceso por los titulares. No se autorizaron ampliaciones ni Pilot 01 masivo. Detalle: `docs/PROD_COHORT_DRY_RUN.md` y `docs/PRODUCTION_CUTOVER_CHECKLIST.md`.
+**AFUCOA V2 aprovisionó un único lote inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES** para el batch exacto. `prod-cohort-3a15c4d1272f` quedó aplicado y validado técnicamente `5/5`. El responsable cerró el seguimiento de confirmaciones individuales adicionales; esto no convierte la evidencia de acceso/recuperación en `5/5`. No se autorizaron ampliaciones ni Pilot 01 masivo. Detalle: `docs/PROD_COHORT_DRY_RUN.md` y `docs/PRODUCTION_CUTOVER_CHECKLIST.md`.
 
 Los riesgos y gates más inmediatos son:
 
@@ -51,7 +51,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B09 — **CLOSED** | Health #19, matriz, cinco monitores UptimeRobot FREE cada 5 min y auditor GitHub externo cada 15 min | USD 0; schedule GitHub best-effort y una región UptimeRobot | Cobertura combinada real, email, baseline, game days, issues deduplicados, recovery, ownership y runbooks. Edge `POST→401` y Storage `400 NoSuchKey` conservan su contrato completo en GitHub-hosted runners. Evidencia: `docs/PROD_MONITORING_ACTIVE.md`. |
 
 La primera ejecución automática posterior al cambio de cadencia fue el run `34328893538` (`schedule`, `afucoa-v2`): `11/11 PASS`, inicio 2 minutos después del slot nominal, 0 Issues abiertos y PROD sin cambios. Esta evidencia cierra el circuito automático sin atribuir SLA al scheduler de GitHub.
-| B10 — **GO CON CONDICIONES** | Batch inicial exacto de 5 aprobado después de dry-run limpio | I01/I02 condicionados al lote; ampliación y Pilot 01 masivo prohibidos | Ejecutar fail-closed con journal/rollback, distribuir accesos por canal seguro y observar; no migrar contraseñas V1. |
+| B10 — **GO CON CONDICIONES** | Batch inicial exacto de 5 aprobado después de dry-run limpio y aplicado por autorización separada | I01/I02 condicionados al lote; ampliación y Pilot 01 masivo prohibidos | Apply, postcheck y smoke técnico 5/5 completados. Seguimiento individual adicional cerrado por decisión del responsable, sin afirmar 5/5 accesos. No migrar contraseñas V1. |
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
@@ -223,18 +223,18 @@ Referencias: [Supabase — Database Backups](https://supabase.com/docs/guides/pl
 
 ## 7. Dominio y frontend
 
-Checklist para pasar de `https://jorgestraumann.github.io/app-afucoa/` al dominio final:
+Checklist del origin de producción aprobado `https://afucoa-v2-prod.pages.dev` (no hay migración a dominio propio aprobada):
 
-- [ ] Elegir la URL canónica y decidir raíz (`/`) o subruta estable antes de emitir manifest/worker.
-- [ ] Configurar DNS, HTTPS y renovación; forzar HTTPS. GitHub Pages soporta HTTPS en dominios personalizados correctamente configurados.
-- [ ] Construir con `VITE_AFUCOA_MODE=supabase`, URL PROD, publishable key PROD, dominio de alias aprobado y `AFUCOA_PUBLIC_BASE` final.
-- [ ] Verificar que HTML, assets, manifest, iconos y worker no contienen `/app-afucoa/` ni project refs DEV.
-- [ ] Probar navegación hash, deep link compartido, refresh, back/forward, apertura desde push y actualización del service worker.
-- [x] Configurar en Supabase PROD `Site URL=https://afucoa-v2-prod.pages.dev` y mantener redirects vacíos por diseño actual. Configurar CORS de Edge Functions queda pendiente hasta su despliegue, usando ese origin exacto.
-- [ ] Definir CSP al menos para `default-src`, `script-src`, `style-src`, `img-src`, `font-src`, `connect-src`, `worker-src` y `manifest-src`, incluyendo exclusivamente Supabase PROD y proveedores necesarios.
+- [x] Elegir la URL canónica y raíz (`/`); manifest y worker corresponden al origin aprobado.
+- [x] HTTPS/TLS y renovación administrados por Cloudflare en `pages.dev`; no se usa DNS propio.
+- [x] Construir con modo `supabase`, URL y publishable key PROD, alias aprobado y base `/` mediante el pipeline protegido.
+- [x] Verificar HTML, assets, manifest, iconos y worker sin subruta GitHub Pages, refs DEV, claves privilegiadas ni source maps.
+- [x] Probar navegación hash, deep links, refresh, back/forward, apertura desde push y actualización del service worker en la validación del origin canónico.
+- [x] Configurar Supabase PROD `Site URL=https://afucoa-v2-prod.pages.dev`, redirects vacíos por diseño actual y CORS exacto para las Edge Functions desplegadas.
+- [x] Definir y materializar CSP restrictiva para scripts, estilos, imágenes, fuentes, conexiones, worker y manifest, limitada a orígenes requeridos.
 - [x] Añadir/verificar HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y protección de framing (`frame-ancestors`) en el deployment canónico de Pages.
-- [ ] Mantener source maps fuera del artefacto público o protegerlos en un servicio privado de observabilidad.
-- [ ] Ejecutar el escaneo de secretos sobre el artefacto final y una inspección del tráfico del navegador: solo publishable key, sin server keys, VAPID privada ni datos sensibles en URLs/logs.
+- [x] Confirmar source maps ausentes en builds público/producción.
+- [x] Escanear artefacto final y validar ausencia de claves privilegiadas; inspección del origin confirmó solo configuración pública necesaria, sin VAPID privada ni secretos.
 
 Referencia: [GitHub Pages — HTTPS](https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
 
@@ -337,9 +337,9 @@ Estos conteos son el snapshot del Security/Performance Advisor de DEV levantado 
 - [x] E01 cerrado: matriz general RLS/integración PROD con identidades sintéticas y cleanup propio, 112/112 y verificación final en cero.
 - [x] E02 cerrado: carga/abuso acotado con 30/30 health, 20/20 hosting y rate limit concurrente 3/5; baseline sin inferir SLA.
 - [x] Verificar Advisors; clasificar hallazgos y conservar las funciones `SECURITY DEFINER` necesarias.
-- [ ] Ejecutar revisión de privacidad, términos, soporte, incidente y continuidad.
+- [ ] Completar aprobación institucional/legal de privacidad, términos y retención para cualquier ampliación. Los runbooks técnicos de soporte, incidente y continuidad existen; la política general permanece condicionada fuera del lote exacto.
 - [x] Congelar y validar el SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f`; generar evidencia técnica.
-- [ ] Completar `docs/PROD_GO_NO_GO_PACKET.md` y celebrar go/no-go institucional.
+- [x] Completar `docs/PROD_GO_NO_GO_PACKET.md` y registrar el go/no-go institucional `GO CON CONDICIONES` para el batch exacto; no equivale a aprobación de lanzamiento amplio.
 
 ### Fase 5 — cohorte inicial autorizada; ampliación bloqueada
 
