@@ -69,6 +69,8 @@ No se agregaron localhost, GitHub Pages, previews, deployment hash ni DEV.
 
 ## Alcance y pendientes
 
-Esta decisión cerró B06 respecto del hosting/origin canónico. En esa fase no se desplegaron Edge Functions ni se configuraron email, VAPID o Recovery. Estado actual: B03–B09 fueron cerrados por fases posteriores; B10 continúa OPEN y Pilot 01 permanece PARKED.
+Esta decisión cerró B06 respecto del hosting/origin canónico. Al corte de Fase 3D no se habían desplegado Edge Functions ni configurado email, VAPID o Recovery; B10 seguía abierto entonces.
+
+La mención de B10 `OPEN` y ausencia de altas describe el corte de Fase 3D y quedó supersedida: B10 autorizó condicionalmente un solo batch exacto de cinco, aplicado posteriormente. No hubo promoción frontend ni cambios de hosting por ese lote. La activación individual sigue pendiente; Pilot 01 masivo continúa suspendido.
 
 La futura configuración server-side deberá usar exactamente este valor en `AFUCOA_ALLOWED_ORIGINS`; no se debe copiar configuración DEV.

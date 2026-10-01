@@ -73,6 +73,10 @@ La rama `afucoa-v2` tiene una regla de protección que aplica a una rama. Force 
 
 Revisar este inventario al menos trimestralmente y ante cualquier cambio de miembro, rol, plan, compute, add-on, método de pago, factor MFA o responsable operativo.
 
+### Estado posterior — 2026-10-01
+
+Las afirmaciones de cero usuarios/perfiles y ausencia de recursos de los hallazgos de auditoría anteriores describen el baseline observado durante Fase 3G, no el estado vigente. Después se aplicó el lote inicial autorizado de cinco socios; no hubo cambios posteriores a la gobernanza, billing o secretos por esa operación. Ver `docs/PROD_COHORT_DRY_RUN.md` para el estado sin PII.
+
 ## Dictamen B02
 
 **B02 CLOSED:** la organización/proyecto aislados, ownership efectivo, responsables, acceso humano mínimo, MFA individual privilegiado, facturación operativa y controles de costo disponibles quedaron verificados. Los riesgos del modelo single-operator y del enforcement organizacional OFF están explícitos y no se ocultan como separación real de funciones.

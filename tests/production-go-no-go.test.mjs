@@ -57,3 +57,16 @@ test('paquete documental no contiene material privilegiado literal', async () =>
   assert.doesNotMatch(combined, /xkeysib-[A-Za-z0-9_-]{16,}/);
   assert.doesNotMatch(combined, /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/);
 });
+
+test('readiness vigente distingue el lote aplicado del acceso individual pendiente', async () => {
+  const [readiness, cohort, synthetic] = await Promise.all([
+    read('docs/PRODUCTION_READINESS.md'),
+    read('docs/PROD_COHORT_DRY_RUN.md'),
+    read('docs/PROD_SYNTHETIC_READINESS.md'),
+  ]);
+
+  assert.match(readiness, /B10 quedó en \*\*GO CON CONDICIONES para el lote exacto de cinco\*\*/);
+  assert.match(cohort, /COHORTE INICIAL CREADA Y VERIFICADA/);
+  assert.match(cohort, /primer acceso realizado por cada titular.*siguen pendientes/);
+  assert.match(synthetic, /baseline posterior a la prueba sintética y anterior al batch real/);
+});

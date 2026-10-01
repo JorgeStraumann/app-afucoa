@@ -2,7 +2,9 @@
 
 Fecha de validación: 9 de septiembre de 2026 (America/Montevideo)
 
-Estado: **B04 CLOSED**. Recovery PROD está activo y validado end-to-end. Esto no autoriza usuarios reales: B10 GO/NO-GO permanece abierto y Pilot 01 continúa `PARKED`.
+Estado: **B04 CLOSED**. Recovery PROD está activo y validado end-to-end. La cohorte exacta de cinco autorizada por B10 ya fue aprovisionada; el E2E sintético documentado aquí no confirma la activación de cada titular. No hay ampliación autorizada y Pilot 01 masivo continúa `PARKED`.
+
+La frase de autorización de esta cabecera corresponde al corte previo a B10. Luego se autorizó y aplicó un lote exacto de cinco cuentas; la validación E2E de recovery descrita aquí es sintética y no demuestra la activación individual de esos socios. No se autorizó ampliar la cohorte. Ver `docs/PROD_COHORT_DRY_RUN.md`.
 
 ## Proveedor y configuración
 
@@ -75,4 +77,3 @@ Las credenciales candidatas que pudieron quedar visibles durante la configuraci�
 El monitoring periódico realiza únicamente `OPTIONS` read-only sobre ambas funciones: no crea códigos, no consume límites ni envía correo. La tasa de errores, rebotes, complaints y abuso se revisa mediante métricas agregadas y el runbook `docs/runbooks/PASSWORD_RECOVERY_INCIDENT.md`.
 
 Mejoras posteriores, no blockers actuales: dominio AFUCOA propio, DKIM/SPF/DMARC, remitente branded y eventual plan/proveedor institucional si el volumen crece.
-

@@ -115,7 +115,9 @@ No fue necesario ejecutar cleanup porque no se creó ninguna identidad.
 - B03: **CLOSED**.
 - B04–B05: **CLOSED**.
 - B06: **CLOSED** para el origin canónico Pages.dev; ver `docs/PROD_CANONICAL_ORIGIN.md`.
-- B07–B09: **CLOSED**; B10: **OPEN**.
+- Estado al cierre de Fase 3B: B07–B09 **CLOSED**; B10 **OPEN**.
+
+Esta tabla refleja el estado al cierre de Fase 3B. B10 se resolvió posteriormente como `GO CON CONDICIONES` para un único lote inicial de cinco, aplicado bajo autorización separada; no habilita otras altas ni Pilot 01 masivo. La activación individual está pendiente y se sigue en `docs/PROD_COHORT_DRY_RUN.md`.
 
 ## Validación local
 

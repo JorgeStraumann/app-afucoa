@@ -14,7 +14,7 @@ La decisión inicial fue registrada el 30 de septiembre de 2026 a las 21:06 (`Am
 - SHA funcional actualmente desplegado: `e91327e17fa0b813f354f4d00345ef26cd55d38f`.
 - Origin canónico: `https://afucoa-v2-prod.pages.dev/`.
 - Rollback frontend, restore, Recovery, Web Push, MFA privilegiado y monitoring: probados.
-- PROD permanece sin personas reales. Pilot 01 permanece `PARKED`.
+- En el momento de preparar esta recomendación, PROD permanecía sin personas reales. El lote exacto autorizado después fue aplicado; Pilot 01 masivo permanece `PARKED`.
 
 ## Propuesta recomendada de GO condicionado
 

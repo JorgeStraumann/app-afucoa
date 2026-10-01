@@ -14,13 +14,13 @@ Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉ
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 activó un único lote real inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES**. El batch `prod-cohort-3a15c4d1272f` quedó aplicado y validado `5/5`; cualquier ampliación sigue prohibida. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
+**AFUCOA V2 aprovisionó un único lote inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES** para el batch exacto. `prod-cohort-3a15c4d1272f` quedó aplicado y validado técnicamente `5/5`; falta confirmar la activación individual de acceso por los titulares. No se autorizaron ampliaciones ni Pilot 01 masivo. Detalle: `docs/PROD_COHORT_DRY_RUN.md` y `docs/PRODUCTION_CUTOVER_CHECKLIST.md`.
 
 Los riesgos y gates más inmediatos son:
 
 1. El lote exacto quedó aplicado con `5 Auth / 5 profiles`, smoke `5/5` y cero conflictos; observar sin ampliar. Pilot 01 masivo permanece `PARKED`.
 2. Recovery PROD usa configuración fail-closed, Brevo Free y solo el origin canónico. Fase 4A confirmó solicitud neutra y aceptación del envío, pero la revalidación completa se canceló antes de leer el código porque el control de navegador no pudo verificar Gmail; el E2E histórico de B04 permanece válido, aunque esta ejecución es **incompleta**.
-3. Web Push conserva su E2E histórico de B05. Fase 4A confirmó los controles server-side del harness, pero el navegador integrado mantuvo el permiso bloqueado y no permitió repetir la recepción física; esta ejecución es una **brecha de evidencia**, no un PASS inventado.
+3. Web Push conserva su E2E histórico de B05. La revalidación de Fase 4A fue una brecha de evidencia; no invalidó la validación física histórica aprobada.
 
 La protección contra contraseñas filtradas continúa deshabilitada en DEV, riesgo aceptado únicamente porque DEV está en Free. En PROD Pro quedó habilitada en Fase 3B; no se intentó silenciar el warning DEV mediante SQL ni cambios de frontend.
 
@@ -89,7 +89,7 @@ La consulta read-only al catálogo PROD confirmó la FK directa `proposals_profi
 - [x] Reemplazar el Site URL temporal por `https://afucoa-v2-prod.pages.dev`; mantener allowlist de redirects vacía y verificar configuración Auth final del frontend.
 - [x] MFA TOTP obligatorio para admin/superadmin, con AAL2 server-side, gate frontend, re-login challenge y lifecycle sintético PROD. Los socios permanecen en AAL1.
 - Definir alta, baja, reemplazo de correo, pérdida de acceso, baja de funcionarios y revocación de sesiones. Un `profiles.status = inactivo` protege las RPC contextuales, pero el runbook debe cubrir también sesiones Auth activas.
-- Ejecutar RLS e integración contra un proyecto PROD vacío/preproducción con identidades sintéticas, nunca con socios reales ni con sesiones compartidas.
+- Ejecutar RLS/integración únicamente con harness sintético cleanup-safe contra un entorno aislado; la suite 112/112 PROD fue posteriormente aprobada en PROD vacío antes del lote inicial. No correr suites de cero-baseline contra la cohorte real.
 - Revisar cada `SECURITY DEFINER` de nuevo después de construir PROD: propietario, `search_path`, grants, uso de `auth.uid()`, outputs y comportamiento sin perfil activo. No convertirlas a invoker solo para silenciar Advisor.
 
 Referencia: [Supabase — Password security](https://supabase.com/docs/guides/auth/password-security) y [Supabase — Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
@@ -341,11 +341,12 @@ Estos conteos son el snapshot del Security/Performance Advisor de DEV levantado 
 - [x] Congelar y validar el SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f`; generar evidencia técnica.
 - [ ] Completar `docs/PROD_GO_NO_GO_PACKET.md` y celebrar go/no-go institucional.
 
-### Fase 5 — piloto/cutover, solo con nueva autorización
+### Fase 5 — cohorte inicial autorizada; ampliación bloqueada
 
-- [x] Autorizar una cohorte inicial máxima de cinco únicamente hasta dry-run, sin reactivar Pilot 01 masivo.
+- [x] Autorizar una cohorte inicial máxima de cinco, manteniendo Pilot 01 masivo suspendido.
 - [x] Validar estructuralmente los cinco participantes y ejecutar dry-run sin credenciales: `5 ready / 0 rejected / 0 conflicts`.
-- [ ] Aplicar lote limitado server-side, observar, probar rollback y soporte.
+- [x] Aplicar por autorización separada el lote exacto server-side: 5 Auth/profile vinculados; postcheck y smoke técnico 5/5.
+- [ ] Confirmar, bajo control de cada titular, correo válido y activación del primer acceso/recuperación. No registrar códigos ni contraseñas.
 - [ ] Ampliar gradualmente solo si se cumplen criterios de estabilidad y seguridad.
 
 ## 10. Qué puede hacerse sin pagar y qué requiere costo
@@ -404,4 +405,4 @@ Fase 3H ejecutó una suite LIVE dedicada con identidades PROD inequívocamente s
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. Fases 4B/4C corrigieron y validaron el único blocker funcional detectado en Fase 4A. B01–B09 conservan su evidencia **CLOSED**; no quedan blockers técnicos abiertos conocidos. B10 quedó en **GO CON CONDICIONES solo hasta dry-run**; Pilot 01 masivo sigue **PARKED** y no hay autorización para crear personas reales.
+Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. Fases 4B/4C corrigieron y validaron el único blocker funcional detectado en Fase 4A. B01–B09 conservan su evidencia **CLOSED**; no quedan blockers técnicos abiertos conocidos. B10 quedó en **GO CON CONDICIONES para el lote exacto de cinco**, que ya fue aplicado. La activación individual sigue pendiente; no hay autorización para ampliar la cohorte ni para Pilot 01 masivo.

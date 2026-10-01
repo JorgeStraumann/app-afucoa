@@ -71,4 +71,4 @@ El runner nunca imprime ni persiste las API keys. Debe abortar si PROD deja de e
 
 ## Alcance de la aprobación
 
-E01 y E02 quedan cerrados como evidencia técnica de B10. B10 continúa **OPEN** hasta aprobar I01 soporte, I02 datos/privacidad e I03 cohorte/ventana. Este resultado no autoriza altas reales, un `--apply`, Pilot 01 ni lanzamiento público.
+E01 y E02 se cerraron como evidencia técnica de B10 en el corte previo a la cohorte. En ese momento B10 seguía **OPEN** y el resultado no autorizaba altas reales ni `--apply`. Una autorización posterior resolvió B10 como **GO CON CONDICIONES** solo para el batch exacto de cinco, ya aplicado; no autoriza ampliar ni reactivar Pilot 01 masivo. La activación individual pendiente se documenta en `docs/PROD_COHORT_DRY_RUN.md`. Los ceros de cleanup aquí descritos son el baseline posterior a la prueba sintética y anterior al batch real, no el estado actual de Auth/profiles.

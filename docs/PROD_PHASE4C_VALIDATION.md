@@ -72,3 +72,7 @@ No se reejecutaron matrices LIVE generales contra DEV o PROD: este cierre no cam
 ## Estado de despliegue
 
 PROD conserva el SHA funcional `e91327e17fa0b813f354f4d00345ef26cd55d38f`. El cierre posterior es documental y no debe producir una segunda promoción PROD. El siguiente paso es exclusivamente institucional: resolver B10 mediante una decisión GO/NO-GO separada antes de cualquier alta real o reactivación de Pilot 01.
+
+### Adenda operativa — 2026-10-01
+
+El párrafo anterior refleja el estado al cierre de Fase 4C, previo a B10 y a la cohorte inicial. Posteriormente B10 quedó en `GO CON CONDICIONES` para el lote exacto `prod-cohort-3a15c4d1272f`; el apply de cinco cuentas fue autorizado por separado y completado. La validación de Fase 4C sigue siendo evidencia del SHA frontend y no sustituye seguimiento de activación individual. No se autorizó una ampliación ni Pilot 01 masivo.
