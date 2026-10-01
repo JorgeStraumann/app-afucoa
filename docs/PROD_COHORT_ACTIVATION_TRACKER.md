@@ -14,7 +14,9 @@ Uso interno operativo. **No completar por persona ni agregar nombres, cédulas, 
 
 Actualización: el responsable informó que inició sesión con su cuenta real y que las pantallas revisadas funcionaron correctamente. Se registra un primer acceso confirmado en forma agregada, sin asociar identidad. No se informó si utilizó una contraseña temporal ni se confirmó una recuperación/cambio de contraseña.
 
-Las respuestas neutras del formulario y el smoke técnico no cuentan como prueba de entrega de correo. La ausencia de confirmación restante no demuestra que otros titulares no hayan entrado; indica que todavía no hay evidencia comunicada bajo su control.
+**Cierre operativo del seguimiento individual (2026-10-01):** el responsable decidió que no se solicitarán confirmaciones directas adicionales a los otros titulares y da por cerrado este tema. Esta decisión cierra el requisito de seguimiento individual para este lote; no cambia la evidencia factual de la tabla: solo hay 1/5 primeros accesos informados personalmente y 0/5 entregas de correo de recuperación confirmadas. No se presume el estado de las otras cuatro cuentas ni se declara recuperación completada. Esta decisión tampoco autoriza ampliar la cohorte ni reactivar Pilot 01.
+
+Las respuestas neutras del formulario y el smoke técnico no cuentan como prueba de entrega de correo. El seguimiento queda cerrado por decisión del responsable, no por inferencia de esos eventos.
 
 ## Plantilla para actualizar sin PII
 

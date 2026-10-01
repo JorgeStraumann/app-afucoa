@@ -346,7 +346,7 @@ Estos conteos son el snapshot del Security/Performance Advisor de DEV levantado 
 - [x] Autorizar una cohorte inicial máxima de cinco, manteniendo Pilot 01 masivo suspendido.
 - [x] Validar estructuralmente los cinco participantes y ejecutar dry-run sin credenciales: `5 ready / 0 rejected / 0 conflicts`.
 - [x] Aplicar por autorización separada el lote exacto server-side: 5 Auth/profile vinculados; postcheck y smoke técnico 5/5.
-- [ ] Confirmar, bajo control de cada titular, correo válido y activación del primer acceso/recuperación. No registrar códigos ni contraseñas.
+- [x] Cerrar el seguimiento de confirmaciones individuales adicionales por decisión del responsable (2026-10-01). La decisión no acredita la activación de cada cuenta: evidencia agregada 1/5 primer acceso informado y 0/5 recuperaciones por email confirmadas. No registrar códigos ni contraseñas.
 - [ ] Ampliar gradualmente solo si se cumplen criterios de estabilidad y seguridad.
 
 ## 10. Qué puede hacerse sin pagar y qué requiere costo

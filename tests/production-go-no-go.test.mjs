@@ -27,7 +27,7 @@ test('checklist registra gates técnicos y aprobación humana acotada al batch',
   assert.match(checklist, /\[x\] \*\*Soporte para alta inicial:/);
   assert.match(checklist, /\[x\] \*\*Datos reales para alta inicial:/);
   assert.match(checklist, /\[x\] \*\*Provisionamiento técnico de cohorte inicial:/);
-  assert.match(checklist, /\[ \] \*\*Activación individual de acceso:/);
+  assert.match(checklist, /\[x\] \*\*Seguimiento individual cerrado por decisión del responsable/);
   assert.match(checklist, /\[x\] \*\*Decisión B10:/);
 });
 
@@ -64,7 +64,7 @@ test('paquete documental no contiene material privilegiado literal', async () =>
   assert.match(docs.at(-1), /No completar por persona/);
 });
 
-test('readiness vigente distingue el lote aplicado del acceso individual pendiente', async () => {
+test('readiness vigente distingue el lote aplicado del cierre operativo de seguimiento individual', async () => {
   const [readiness, cohort, synthetic, tracker] = await Promise.all([
     read('docs/PRODUCTION_READINESS.md'),
     read('docs/PROD_COHORT_DRY_RUN.md'),
@@ -74,7 +74,8 @@ test('readiness vigente distingue el lote aplicado del acceso individual pendien
 
   assert.match(readiness, /B10 quedó en \*\*GO CON CONDICIONES para el lote exacto de cinco\*\*/);
   assert.match(cohort, /COHORTE INICIAL CREADA Y VERIFICADA/);
-  assert.match(cohort, /primer acceso realizado por cada titular.*siguen pendientes/);
+  assert.match(cohort, /El responsable decidió cerrar el seguimiento de confirmaciones directas adicionales/);
+  assert.match(cohort, /evidencia sigue siendo 1\/5 primeros accesos informados personalmente y 0\/5 recuperaciones por email confirmadas/);
   assert.match(synthetic, /baseline posterior a la prueba sintética y anterior al batch real/);
   assert.match(tracker, /primer acceso confirmado personalmente \| 1\/5 confirmado/);
   assert.match(tracker, /recuperación confirmada por titular \| 0\/5 confirmada/);

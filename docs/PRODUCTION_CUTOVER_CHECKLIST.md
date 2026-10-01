@@ -1,6 +1,6 @@
 # AFUCOA V2 — Checklist previo a cutover y piloto
 
-Estado: **GO CON CONDICIONES — APPLY COMPLETADO PARA `prod-cohort-3a15c4d1272f`; activación individual pendiente.** Pilot 01 masivo permanece `PARKED`; no autoriza otro lote ni ampliación.
+Estado: **GO CON CONDICIONES — APPLY COMPLETADO PARA `prod-cohort-3a15c4d1272f`; seguimiento individual cerrado por decisión del responsable.** La decisión no equivale a confirmar acceso o recuperación de los cinco titulares ni autoriza otro lote. Pilot 01 masivo permanece `PARKED`.
 
 ## Estado de gates antes de solicitar go/no-go
 
@@ -20,7 +20,7 @@ Estado: **GO CON CONDICIONES — APPLY COMPLETADO PARA `prod-cohort-3a15c4d1272f
 - [x] **RLS/integración PROD:** 112 controles sintéticos cleanup-safe aprobados; Auth y datos volvieron a cero.
 - [x] **Carga/abuso acotado:** 30/30 health, 20/20 hosting y rate limit concurrente 3 permitidos/5 bloqueados; sin inferir SLA.
 - [x] **Provisionamiento técnico de cohorte inicial:** `--apply` completado con `5 Auth / 5 profiles`, smoke técnico de login/perfil `5/5` y cero rechazos/conflictos.
-- [ ] **Activación individual de acceso:** cada titular confirma bajo su propio control un correo de contacto válido y el primer acceso/recuperación. No contar el smoke técnico ni la respuesta neutra del formulario como prueba de activación o entrega. Mantener el resultado agregado fuera de Git; no solicitar ni registrar contraseñas, TOTP o códigos de recuperación.
+- [x] **Seguimiento individual cerrado por decisión del responsable (2026-10-01):** no se solicitarán más confirmaciones directas a los otros titulares. La evidencia permanece 1/5 primeros accesos informados y 0/5 recuperaciones por email confirmadas; esto no se interpreta como 5/5 activaciones.
 - [x] **Decisión B10:** `GO CON CONDICIONES` y autorización separada registrados para el batch exacto.
 
 ## Paquete de evidencia go/no-go
@@ -43,7 +43,7 @@ Estado: **GO CON CONDICIONES — APPLY COMPLETADO PARA `prod-cohort-3a15c4d1272f
 
 El GO condicionado no reactiva Pilot 01 masivo. La autorización posterior, explícita y acotada fue recibida solo para `prod-cohort-3a15c4d1272f`; cualquier otro lote o ampliación sigue prohibido.
 
-La ejecución del lote creó y verificó técnicamente las cuentas, pero el alta no se considera acceso activado hasta completar el hito individual anterior. Para cuentas sin correo válido en el perfil, detener el flujo de recuperación y coordinar con el titular la actualización verificada por el procedimiento institucional; no inventar ni sustituir destinos.
+La ejecución del lote creó y verificó técnicamente las cuentas. El seguimiento individual se cerró por decisión del responsable, sin certificar acceso o recuperación de cada titular. Para cuentas sin correo válido en el perfil, no iniciar recuperación ni inventar/sustituir destinos; cualquier actualización futura debe seguir el procedimiento institucional.
 
 Material de apoyo sin credenciales: `docs/GUIA_PRIMER_ACCESO_SOCIOS.md`. Registrar únicamente los conteos agregados definidos en `docs/PROD_COHORT_ACTIVATION_TRACKER.md`; no versionar su copia completada ni cualquier registro con PII.
 

@@ -83,6 +83,6 @@ Fecha: **2026-10-01**
 - La fuente local de la cohorte contenía tres direcciones con formato válido y dos contactos de correo vacíos. La función requiere un correo válido en el perfil para emitir el mensaje; por eso no se puede asumir que las cinco cuentas tengan recuperación por correo operativa. No se copiaron identidades ni direcciones a esta documentación.
 - Los códigos de un solo uso expiraron. No se cambió ninguna contraseña ni se alteraron datos de contacto.
 - La vista agregada de la función mostró invocaciones sin errores reportados, pero no hubo evidencia de logs por solicitud ni confirmación de recepción para cada destinatario. La entrega permanece **sin verificar**.
-- El primer acceso realizado por cada titular y las comprobaciones funcionales posteriores siguen pendientes. No se amplió la cohorte; Pilot 01 masivo continúa suspendido.
+- El responsable decidió cerrar el seguimiento de confirmaciones directas adicionales para este lote. La evidencia sigue siendo 1/5 primeros accesos informados personalmente y 0/5 recuperaciones por email confirmadas; no se presume el estado de las otras cuatro cuentas. No se amplió la cohorte; Pilot 01 masivo continúa suspendido.
 
-No solicitar, leer ni reutilizar códigos de recuperación en nombre de los titulares. Para completar la activación, cada persona debe tener un correo de contacto verificado y realizar el flujo de recuperación o primer acceso bajo su propio control.
+No solicitar, leer ni reutilizar códigos de recuperación en nombre de los titulares. El responsable cerró este seguimiento y no se harán solicitudes adicionales. Si en el futuro un socio pide ayuda con el acceso, deberá usar un correo de contacto verificado y realizar el flujo bajo su propio control.
