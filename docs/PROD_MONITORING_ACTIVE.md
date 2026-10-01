@@ -2,7 +2,7 @@
 
 Fecha de activación: 8 de septiembre de 2026 (America/Montevideo)
 
-Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. Esta decisión no habilita todavía AFUCOA V2 para usuarios reales: B04 está **CLOSED**, Fase 4C alcanzó `GO TÉCNICO` y B10 continúa **OPEN** por aprobaciones institucionales de soporte, datos y alcance.
+Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. B04 está **CLOSED** y B10 quedó como **GO CON CONDICIONES** limitado al lote inicial exacto de cinco, ya aplicado. Esto no equivale a una habilitación general ni autoriza ampliar la cohorte o ejecutar Pilot 01 masivo; la activación por los titulares continúa bajo seguimiento en `docs/PROD_COHORT_DRY_RUN.md`.
 
 ## Arquitectura operativa
 

@@ -153,3 +153,12 @@ Decisiones humanas necesarias:
 Fase 4A no modificó `main`, V1, Supabase DEV, Pilot 01, datos reales, Cloudflare, Edge Functions, Auth settings, secretos, DNS ni infraestructura. Fase 4B cambió exclusivamente la consulta/fallback y sus regresiones en `afucoa-v2`; el SHA `e91327e17fa0b813f354f4d00345ef26cd55d38f` fue el único SHA funcional promovido para esta corrección. Fase 4C no modificó código ni infraestructura: validó ese deploy, eliminó todos sus datos sintéticos y cerró documentación.
 
 La promoción PROD fue el run `35800017711`, `SUCCESS`; deployment Cloudflare `81c04089-9f91-4712-97a9-7f8b73c07c65`. No corresponde un segundo deploy PROD por el commit documental de cierre.
+
+## Adenda de estado posterior — 2026-10-01
+
+Este informe conserva los resultados de Fases 4A–4C; las referencias anteriores a B10 `OPEN`, Pilot 01 `PARKED` sin altas y Administración → Propuestas como blocker describen el corte histórico de septiembre y no el estado posterior.
+
+- El defecto `PGRST201` quedó corregido en Fase 4B y validado en PROD en Fase 4C: la consulta usa `profiles!proposals_profile_id_fkey`, sin fallback demo engañoso. La evidencia histórica del hallazgo se conserva arriba.
+- B10 recibió `GO CON CONDICIONES` para una cohorte exacta de cinco. El lote `prod-cohort-3a15c4d1272f` fue aplicado bajo autorización separada y sus cinco Auth/profile quedaron vinculados; no se amplió la cohorte ni se ejecutó Pilot 01 masivo.
+- La validación técnica de login fue `5/5`, pero no equivale a que los titulares hayan activado sus cuentas. La recepción de recuperación no está confirmada para cada cuenta; el seguimiento vigente está en `docs/PROD_COHORT_DRY_RUN.md`.
+- Por lo tanto, el GO técnico y la aplicación del lote no constituyen autorización de lanzamiento general. No se hicieron cambios de infraestructura ni otro deploy PROD mediante esta adenda documental.

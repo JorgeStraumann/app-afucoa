@@ -2,6 +2,8 @@
 
 Fecha de corte: 5 de septiembre de 2026 (America/Montevideo)
 
+Última actualización operativa: 1 de octubre de 2026 (America/Montevideo)
+
 Rama auditada: `afucoa-v2`
 
 Baseline al iniciar la auditoría: `1044fcd91eb35abcfa9346d295e16cfb4be7141e`
@@ -282,6 +284,8 @@ Los 21 findings `unused_index` se clasifican **INFO** en DEV de bajo volumen. Co
 `agreement_favorites_agreement_idx`, `app_settings_updated_by_idx`, `audit_log_actor_idx`, `content_items_created_by_idx`, `document_versions_created_by_idx`, `notification_campaigns_created_by_idx`, `proposal_moderation_actor_idx`, `proposal_supports_profile_idx`, `proposals_profile_idx`, `request_events_actor_idx`, `request_files_uploaded_by_idx`, `request_messages_author_idx`, `requests_assigned_to_idx`, `password_recovery_rate_limits_updated_idx`, `notification_push_deliveries_device_idx`, `content_status_published_idx`, `agreements_status_category_idx`, `proposal_status_created_idx`, `request_drafts_profile_idx`, `content_kind_status_idx`, `notification_campaigns_status_idx`.
 
 Resumen de findings:
+
+Estos conteos son el snapshot del Security/Performance Advisor de DEV levantado el 5 de septiembre de 2026; no son un conteo vigente de blockers en PROD. El único finding clasificado `BLOCKER PROD` en ese snapshot era `auth_leaked_password_protection` en DEV Free. Leaked Password Protection se habilitó en PROD durante B03; ese finding no es un blocker PROD abierto conocido.
 
 | Clasificación | Cantidad |
 | --- | ---: |

@@ -126,3 +126,14 @@ Este `GO CON CONDICIONES` autoriza el preflight/dry-run documentado, pero no cre
 7. suspender y revertir/desactivar según el journal ante cualquier criterio de abortar.
 
 Ninguno de esos pasos está autorizado por este documento.
+
+## Adenda de ejecución posterior — 2026-10-01
+
+Las frases de la decisión original que limitaban el alcance al dry-run y describían el apply como futuro reflejan el estado al momento de aprobar el paquete; fueron supersedidas por autorizaciones posteriores registradas en la tarea del proyecto.
+
+- El responsable autorizó por separado el `--apply` del batch exacto `prod-cohort-3a15c4d1272f` en el proyecto PROD indicado arriba.
+- Resultado documentado: 5 usuarios Auth creados, 5 perfiles de socio activos vinculados, cero rechazos/conflictos; postcheck idempotente `5 unchanged`; smoke técnico de login y perfil `5/5`. No se documentan identidades ni credenciales.
+- La recuperación de acceso y el primer acceso bajo control de cada titular no quedan demostrados por ese smoke. La entrega de correo permanece sin verificar para cada cuenta; los códigos de prueba expiraron y no se modificaron contraseñas ni contactos.
+- No se autorizó otra cohorte, cambios a esos contactos/credenciales, Pilot 01 masivo ni una promoción frontend adicional. B10 sigue condicionado al alcance exacto; no es un GO general para lanzamiento amplio.
+
+El estado operativo de la cohorte se mantiene en `docs/PROD_COHORT_DRY_RUN.md`.
