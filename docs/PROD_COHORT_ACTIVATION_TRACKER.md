@@ -8,11 +8,13 @@ Uso interno operativo. **No completar por persona ni agregar nombres, cédulas, 
 | --- | ---: |
 | Cuentas Auth creadas y profiles vinculados | 5/5 |
 | Smoke técnico de login y perfil | 5/5 |
-| Titulares con primer acceso confirmado personalmente | 0/5 confirmado |
+| Titulares con primer acceso confirmado personalmente | 1/5 confirmado |
 | Entrega de email de recuperación confirmada por titular | 0/5 confirmada |
 | Contactos de email vacíos en la fuente de alta | 2/5 |
 
-Las respuestas neutras del formulario y el smoke técnico no cuentan como prueba de entrega o de primer acceso personal. La ausencia de confirmación no demuestra que un titular no haya entrado; indica que no se registró evidencia confirmable bajo su control.
+Actualización: el responsable informó que inició sesión con su cuenta real y que las pantallas revisadas funcionaron correctamente. Se registra un primer acceso confirmado en forma agregada, sin asociar identidad. No se informó si utilizó una contraseña temporal ni se confirmó una recuperación/cambio de contraseña.
+
+Las respuestas neutras del formulario y el smoke técnico no cuentan como prueba de entrega de correo. La ausencia de confirmación restante no demuestra que otros titulares no hayan entrado; indica que todavía no hay evidencia comunicada bajo su control.
 
 ## Plantilla para actualizar sin PII
 
@@ -29,4 +31,3 @@ Actualizar solo totales y fecha. Usar `No confirmado` cuando no haya confirmaci�
 - **Recuperación completada:** confirmación del titular de que recibió y usó su código y pudo iniciar sesión con la contraseña nueva. No pedir el código ni observar su buzón.
 - Si un contacto falta o está desactualizado, detener la recuperación automatizada y coordinar su actualización mediante el procedimiento institucional. No redirigir el código ni sustituir el destinatario por decisión del operador.
 - No ampliar la cohorte ni reactivar Pilot 01 como resultado de completar este seguimiento.
-
