@@ -51,3 +51,20 @@ test('comando PROD es dry-run only, maximo cinco y no acepta service_role legacy
   assert.match(runner, /SUPABASE_SECRET_KEY/);
   assert.doesNotMatch(runner, /Write-Host|Get-ChildItem\s+Env:/i);
 });
+
+test('apply PROD exige confirmaciones, exactitud del lote, journal y rollback automatico', async () => {
+  const [script, runner, members] = await Promise.all([
+    readFile(new URL('../scripts/prod-cohort-apply.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../scripts/run-prod-cohort-apply.ps1', import.meta.url), 'utf8'),
+    readFile(new URL('../scripts/lib/pilot-members.mjs', import.meta.url), 'utf8'),
+  ]);
+  assert.match(script, /falta --apply explicito/);
+  assert.match(script, /confirm_batch !== batchId/);
+  assert.match(script, /exactamente \$\{PROD_COHORT_MAX_MEMBERS\} filas validas/);
+  assert.match(script, /rollbackPilot/);
+  assert.match(script, /Postcheck inconsistente/);
+  assert.match(script, /batchMetadataKey: metadataKey/);
+  assert.match(runner, /working tree debe estar limpio/);
+  assert.match(runner, /--confirm-batch \$ConfirmBatch/);
+  assert.match(members, /cohort_batch_id/);
+});

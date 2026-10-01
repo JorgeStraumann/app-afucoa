@@ -1,6 +1,6 @@
 # AFUCOA V2 — Gate de datos, privacidad y consentimiento
 
-Estado: **PARTIAL — USO MÍNIMO AUTORIZADO PARA DRY-RUN; COMPLETAR ANTES DE `--apply`**
+Estado: **CONDITIONED — LOTE INICIAL DE 5 AUTORIZADO; AMPLIACIÓN PENDIENTE**
 
 Este documento organiza las decisiones necesarias antes de incorporar personas reales. No constituye asesoramiento legal y no habilita purgas, importaciones ni tratamiento real.
 
@@ -41,4 +41,4 @@ Estas garantías técnicas no sustituyen la aprobación institucional del tratam
 - procedimiento de derechos e incidentes;
 - referencia restringida a la aprobación, sin copiar PII al repositorio.
 
-La decisión B10 permite normalizar el archivo autorizado y consultar conflictos contra PROD sin crear registros. Mientras exista un campo `PENDING`, I02 impide cualquier `--apply`, alta o tratamiento operativo posterior.
+La decisión B10 y la autorización posterior permiten el `--apply` exclusivamente para las cinco identidades del batch `prod-cohort-3a15c4d1272f`. Los campos `PENDING` continúan bloqueando cualquier ampliación, automatización de retención o lote diferente.

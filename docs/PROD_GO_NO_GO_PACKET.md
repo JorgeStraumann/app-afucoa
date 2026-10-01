@@ -1,6 +1,6 @@
 # AFUCOA V2 — Paquete de decisión GO/NO-GO (B10)
 
-Estado: **GO CON CONDICIONES — AUTORIZADO SOLO HASTA DRY-RUN**
+Estado: **GO CON CONDICIONES — APPLY AUTORIZADO PARA LOTE EXACTO**
 
 Fecha de actualización: 30 de septiembre de 2026 (America/Montevideo)
 
@@ -10,7 +10,7 @@ SHA funcional desplegado en PROD: `e91327e17fa0b813f354f4d00345ef26cd55d38f`
 
 Origin PROD: `https://afucoa-v2-prod.pages.dev/`
 
-La decisión institucional fue registrada el 30 de septiembre de 2026. Autoriza preparar una cohorte inicial máxima de cinco socios y ejecutar su dry-run; no autoriza altas reales, `--apply`, Pilot 01 masivo, cambios de infraestructura ni un nuevo deploy.
+La decisión institucional fue registrada el 30 de septiembre de 2026. El dry-run posterior aprobó `5 ready / 0 rejected / 0 conflicts` y el responsable autorizó separadamente el `--apply` del lote `prod-cohort-3a15c4d1272f` en PROD. No autoriza otro lote, ampliación, Pilot 01 masivo, cambios de infraestructura ni un nuevo deploy frontend.
 
 El borrador prellenado para resolver I01–I03 está en `docs/B10_INSTITUTIONAL_DECISION_DRAFT.md`.
 
@@ -26,7 +26,7 @@ B10 queda resuelto como **GO CON CONDICIONES** para el alcance de dry-run. Antes
 
 Las brechas técnicas E01 y E02 fueron cerradas el 30 de septiembre: la matriz sintética RLS/integración PROD aprobó 112 controles y una carga acotada aprobó 30/30 health, 20/20 hosting y el límite concurrente 3/5. La evidencia no sustituye aprobaciones institucionales ni constituye una promesa de capacidad/SLA.
 
-Hasta cumplirlas y recibir una autorización separada, el resultado es **GO TÉCNICO / DRY-RUN AUTORIZADO / ALTAS NO AUTORIZADAS**.
+La autorización separada se limita a **GO TÉCNICO / APPLY DEL LOTE EXACTO / AMPLIACIÓN NO AUTORIZADA**.
 
 ## Evidencia técnica precargada
 
@@ -57,9 +57,9 @@ Baseline aprobado:
 
 | ID | Decisión requerida | Evidencia/plantilla | Estado |
 | --- | --- | --- | --- |
-| I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **PARTIAL — Jorge designado temporalmente; completar antes de `--apply`** |
-| I02 | Aprobar inventario, finalidad, base institucional/legal, información/consentimiento, retención, derechos y responsables de datos | `docs/PRODUCTION_DATA_APPROVAL.md`, `docs/DATA_RETENTION.md` | **PARTIAL — dry-run mínimo autorizado; completar antes de `--apply`** |
-| I03 | Aprobar alcance nominal, ventana, canal de alta y criterios de suspensión para cualquier cohorte real | `docs/PRODUCTION_CUTOVER_CHECKLIST.md`, `docs/PROD_COHORT_DRY_RUN.md` | **PARTIAL — máximo 5 y dry-run; Pilot 01 masivo PARKED** |
+| I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **CONDITIONED — Jorge designado temporalmente para este lote** |
+| I02 | Aprobar inventario, finalidad, base institucional/legal, información/consentimiento, retención, derechos y responsables de datos | `docs/PRODUCTION_DATA_APPROVAL.md`, `docs/DATA_RETENTION.md` | **CONDITIONED — autorizado para estas 5 identidades; ampliación pendiente** |
+| I03 | Aprobar alcance nominal, ventana, canal de alta y criterios de suspensión para cualquier cohorte real | `docs/PRODUCTION_CUTOVER_CHECKLIST.md`, `docs/PROD_COHORT_DRY_RUN.md` | **APPROVED — batch exacto; Pilot 01 masivo PARKED** |
 | E01 | Matriz general RLS/integración PROD cleanup-safe | `docs/PROD_SYNTHETIC_READINESS.md` | **CLOSED — 112/112, cleanup 0** |
 | E02 | Baseline acotado de carga y controles de abuso | `docs/PROD_SYNTHETIC_READINESS.md`, `docs/PRODUCTION_SLO.md` | **CLOSED — sin SLA inferido** |
 
@@ -97,13 +97,13 @@ Agenda obligatoria:
 | Alcance autorizado | **cohorte inicial máxima de 5, solo hasta dry-run** |
 | Ventana | **dry-run autorizado; ventana de alta PENDING** |
 | Decisión | **GO CON CONDICIONES** |
-| Condiciones y vencimiento | **sin `--apply`; detener ante rechazo/conflicto; nueva autorización para alta o ampliación** |
+| Condiciones y vencimiento | **apply solo batch exacto; detener/rollback ante inconsistencia; nueva autorización para ampliación** |
 | Aprobador/solicitante | **Jorge, registrado en la tarea del proyecto** |
 | Responsable operación/soporte | **Jorge, temporal** |
-| Aprobador privacidad/datos | **PENDING antes de `--apply`** |
+| Aprobador privacidad/datos | **autorización acotada registrada en la tarea; política general pendiente antes de ampliar** |
 | Responsable técnico | **Jorge, temporal** |
 | Incident Commander | **Jorge, temporal** |
-| Evidencia externa restringida | **PII fuera de Git; referencias operativas/privacidad PENDING antes de `--apply`** |
+| Evidencia externa restringida | **PII fuera de Git; hash y autorización exacta registrados sin identidades** |
 
 ## Reglas de decisión
 

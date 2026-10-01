@@ -5,12 +5,12 @@ import test from 'node:test';
 const draft = await readFile(new URL('../docs/B10_INSTITUTIONAL_DECISION_DRAFT.md', import.meta.url), 'utf8');
 const packet = await readFile(new URL('../docs/PROD_GO_NO_GO_PACKET.md', import.meta.url), 'utf8');
 
-test('decisión B10 queda aprobada solo hasta dry-run y no autoriza usuarios ni apply', () => {
-  assert.match(draft, /APPROVED — GO CON CONDICIONES, SOLO HASTA DRY-RUN/);
-  assert.match(draft, /no reactiva Pilot 01 masivo/);
-  assert.match(draft, /no autoriza un `--apply`/);
+test('decisión B10 registra autorización separada solo para el batch exacto', () => {
+  assert.match(draft, /APPROVED — APPLY AUTORIZADO PARA EL LOTE EXACTO/);
+  assert.match(draft, /No reactiva Pilot 01 masivo/);
+  assert.match(draft, /prod-cohort-3a15c4d1272f/);
   assert.match(draft, /autorización separada/);
-  assert.match(packet, /GO CON CONDICIONES — AUTORIZADO SOLO HASTA DRY-RUN/);
+  assert.match(packet, /GO CON CONDICIONES — APPLY AUTORIZADO PARA LOTE EXACTO/);
 });
 
 test('recomendación limita cohorte y exige dry-run sin conflictos', () => {
@@ -20,12 +20,12 @@ test('recomendación limita cohorte y exige dry-run sin conflictos', () => {
   assert.match(draft, /Criterios de aborto/);
 });
 
-test('I01 I02 I03 conservan condiciones pendientes antes de apply', () => {
+test('I01 I02 I03 autorizan el lote exacto y conservan condiciones antes de ampliar', () => {
   for (const token of ['I01', 'I02', 'I03', 'Aprobador negocio', 'Responsable privacidad/datos', 'Incident Commander']) {
     if (token === 'Aprobador negocio') assert.match(draft, /Aprobador\/solicitante/);
     else assert.match(draft, new RegExp(token));
   }
-  assert.match(draft, /PENDING antes de `--apply`/);
+  assert.match(draft, /PENDING antes de ampliar/);
   assert.match(draft, /Jorge, temporal/);
 });
 

@@ -47,3 +47,7 @@ Fecha/hora: **2026-09-30 21:10, America/Montevideo**
 El reporte detallado quedó fuera de Git en `%LOCALAPPDATA%\AFUCOA\prod-cohort\prod-cohort-3a15c4d1272f-dry-run-report.json`. Se verificó que no contiene credenciales, rollback, Secret API Key ni contraseña temporal. Una consulta independiente posterior confirmó `auth.users=0` y `public.profiles=0` en PROD.
 
 Resultado: **DRY-RUN APROBADO; DETENERSE ANTES DE `--apply`**.
+
+## Autorización posterior de alta
+
+El responsable autorizó explícitamente en la tarea del proyecto ejecutar `--apply` del lote `prod-cohort-3a15c4d1272f` sobre PROD, limitado a los cinco socios del dry-run aprobado. El ejecutor versionado exige nuevamente project ref, batch, hash, cinco filas válidas, preflight inmediato sin conflictos y working tree limpio. Genera reporte, journal y credenciales en el directorio privado local; si detecta un resultado parcial intenta rollback automático y se detiene.

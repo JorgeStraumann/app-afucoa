@@ -1,10 +1,10 @@
 # AFUCOA V2 — Borrador de decisión institucional B10
 
-Estado: **APPROVED — GO CON CONDICIONES, SOLO HASTA DRY-RUN**
+Estado: **APPROVED — APPLY AUTORIZADO PARA EL LOTE EXACTO**
 
 Fecha de preparación: 30 de septiembre de 2026 (America/Montevideo)
 
-La decisión fue registrada el 30 de septiembre de 2026 a las 21:06 (`America/Montevideo`). Autoriza preparar una cohorte productiva inicial máxima de cinco socios y ejecutar únicamente su dry-run. No crea usuarios, no reactiva Pilot 01 masivo y no autoriza un `--apply`. Los contactos, cédulas y cualquier evidencia con PII deben conservarse fuera del repositorio.
+La decisión inicial fue registrada el 30 de septiembre de 2026 a las 21:06 (`America/Montevideo`) y autorizó únicamente el dry-run. Tras obtener `5 ready`, `0 rejected` y `0 conflicts`, el responsable emitió una autorización separada y explícita para ejecutar `--apply` exclusivamente sobre el lote `prod-cohort-3a15c4d1272f` en PROD. No reactiva Pilot 01 masivo ni autoriza ampliar la cohorte. Los contactos, cédulas y cualquier evidencia con PII deben conservarse fuera del repositorio.
 
 ## Hechos técnicos ya cerrados
 
@@ -47,7 +47,7 @@ Modelo inicial recomendado:
 | Evidencia con PII | repositorio/directorio restringido aprobado, nunca GitHub público |
 | Verificación de identidad | cédula + ficha contra fuente institucional y segundo dato controlado; nunca contraseña, TOTP o código Recovery |
 
-Para la ventana se designó temporalmente a Jorge como responsable de soporte, Incident Commander y responsable técnico. Antes de autorizar un `--apply` todavía debe registrarse fuera del repositorio:
+Para la ventana se designó temporalmente a Jorge como responsable de soporte, Incident Commander y responsable técnico. Antes de ampliar la cohorte todavía debe registrarse fuera del repositorio:
 
 - suplente y responsable de privacidad/seguridad;
 - direcciones/canales concretos;
@@ -66,7 +66,7 @@ Tratamiento mínimo propuesto para la cohorte:
 
 Controles ya implementados: RLS, buckets privados, signed URLs, recuperación neutra, payload Push sin PII, trazabilidad y preservación de historial cuando existe actividad.
 
-La decisión permite usar los datos mínimos del archivo autorizado para normalización y consultas de conflicto en el dry-run. Antes de autorizar un `--apply` falta una referencia externa restringida que confirme:
+La decisión y la autorización separada permiten tratar los datos mínimos del lote exacto. Antes de ampliar la cohorte falta una referencia externa restringida que confirme:
 
 - finalidad y fundamento institucional/legal;
 - texto informativo/consentimiento, versión y momento de presentación;
@@ -108,18 +108,19 @@ Detener altas y preservar evidencia ante cualquiera de estos eventos:
 
 | Campo | Estado |
 | --- | --- |
-| Decisión: GO condicionado / NO-GO | **GO CON CONDICIONES — dry-run only** |
+| Decisión: GO condicionado / NO-GO | **GO CON CONDICIONES — apply del batch exacto** |
 | Fecha/hora y zona | **2026-09-30 21:06, America/Montevideo** |
 | SHA funcional PROD autorizado | **`e91327e17fa0b813f354f4d00345ef26cd55d38f`** |
 | Aprobador/solicitante | **Jorge, registrado en la tarea del proyecto** |
 | Responsable operación/soporte | **Jorge, temporal para esta ventana** |
-| Responsable privacidad/datos | **PENDING antes de `--apply`** |
+| Responsable privacidad/datos | **autorización acotada registrada; política general PENDING antes de ampliar** |
 | Responsable técnico/release | **Jorge, temporal para esta ventana** |
 | Incident Commander | **Jorge, temporal para esta ventana** |
-| Referencia restringida I01 | **PENDING antes de `--apply`** |
-| Referencia restringida I02 | **PENDING antes de `--apply`** |
+| Referencia restringida I01 | **tarea del proyecto para lote exacto; directorio operativo PENDING antes de ampliar** |
+| Referencia restringida I02 | **tarea del proyecto para lote exacto; política general PENDING antes de ampliar** |
 | Referencia restringida I03/cohorte | **hash local en `docs/PROD_COHORT_DRY_RUN.md`; PII fuera de Git** |
-| Condiciones/vencimiento | **máximo 5; solo dry-run; `--apply` y ampliación requieren nueva autorización** |
+| Autorización de `--apply` | **lote `prod-cohort-3a15c4d1272f`, project ref `rywdochyzhgfaymrmxek`, máximo 5** |
+| Condiciones/vencimiento | **sin ampliación; detener/rollback ante inconsistencia; Pilot 01 masivo permanece PARKED** |
 
 ## Decisión registrada
 
@@ -127,7 +128,7 @@ El texto aprobado en la tarea del proyecto fue:
 
 > Apruebo B10 como GO CON CONDICIONES según `B10_INSTITUTIONAL_DECISION_DRAFT.md`. Autorizo preparar una cohorte productiva inicial máxima de 5 socios, únicamente hasta el dry-run. Jorge será temporalmente responsable de soporte, Incident Commander y responsable técnico durante la ventana. Pilot 01 masivo y cualquier `--apply` permanecen sin autorización.
 
-Esta aprobación resuelve la decisión B10 para el alcance indicado. No completa las referencias operativas/privacidad exigidas antes de crear cuentas ni sustituye la autorización separada de `--apply`.
+La autorización separada de `--apply` quedó registrada después del dry-run y se limita al batch y proyecto exactos indicados. No autoriza ampliación, lanzamiento masivo ni reutilización para otro archivo.
 
 ## Secuencia después de la aprobación
 

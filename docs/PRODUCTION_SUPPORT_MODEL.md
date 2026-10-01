@@ -1,6 +1,6 @@
 # AFUCOA V2 — Modelo mínimo de soporte de producción
 
-Estado: **PARTIAL — RESPONSABLES TEMPORALES DESIGNADOS; COMPLETAR ANTES DE `--apply`**
+Estado: **CONDITIONED — RESPONSABLES TEMPORALES ACTIVOS PARA EL LOTE INICIAL**
 
 Este documento define qué debe decidir AFUCOA antes de habilitar personas reales. No publica contactos, no crea canales y no convierte objetivos provisionales en SLA.
 
@@ -55,4 +55,4 @@ Detener nuevas altas o la cohorte en curso ante cualquiera de estos eventos:
 - [ ] criterios de suspensión aceptados;
 - [ ] fecha y aprobadores registrados fuera del repositorio.
 
-Los campos pendientes no impiden el dry-run autorizado, que no crea cuentas. Sí impiden cualquier `--apply` o ventana de alta hasta completarse fuera del repositorio.
+Para el lote inicial exacto, Jorge queda activo temporalmente como soporte, responsable técnico e Incident Commander mediante la tarea del proyecto. Los campos pendientes impiden ampliar la cohorte o convertir este esquema temporal en operación general.

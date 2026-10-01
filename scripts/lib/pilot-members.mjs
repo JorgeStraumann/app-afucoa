@@ -145,9 +145,10 @@ export function makeTemporaryPassword() {
   return `${crypto.randomBytes(18).toString('base64url')}!Aa1`;
 }
 
-export async function runPilotImport({ rows, adapter, batchId, apply = false, authDomain = 'auth.afucoa.local', onProgress = async () => {} }) {
+export async function runPilotImport({ rows, adapter, batchId, apply = false, authDomain = 'auth.afucoa.local', batchMetadataKey = 'pilot_batch_id', onProgress = async () => {} }) {
   if (!Array.isArray(rows) || rows.length === 0) throw new Error('No hay socios aceptados para importar.');
   if (rows.length > PILOT_MAX_MEMBERS) throw new Error(`Pilot 01 admite como máximo ${PILOT_MAX_MEMBERS} socios.`);
+  if (!['pilot_batch_id', 'cohort_batch_id'].includes(batchMetadataKey)) throw new Error('Clave de metadata de lote inválida.');
   const report = {
     batch_id: batchId,
     mode: apply ? 'apply' : 'dry-run',
@@ -175,7 +176,7 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
       if (authUser && !profile?.auth_user_id) {
         const metadata = authUser.app_metadata || {};
         if (metadata.migration_source !== row.migration_source || metadata.migration_external_id !== row.migration_external_id) throw reject('email_auth_en_uso');
-        if (metadata.pilot_batch_id !== batchId) throw reject('auth_lote_no_coincide');
+        if (metadata[batchMetadataKey] !== batchId) throw reject('auth_lote_no_coincide');
         const linkedProfile = await adapter.findProfileByAuthUser(authUser.id);
         if (linkedProfile && linkedProfile.id !== profile?.id) throw reject('auth_vinculado_a_otro_perfil');
       }
@@ -201,7 +202,7 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
           email: authEmail,
           password: temporaryPassword,
           email_confirm: true,
-          app_metadata: { migration_source: row.migration_source, migration_external_id: row.migration_external_id, pilot_batch_id: batchId },
+          app_metadata: { migration_source: row.migration_source, migration_external_id: row.migration_external_id, [batchMetadataKey]: batchId },
         });
         authCreated = true;
         item.auth_user_created = true;
@@ -255,6 +256,8 @@ export async function runPilotImport({ rows, adapter, batchId, apply = false, au
 }
 
 export async function rollbackPilot({ journal, adapter, onProgress = async () => {} }) {
+  const batchMetadataKey = journal.batch_metadata_key || 'pilot_batch_id';
+  if (!['pilot_batch_id', 'cohort_batch_id'].includes(batchMetadataKey)) throw new Error('Clave de metadata de lote inválida.');
   const result = {
     batch_id: journal.batch_id,
     started_at: new Date().toISOString(),
@@ -277,7 +280,7 @@ export async function rollbackPilot({ journal, adapter, onProgress = async () =>
       let authUser = null;
       if (entry.auth_user_created) {
         authUser = await adapter.getAuthUser(entry.auth_user_id);
-        if (authUser && authUser.app_metadata?.pilot_batch_id !== journal.batch_id) throw reject('auth_no_pertenece_al_lote');
+        if (authUser && authUser.app_metadata?.[batchMetadataKey] !== journal.batch_id) throw reject('auth_no_pertenece_al_lote');
       }
 
       const profile = await adapter.getProfile(entry.profile_id);

@@ -12,11 +12,11 @@ Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉ
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para altas reales.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES solo hasta dry-run**. El blocker funcional de Fase 4A en Administración → Propuestas fue corregido en Fase 4B y revalidado sobre PROD en Fase 4C. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
+**AFUCOA V2 tiene autorización para un único lote real inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES**. El batch autorizado es `prod-cohort-3a15c4d1272f`; cualquier ampliación sigue prohibida. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
 
 Los riesgos y gates más inmediatos son:
 
-1. El dry-run autorizado quedó `5 ready / 0 rejected / 0 conflicts`; exigir una nueva autorización antes de cualquier `--apply`. Pilot 01 masivo permanece `PARKED`.
+1. El dry-run quedó `5 ready / 0 rejected / 0 conflicts` y el `--apply` del batch exacto fue autorizado; ejecutar fail-closed y no ampliar. Pilot 01 masivo permanece `PARKED`.
 2. Recovery PROD usa configuración fail-closed, Brevo Free y solo el origin canónico. Fase 4A confirmó solicitud neutra y aceptación del envío, pero la revalidación completa se canceló antes de leer el código porque el control de navegador no pudo verificar Gmail; el E2E histórico de B04 permanece válido, aunque esta ejecución es **incompleta**.
 3. Web Push conserva su E2E histórico de B05. Fase 4A confirmó los controles server-side del harness, pero el navegador integrado mantuvo el permiso bloqueado y no permitió repetir la recepción física; esta ejecución es una **brecha de evidencia**, no un PASS inventado.
 
@@ -49,7 +49,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B09 — **CLOSED** | Health #19, matriz, cinco monitores UptimeRobot FREE cada 5 min y auditor GitHub externo cada 15 min | USD 0; schedule GitHub best-effort y una región UptimeRobot | Cobertura combinada real, email, baseline, game days, issues deduplicados, recovery, ownership y runbooks. Edge `POST→401` y Storage `400 NoSuchKey` conservan su contrato completo en GitHub-hosted runners. Evidencia: `docs/PROD_MONITORING_ACTIVE.md`. |
 
 La primera ejecución automática posterior al cambio de cadencia fue el run `34328893538` (`schedule`, `afucoa-v2`): `11/11 PASS`, inicio 2 minutos después del slot nominal, 0 Issues abiertos y PROD sin cambios. Esta evidencia cierra el circuito automático sin atribuir SLA al scheduler de GitHub.
-| B10 — **GO CON CONDICIONES** | Cohorte inicial máxima de 5 autorizada solo hasta dry-run; altas no aprobadas | I01/I02/I03 parciales; `--apply` y Pilot 01 masivo permanecen prohibidos | Ejecutar preflight fail-closed, completar soporte/privacidad/ventana y solicitar autorización separada para el lote exacto; no migrar contraseñas V1. |
+| B10 — **GO CON CONDICIONES** | Batch inicial exacto de 5 aprobado después de dry-run limpio | I01/I02 condicionados al lote; ampliación y Pilot 01 masivo prohibidos | Ejecutar fail-closed con journal/rollback, distribuir accesos por canal seguro y observar; no migrar contraseñas V1. |
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
