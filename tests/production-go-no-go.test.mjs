@@ -26,7 +26,8 @@ test('checklist registra gates técnicos y aprobación humana acotada al batch',
   assert.match(checklist, /\[x\] \*\*Mecanismo de piloto:/);
   assert.match(checklist, /\[x\] \*\*Soporte para alta inicial:/);
   assert.match(checklist, /\[x\] \*\*Datos reales para alta inicial:/);
-  assert.match(checklist, /\[x\] \*\*Activación de cohorte inicial:/);
+  assert.match(checklist, /\[x\] \*\*Provisionamiento técnico de cohorte inicial:/);
+  assert.match(checklist, /\[ \] \*\*Activación individual de acceso:/);
   assert.match(checklist, /\[x\] \*\*Decisión B10:/);
 });
 

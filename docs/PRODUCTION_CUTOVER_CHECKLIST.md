@@ -1,6 +1,6 @@
 # AFUCOA V2 — Checklist previo a cutover y piloto
 
-Estado: **GO CON CONDICIONES — APPLY AUTORIZADO PARA `prod-cohort-3a15c4d1272f`.** Pilot 01 masivo permanece `PARKED`; no autoriza otro lote ni ampliación.
+Estado: **GO CON CONDICIONES — APPLY COMPLETADO PARA `prod-cohort-3a15c4d1272f`; activación individual pendiente.** Pilot 01 masivo permanece `PARKED`; no autoriza otro lote ni ampliación.
 
 ## Estado de gates antes de solicitar go/no-go
 
@@ -19,7 +19,8 @@ Estado: **GO CON CONDICIONES — APPLY AUTORIZADO PARA `prod-cohort-3a15c4d1272f
 - [x] **Mecanismo de piloto:** dry-run, reporte, rollback, idempotencia y criterios técnicos validados sintéticamente.
 - [x] **RLS/integración PROD:** 112 controles sintéticos cleanup-safe aprobados; Auth y datos volvieron a cero.
 - [x] **Carga/abuso acotado:** 30/30 health, 20/20 hosting y rate limit concurrente 3 permitidos/5 bloqueados; sin inferir SLA.
-- [x] **Activación de cohorte inicial:** `--apply` completado con `5 Auth / 5 profiles`, smoke `5/5` y cero rechazos/conflictos; ampliación no autorizada.
+- [x] **Provisionamiento técnico de cohorte inicial:** `--apply` completado con `5 Auth / 5 profiles`, smoke técnico de login/perfil `5/5` y cero rechazos/conflictos.
+- [ ] **Activación individual de acceso:** cada titular confirma bajo su propio control un correo de contacto válido y el primer acceso/recuperación. No contar el smoke técnico ni la respuesta neutra del formulario como prueba de activación o entrega. Mantener el resultado agregado fuera de Git; no solicitar ni registrar contraseñas, TOTP o códigos de recuperación.
 - [x] **Decisión B10:** `GO CON CONDICIONES` y autorización separada registrados para el batch exacto.
 
 ## Paquete de evidencia go/no-go
@@ -41,5 +42,7 @@ Estado: **GO CON CONDICIONES — APPLY AUTORIZADO PARA `prod-cohort-3a15c4d1272f
 **GO** requiere todos los gates, cero blocker abierto, rollback viable y aprobaciones registradas. **NO-GO** aplica ante cualquier blocker, evidencia incompleta, drift, secreto DEV, backup/restore no probado, alerta no operativa o falta de soporte.
 
 El GO condicionado no reactiva Pilot 01 masivo. La autorización posterior, explícita y acotada fue recibida solo para `prod-cohort-3a15c4d1272f`; cualquier otro lote o ampliación sigue prohibido.
+
+La ejecución del lote creó y verificó técnicamente las cuentas, pero el alta no se considera acceso activado hasta completar el hito individual anterior. Para cuentas sin correo válido en el perfil, detener el flujo de recuperación y coordinar con el titular la actualización verificada por el procedimiento institucional; no inventar ni sustituir destinos.
 
 Paquete de decisión: `docs/PROD_GO_NO_GO_PACKET.md`. Las políticas generales de soporte y datos continúan condicionadas antes de ampliar la cohorte.
