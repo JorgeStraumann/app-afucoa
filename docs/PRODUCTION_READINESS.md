@@ -12,11 +12,11 @@ Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉ
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 tiene autorización para un único lote real inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES**. El batch autorizado es `prod-cohort-3a15c4d1272f`; cualquier ampliación sigue prohibida. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
+**AFUCOA V2 activó un único lote real inicial de cinco socios.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES**. El batch `prod-cohort-3a15c4d1272f` quedó aplicado y validado `5/5`; cualquier ampliación sigue prohibida. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
 
 Los riesgos y gates más inmediatos son:
 
-1. El dry-run quedó `5 ready / 0 rejected / 0 conflicts` y el `--apply` del batch exacto fue autorizado; ejecutar fail-closed y no ampliar. Pilot 01 masivo permanece `PARKED`.
+1. El lote exacto quedó aplicado con `5 Auth / 5 profiles`, smoke `5/5` y cero conflictos; observar sin ampliar. Pilot 01 masivo permanece `PARKED`.
 2. Recovery PROD usa configuración fail-closed, Brevo Free y solo el origin canónico. Fase 4A confirmó solicitud neutra y aceptación del envío, pero la revalidación completa se canceló antes de leer el código porque el control de navegador no pudo verificar Gmail; el E2E histórico de B04 permanece válido, aunque esta ejecución es **incompleta**.
 3. Web Push conserva su E2E histórico de B05. Fase 4A confirmó los controles server-side del harness, pero el navegador integrado mantuvo el permiso bloqueado y no permitió repetir la recepción física; esta ejecución es una **brecha de evidencia**, no un PASS inventado.
 

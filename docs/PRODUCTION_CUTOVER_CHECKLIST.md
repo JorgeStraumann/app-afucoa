@@ -19,7 +19,7 @@ Estado: **GO CON CONDICIONES — APPLY AUTORIZADO PARA `prod-cohort-3a15c4d1272f
 - [x] **Mecanismo de piloto:** dry-run, reporte, rollback, idempotencia y criterios técnicos validados sintéticamente.
 - [x] **RLS/integración PROD:** 112 controles sintéticos cleanup-safe aprobados; Auth y datos volvieron a cero.
 - [x] **Carga/abuso acotado:** 30/30 health, 20/20 hosting y rate limit concurrente 3 permitidos/5 bloqueados; sin inferir SLA.
-- [x] **Activación de cohorte inicial:** dry-run `5 ready / 0 rejected / 0 conflicts` y `--apply` del batch exacto autorizados; ampliación no autorizada.
+- [x] **Activación de cohorte inicial:** `--apply` completado con `5 Auth / 5 profiles`, smoke `5/5` y cero rechazos/conflictos; ampliación no autorizada.
 - [x] **Decisión B10:** `GO CON CONDICIONES` y autorización separada registrados para el batch exacto.
 
 ## Paquete de evidencia go/no-go

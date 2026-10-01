@@ -1,6 +1,6 @@
 # AFUCOA V2 — Preflight de cohorte productiva inicial
 
-Estado: **AUTORIZADO SOLO HASTA DRY-RUN — `--apply` NO AUTORIZADO**
+Estado: **APPLY COMPLETADO — 5 SOCIOS INICIALES ACTIVOS**
 
 Proyecto permitido: Supabase PROD `rywdochyzhgfaymrmxek`
 
@@ -51,3 +51,25 @@ Resultado: **DRY-RUN APROBADO; DETENERSE ANTES DE `--apply`**.
 ## Autorización posterior de alta
 
 El responsable autorizó explícitamente en la tarea del proyecto ejecutar `--apply` del lote `prod-cohort-3a15c4d1272f` sobre PROD, limitado a los cinco socios del dry-run aprobado. El ejecutor versionado exige nuevamente project ref, batch, hash, cinco filas válidas, preflight inmediato sin conflictos y working tree limpio. Genera reporte, journal y credenciales en el directorio privado local; si detecta un resultado parcial intenta rollback automático y se detiene.
+
+## Resultado de `--apply`
+
+Fecha/hora: **2026-09-30 21:27, America/Montevideo**
+
+| Control | Resultado |
+| --- | --- |
+| Auth creados | `5` |
+| Profiles creados y vinculados | `5` |
+| Rol/estado | `5 socio / 5 activo` |
+| Rechazados | `0` |
+| Conflictos | `0` |
+| Trazabilidad Auth/profile | `5/5` consistente |
+| Postcheck idempotente | `5 unchanged`, `0 rejected`, `0 conflicts` |
+| Smoke de login | `5/5` |
+| `get_my_profile` | `5/5` |
+| Cleanup de sesiones de prueba | `5` logout local, `0` logout global |
+| Rollback automático requerido | **NO** |
+
+Los archivos de credenciales, reporte y rollback quedaron fuera de Git en `%LOCALAPPDATA%\AFUCOA\prod-cohort\`. El archivo de credenciales contiene exactamente cinco contraseñas temporales seguras; sus valores no se imprimieron, documentaron ni enviaron a GitHub. El journal conserva cinco entradas de rollback.
+
+Resultado: **COHORTE INICIAL CREADA Y VERIFICADA**. No se autoriza incorporar otra persona ni ejecutar Pilot 01 masivo.

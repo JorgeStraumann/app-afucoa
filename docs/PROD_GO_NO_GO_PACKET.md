@@ -69,6 +69,8 @@ La decisión adoptada es un `GO CON CONDICIONES` limitado a un máximo de 5 soci
 
 El dry-run autorizado se ejecutó el 30 de septiembre de 2026 y produjo `5 ready`, `0 rejected`, `0 conflicts`, sin cambios. La verificación posterior confirmó Auth y profiles en cero. Evidencia sin PII: `docs/PROD_COHORT_DRY_RUN.md`.
 
+Después de la autorización separada, el mismo batch fue aplicado: `5` Auth creados, `5` profiles socio/activo vinculados, `0` rechazados y trazabilidad `5/5`. El smoke autenticado aprobó login y `get_my_profile` para las cinco identidades usando únicamente logout local. Credenciales y rollback permanecen fuera de Git.
+
 ## Reunión GO/NO-GO
 
 Participantes mínimos:
