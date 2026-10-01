@@ -66,5 +66,9 @@ El ciclo fue validado con una identidad sintética PROD: activa, inactiva, sesi�
 
 - DEV y PROD usan proyectos, publishable keys y Secret API Keys distintas.
 - Ningún secreto DEV se reutiliza en PROD.
-- Recovery/Push PROD continúan sin desplegar; B04/B05 siguen abiertos.
+- Recovery y Push PROD fueron desplegados y validados posteriormente; B04/B05 están cerrados. Consultar `docs/PROD_PASSWORD_RECOVERY.md` y `docs/PROD_WEB_PUSH.md` para evidencia vigente.
 - Pilot 01 continúa **PARKED**.
+
+## Estado posterior — 2026-10-01
+
+B10 autorizó condicionalmente solo el batch `prod-cohort-3a15c4d1272f`, que fue aplicado con cinco perfiles/Auth vinculados y smoke técnico 5/5. El responsable cerró el seguimiento de confirmaciones directas adicionales; eso no certifica acceso o recuperación 5/5 ni habilita otro lote. Este runbook no autoriza cambios de cuenta sobre la cohorte ni reactivación de Pilot 01.

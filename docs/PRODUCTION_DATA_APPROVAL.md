@@ -1,8 +1,8 @@
 # AFUCOA V2 — Gate de datos, privacidad y consentimiento
 
-Estado: **CONDITIONED — LOTE INICIAL DE 5 AUTORIZADO; AMPLIACIÓN PENDIENTE**
+Estado: **LOTE INICIAL EXACTO DE 5 APLICADO BAJO AUTORIZACIÓN B10; POLÍTICA GENERAL Y AMPLIACIÓN PENDIENTES**
 
-Este documento organiza las decisiones necesarias antes de incorporar personas reales. No constituye asesoramiento legal y no habilita purgas, importaciones ni tratamiento real.
+Este documento organiza las decisiones institucionales generales. No constituye asesoramiento legal ni reemplaza aprobaciones del responsable competente. Una autorización B10 posterior permitió únicamente el tratamiento mínimo de las cinco identidades del batch `prod-cohort-3a15c4d1272f`, ya aplicado; no autoriza otros lotes, ampliación, purgas ni automatizaciones. Los campos `PENDING` de esta matriz se refieren al marco general pendiente.
 
 ## Decisiones requeridas
 

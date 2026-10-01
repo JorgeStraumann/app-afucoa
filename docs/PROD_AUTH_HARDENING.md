@@ -2,7 +2,9 @@
 
 Fecha: 5 de septiembre de 2026 (America/Montevideo)
 
-Estado: hardening Auth, URL canónica, MFA y Recovery PROD validados; **AFUCOA V2 no está habilitada para usuarios reales hasta B10 GO/NO-GO**.
+Estado al cierre de Fase 3B: hardening Auth, URL canónica, MFA y Recovery PROD validados; en ese corte B10 aún no tenía decisión.
+
+Actualización posterior (2026-10-01): B10 fue resuelto como `GO CON CONDICIONES` únicamente para el batch inicial exacto de cinco, posteriormente aplicado bajo autorización separada. Esta decisión no habilita ampliaciones ni Pilot 01 masivo. Ver `docs/PROD_GO_NO_GO_PACKET.md` y `docs/PROD_COHORT_DRY_RUN.md`.
 
 ## Destino y alcance
 

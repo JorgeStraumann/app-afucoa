@@ -71,6 +71,6 @@ No se agregaron localhost, GitHub Pages, previews, deployment hash ni DEV.
 
 Esta decisión cerró B06 respecto del hosting/origin canónico. Al corte de Fase 3D no se habían desplegado Edge Functions ni configurado email, VAPID o Recovery; B10 seguía abierto entonces.
 
-La mención de B10 `OPEN` y ausencia de altas describe el corte de Fase 3D y quedó supersedida: B10 autorizó condicionalmente un solo batch exacto de cinco, aplicado posteriormente. No hubo promoción frontend ni cambios de hosting por ese lote. La activación individual sigue pendiente; Pilot 01 masivo continúa suspendido.
+La mención de B10 `OPEN` y ausencia de altas describe el corte de Fase 3D y quedó supersedida: B10 autorizó condicionalmente un solo batch exacto de cinco, aplicado posteriormente. No hubo promoción frontend ni cambios de hosting por ese lote. El responsable cerró el seguimiento de confirmaciones directas adicionales; no se infiere activación 5/5. Pilot 01 masivo continúa suspendido.
 
 La futura configuración server-side deberá usar exactamente este valor en `AFUCOA_ALLOWED_ORIGINS`; no se debe copiar configuración DEV.

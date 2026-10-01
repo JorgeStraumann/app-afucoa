@@ -2,7 +2,7 @@
 
 Estado: infraestructura operativa; B09 CLOSED. Consultar `docs/PROD_MONITORING_ACTIVE.md`.
 
-**AFUCOA V2 NO ESTÁ HABILITADA PARA USUARIOS REALES. B09 está CLOSED.** UptimeRobot FREE opera cinco monitores externos cada 5 minutos y GitHub-hosted runners auditan todos los contratos cada 15 minutos. El proveedor gratuito bloquea método/headers/status personalizados para Edge y Storage; estos tres contratos se conservan completos en GitHub, sin contratar un plan pago ni degradarlos. La matriz de `config/production-monitoring-policy.json` es operativa, aunque sus umbrales estadísticos continúan provisionales hasta B10.
+**B09 está CLOSED.** B10 autorizó y se aplicó únicamente el batch inicial de cinco socios; no hay autorización para ampliarlo. UptimeRobot FREE opera cinco monitores externos cada 5 minutos y GitHub-hosted runners auditan todos los contratos cada 15 minutos. El proveedor gratuito bloquea método/headers/status personalizados para Edge y Storage; estos tres contratos se conservan completos en GitHub, sin contratar un plan pago ni degradarlos. La matriz de `config/production-monitoring-policy.json` es operativa, aunque sus umbrales estadísticos continúan provisionales hasta reunir tráfico representativo.
 
 ## Principios
 

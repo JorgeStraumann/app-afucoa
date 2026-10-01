@@ -56,4 +56,4 @@ Leaked Password Protection permanece deshabilitado en el plan Free: es un requis
 
 La configuración runtime DEV utiliza `AFUCOA_ENV=dev`, `AFUCOA_ALLOWED_ORIGINS` explícita y las variables Supabase provistas server-side. Resend existente fue preservado. No se publican valores ni se guardan claves en chat, Vite, GitHub Pages o repositorio.
 
-La validación DEV quedó cerrada y se revalidó después de migrar las Edge Functions a una nueva Secret API Key y desactivar las legacy API keys DEV. Posteriormente, Recovery PROD fue validado con Brevo Free y E2E sintético; B04 está cerrado según `docs/PROD_PASSWORD_RECOVERY.md`. Esto no habilita usuarios reales: B10 sigue abierto y Pilot 01 permanece suspendido.
+La validación DEV quedó cerrada y se revalidó después de migrar las Edge Functions a una nueva Secret API Key y desactivar las legacy API keys DEV. Posteriormente, Recovery PROD fue validado con Brevo Free y E2E sintético; B04 está cerrado según `docs/PROD_PASSWORD_RECOVERY.md`. Después, B10 autorizó condicionalmente solo el batch exacto de cinco socios, ya aplicado; Pilot 01 masivo permanece suspendido y no se autorizó ampliación.

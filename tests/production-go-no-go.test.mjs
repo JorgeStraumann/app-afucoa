@@ -39,7 +39,8 @@ test('plantillas de soporte y datos autorizan el lote exacto pero bloquean ampli
 
   assert.match(support, /CONDITIONED — RESPONSABLES TEMPORALES ACTIVOS/);
   assert.match(support, /impiden ampliar la cohorte/);
-  assert.match(data, /CONDITIONED — LOTE INICIAL DE 5 AUTORIZADO/);
+  assert.match(data, /LOTE INICIAL EXACTO DE 5 APLICADO BAJO AUTORIZACIÓN B10/);
+  assert.match(data, /no autoriza otros lotes, ampliación, purgas ni automatizaciones/);
   assert.match(data, /bloqueando cualquier ampliación/);
 });
 
