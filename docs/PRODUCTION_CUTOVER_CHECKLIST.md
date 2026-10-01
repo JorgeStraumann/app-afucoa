@@ -45,4 +45,6 @@ El GO condicionado no reactiva Pilot 01 masivo. La autorización posterior, expl
 
 La ejecución del lote creó y verificó técnicamente las cuentas, pero el alta no se considera acceso activado hasta completar el hito individual anterior. Para cuentas sin correo válido en el perfil, detener el flujo de recuperación y coordinar con el titular la actualización verificada por el procedimiento institucional; no inventar ni sustituir destinos.
 
+Material de apoyo sin credenciales: `docs/GUIA_PRIMER_ACCESO_SOCIOS.md`. Registrar únicamente los conteos agregados definidos en `docs/PROD_COHORT_ACTIVATION_TRACKER.md`; no versionar su copia completada ni cualquier registro con PII.
+
 Paquete de decisión: `docs/PROD_GO_NO_GO_PACKET.md`. Las políticas generales de soporte y datos continúan condicionadas antes de ampliar la cohorte.

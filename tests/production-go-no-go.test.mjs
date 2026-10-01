@@ -50,12 +50,18 @@ test('paquete documental no contiene material privilegiado literal', async () =>
     read('docs/PRODUCTION_DATA_APPROVAL.md'),
     read('docs/PRODUCTION_CUTOVER_CHECKLIST.md'),
     read('docs/PROD_SYNTHETIC_READINESS.md'),
+    read('docs/GUIA_PRIMER_ACCESO_SOCIOS.md'),
+    read('docs/PROD_COHORT_ACTIVATION_TRACKER.md'),
   ]);
   const combined = docs.join('\n');
 
   assert.doesNotMatch(combined, /sb_secret_[A-Za-z0-9_-]{16,}/);
   assert.doesNotMatch(combined, /xkeysib-[A-Za-z0-9_-]{16,}/);
   assert.doesNotMatch(combined, /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/);
+  assert.doesNotMatch(combined, /\b\d{8}\b/);
+  assert.doesNotMatch(combined, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  assert.match(docs.at(-2), /https:\/\/afucoa-v2-prod\.pages\.dev/);
+  assert.match(docs.at(-1), /No completar por persona/);
 });
 
 test('readiness vigente distingue el lote aplicado del acceso individual pendiente', async () => {
