@@ -12,11 +12,11 @@ Tipo de documento: auditoría viva de readiness; Fase 4C post-deploy con `GO TÉ
 
 ## Dictamen ejecutivo
 
-**AFUCOA V2 todavía no está habilitada para usuarios reales.** B01–B09 conservan su evidencia **CLOSED** y B10 GO/NO-GO sigue **OPEN**. El blocker funcional de Fase 4A en Administración → Propuestas fue corregido en Fase 4B y revalidado sobre PROD en Fase 4C; el estado actual es **GO TÉCNICO**, no aprobación institucional de cutover. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md` y `docs/PROD_PRE_GO_LIVE_VALIDATION.md`.
+**AFUCOA V2 todavía no está habilitada para altas reales.** B01–B09 conservan su evidencia **CLOSED** y B10 fue resuelto como **GO CON CONDICIONES solo hasta dry-run**. El blocker funcional de Fase 4A en Administración → Propuestas fue corregido en Fase 4B y revalidado sobre PROD en Fase 4C. Detalle y evidencia: `docs/PROD_PHASE4C_VALIDATION.md`, `docs/PROD_PRE_GO_LIVE_VALIDATION.md` y `docs/PROD_COHORT_DRY_RUN.md`.
 
 Los riesgos y gates más inmediatos son:
 
-1. Resolver B10 mediante un GO/NO-GO institucional antes de incorporar personas reales; Pilot 01 permanece `PARKED`.
+1. El dry-run autorizado quedó `5 ready / 0 rejected / 0 conflicts`; exigir una nueva autorización antes de cualquier `--apply`. Pilot 01 masivo permanece `PARKED`.
 2. Recovery PROD usa configuración fail-closed, Brevo Free y solo el origin canónico. Fase 4A confirmó solicitud neutra y aceptación del envío, pero la revalidación completa se canceló antes de leer el código porque el control de navegador no pudo verificar Gmail; el E2E histórico de B04 permanece válido, aunque esta ejecución es **incompleta**.
 3. Web Push conserva su E2E histórico de B05. Fase 4A confirmó los controles server-side del harness, pero el navegador integrado mantuvo el permiso bloqueado y no permitió repetir la recepción física; esta ejecución es una **brecha de evidencia**, no un PASS inventado.
 
@@ -49,7 +49,7 @@ La auditoría inicial de Fase 1 no ejecutó migraciones, SQL de escritura, despl
 | B09 — **CLOSED** | Health #19, matriz, cinco monitores UptimeRobot FREE cada 5 min y auditor GitHub externo cada 15 min | USD 0; schedule GitHub best-effort y una región UptimeRobot | Cobertura combinada real, email, baseline, game days, issues deduplicados, recovery, ownership y runbooks. Edge `POST→401` y Storage `400 NoSuchKey` conservan su contrato completo en GitHub-hosted runners. Evidencia: `docs/PROD_MONITORING_ACTIVE.md`. |
 
 La primera ejecución automática posterior al cambio de cadencia fue el run `34328893538` (`schedule`, `afucoa-v2`): `11/11 PASS`, inicio 2 minutos después del slot nominal, 0 Issues abiertos y PROD sin cambios. Esta evidencia cierra el circuito automático sin atribuir SLA al scheduler de GitHub.
-| B10 — **OPEN** | GO técnico alcanzado; decisión institucional y altas reales no aprobadas | I01 soporte, I02 datos/privacidad y I03 alcance/cohorte; Pilot 01 permanece PARKED | Completar `docs/PROD_GO_NO_GO_PACKET.md`, aprobar soporte y datos, registrar GO/NO-GO. Cualquier alta o Pilot exige autorización posterior explícita; no migrar contraseñas V1. |
+| B10 — **GO CON CONDICIONES** | Cohorte inicial máxima de 5 autorizada solo hasta dry-run; altas no aprobadas | I01/I02/I03 parciales; `--apply` y Pilot 01 masivo permanecen prohibidos | Ejecutar preflight fail-closed, completar soporte/privacidad/ventana y solicitar autorización separada para el lote exacto; no migrar contraseñas V1. |
 
 La cantidad de blockers es de lanzamiento, no la cantidad de avisos del Advisor. Un solo blocker abierto impide promover a producción.
 
@@ -339,8 +339,8 @@ Resumen de findings:
 
 ### Fase 5 — piloto/cutover, solo con nueva autorización
 
-- [ ] Reactivar Pilot 01 únicamente por decisión explícita.
-- [ ] Validar los participantes, email y consentimiento; dry-run y reporte sin credenciales.
+- [x] Autorizar una cohorte inicial máxima de cinco únicamente hasta dry-run, sin reactivar Pilot 01 masivo.
+- [x] Validar estructuralmente los cinco participantes y ejecutar dry-run sin credenciales: `5 ready / 0 rejected / 0 conflicts`.
 - [ ] Aplicar lote limitado server-side, observar, probar rollback y soporte.
 - [ ] Ampliar gradualmente solo si se cumplen criterios de estabilidad y seguridad.
 
@@ -400,4 +400,4 @@ Fase 3H ejecutó una suite LIVE dedicada con identidades PROD inequívocamente s
 
 Fase 2B modificó el código versionado de Edge Functions, sus tests/validadores y documentación. Posteriormente, la parametrización fue desplegada y validada E2E solo en DEV con las cuatro funciones `ACTIVE`. Fase 2C registró esa evidencia documentalmente. Fase 2D agregó la ruta local/CI de build PROD sintético. Fase 2E versiona arquitectura, security headers/cache, release manifest, promoción, rollback, threat check, gobernanza y un template no ejecutable. Fase 2F agrega únicamente contratos repo-only: monitoring, alertas, SLI/SLO, incidentes/runbooks, propuesta RPO/RTO, restore drill, retención, rotación, smoke checks y cutover. El workflow staging solo valida esos archivos; no activa monitoring ni despliega PROD.
 
-Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. Fases 4B/4C corrigieron y validaron el único blocker funcional detectado en Fase 4A. B01–B09 conservan su evidencia **CLOSED**; no quedan blockers técnicos abiertos conocidos. B10 permanece **OPEN**, Pilot 01 sigue **PARKED** y el estado `GO TÉCNICO` no autoriza personas reales.
+Fases 3A–3K cerraron bootstrap, Auth base, hosting, pipeline, restore, gobernanza, MFA, Push y monitoring. El cierre técnico B03/B04 agregó provider abstraction, Brevo Free, funciones Recovery PROD y E2E real sintético cleanup-safe. Fases 4B/4C corrigieron y validaron el único blocker funcional detectado en Fase 4A. B01–B09 conservan su evidencia **CLOSED**; no quedan blockers técnicos abiertos conocidos. B10 quedó en **GO CON CONDICIONES solo hasta dry-run**; Pilot 01 masivo sigue **PARKED** y no hay autorización para crear personas reales.

@@ -1,6 +1,6 @@
 # AFUCOA V2 — Checklist previo a cutover y piloto
 
-Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, importaciones ni datos reales.
+Estado: **GO CON CONDICIONES solo hasta dry-run.** Pilot 01 masivo permanece `PARKED`; no autoriza usuarios, importaciones ni `--apply`.
 
 ## Estado de gates antes de solicitar go/no-go
 
@@ -14,13 +14,13 @@ Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, im
 - [x] **Backup/restore:** RPO/RTO técnicos documentados, backups DB/Storage, responsables y restore drill aislado con tiempos observados.
 - [x] **Monitoring:** cobertura combinada, alertas, responsables y game days; SLO estadístico continúa provisional hasta existir tráfico aprobado.
 - [x] **Runbooks técnicos:** incidentes, secret rotation, restore y rollback versionados y ensayados.
-- [ ] **Soporte:** canales, horarios, clasificación, escalamiento, comunicaciones y procedimiento de identidad aprobados.
-- [ ] **Datos reales:** inventario/finalidad/retención/consentimiento y revisión legal/business aprobados.
+- [ ] **Soporte para alta:** Jorge fue designado temporalmente como soporte, Incident Commander y responsable técnico; faltan canal, suplente, privacidad, horarios y comunicaciones antes de `--apply`.
+- [ ] **Datos reales para alta:** uso mínimo de hasta cinco identidades autorizado para dry-run; inventario/finalidad/retención/consentimiento y revisión legal/business siguen pendientes antes de `--apply`.
 - [x] **Mecanismo de piloto:** dry-run, reporte, rollback, idempotencia y criterios técnicos validados sintéticamente.
 - [x] **RLS/integración PROD:** 112 controles sintéticos cleanup-safe aprobados; Auth y datos volvieron a cero.
 - [x] **Carga/abuso acotado:** 30/30 health, 20/20 hosting y rate limit concurrente 3 permitidos/5 bloqueados; sin inferir SLA.
-- [ ] **Activación de cohorte real:** lista nominal, consentimiento, canal de alta, soporte y ventana todavía no autorizados; Pilot 01 permanece `PARKED`.
-- [ ] **Decisión B10:** completar y aprobar `docs/PROD_GO_NO_GO_PACKET.md`.
+- [ ] **Activación de cohorte real:** dry-run completado `5 ready / 0 rejected / 0 conflicts`; alta, consentimiento, canal y ventana todavía no autorizados; Pilot 01 masivo permanece `PARKED`.
+- [x] **Decisión B10:** `GO CON CONDICIONES` registrado; alcance limitado a dry-run.
 
 ## Paquete de evidencia go/no-go
 
@@ -40,6 +40,6 @@ Estado: gate documental. **Pilot 01 permanece PARKED.** No autoriza usuarios, im
 
 **GO** requiere todos los gates, cero blocker abierto, rollback viable y aprobaciones registradas. **NO-GO** aplica ante cualquier blocker, evidencia incompleta, drift, secreto DEV, backup/restore no probado, alerta no operativa o falta de soporte.
 
-Un GO de infraestructura no reactiva automáticamente Pilot 01. Reactivarlo y aplicar un lote de personas reales requiere una autorización posterior, explícita y acotada. Hasta entonces: **PILOT 01 PARKED; cero importaciones y cero usuarios reales.**
+El GO condicionado no reactiva Pilot 01 masivo. Aplicar un lote de personas reales requiere una autorización posterior, explícita y acotada. Hasta entonces: **PILOT 01 MASIVO PARKED; cero importaciones y cero usuarios reales.**
 
 Paquete de decisión: `docs/PROD_GO_NO_GO_PACKET.md`. Plantillas pendientes: `docs/PRODUCTION_SUPPORT_MODEL.md` y `docs/PRODUCTION_DATA_APPROVAL.md`.

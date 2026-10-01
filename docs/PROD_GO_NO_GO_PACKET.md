@@ -1,6 +1,6 @@
 # AFUCOA V2 — Paquete de decisión GO/NO-GO (B10)
 
-Estado: **NO DECISION — B10 OPEN**
+Estado: **GO CON CONDICIONES — AUTORIZADO SOLO HASTA DRY-RUN**
 
 Fecha de actualización: 30 de septiembre de 2026 (America/Montevideo)
 
@@ -10,7 +10,7 @@ SHA funcional desplegado en PROD: `e91327e17fa0b813f354f4d00345ef26cd55d38f`
 
 Origin PROD: `https://afucoa-v2-prod.pages.dev/`
 
-Este documento prepara la decisión institucional. No autoriza altas reales, importaciones, Pilot 01, cambios de infraestructura ni un nuevo deploy.
+La decisión institucional fue registrada el 30 de septiembre de 2026. Autoriza preparar una cohorte inicial máxima de cinco socios y ejecutar su dry-run; no autoriza altas reales, `--apply`, Pilot 01 masivo, cambios de infraestructura ni un nuevo deploy.
 
 El borrador prellenado para resolver I01–I03 está en `docs/B10_INSTITUTIONAL_DECISION_DRAFT.md`.
 
@@ -18,7 +18,7 @@ El borrador prellenado para resolver I01–I03 está en `docs/B10_INSTITUTIONAL_
 
 AFUCOA V2 alcanzó **GO técnico**: B01–B09 están `CLOSED`, la validación pública de Fase 4C cerró el defecto de Administración → Propuestas y PROD volvió a cero identidades/datos sintéticos. No quedan blockers técnicos abiertos conocidos.
 
-B10 continúa abierto porque todavía faltan aprobaciones institucionales sobre:
+B10 queda resuelto como **GO CON CONDICIONES** para el alcance de dry-run. Antes de cualquier alta continúan pendientes estas condiciones:
 
 1. soporte y responsables operativos;
 2. privacidad, finalidades, retención, consentimiento y atención de derechos;
@@ -26,7 +26,7 @@ B10 continúa abierto porque todavía faltan aprobaciones institucionales sobre:
 
 Las brechas técnicas E01 y E02 fueron cerradas el 30 de septiembre: la matriz sintética RLS/integración PROD aprobó 112 controles y una carga acotada aprobó 30/30 health, 20/20 hosting y el límite concurrente 3/5. La evidencia no sustituye aprobaciones institucionales ni constituye una promesa de capacidad/SLA.
 
-Hasta registrar esas decisiones, el resultado obligatorio es **NO-GO OPERATIVO / GO TÉCNICO**.
+Hasta cumplirlas y recibir una autorización separada, el resultado es **GO TÉCNICO / DRY-RUN AUTORIZADO / ALTAS NO AUTORIZADAS**.
 
 ## Evidencia técnica precargada
 
@@ -57,15 +57,17 @@ Baseline aprobado:
 
 | ID | Decisión requerida | Evidencia/plantilla | Estado |
 | --- | --- | --- | --- |
-| I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **PENDING APPROVAL** |
-| I02 | Aprobar inventario, finalidad, base institucional/legal, información/consentimiento, retención, derechos y responsables de datos | `docs/PRODUCTION_DATA_APPROVAL.md`, `docs/DATA_RETENTION.md` | **PENDING POLICY/LEGAL/BUSINESS APPROVAL** |
-| I03 | Aprobar alcance nominal, ventana, canal de alta y criterios de suspensión para cualquier cohorte real | `docs/PRODUCTION_CUTOVER_CHECKLIST.md`, `docs/pilot-01.md` | **PENDING — PILOT 01 PARKED** |
+| I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **PARTIAL — Jorge designado temporalmente; completar antes de `--apply`** |
+| I02 | Aprobar inventario, finalidad, base institucional/legal, información/consentimiento, retención, derechos y responsables de datos | `docs/PRODUCTION_DATA_APPROVAL.md`, `docs/DATA_RETENTION.md` | **PARTIAL — dry-run mínimo autorizado; completar antes de `--apply`** |
+| I03 | Aprobar alcance nominal, ventana, canal de alta y criterios de suspensión para cualquier cohorte real | `docs/PRODUCTION_CUTOVER_CHECKLIST.md`, `docs/PROD_COHORT_DRY_RUN.md` | **PARTIAL — máximo 5 y dry-run; Pilot 01 masivo PARKED** |
 | E01 | Matriz general RLS/integración PROD cleanup-safe | `docs/PROD_SYNTHETIC_READINESS.md` | **CLOSED — 112/112, cleanup 0** |
 | E02 | Baseline acotado de carga y controles de abuso | `docs/PROD_SYNTHETIC_READINESS.md`, `docs/PRODUCTION_SLO.md` | **CLOSED — sin SLA inferido** |
 
 No se debe marcar un gate como aprobado con una conversación informal. La evidencia mínima es fecha, responsable, alcance exacto, condiciones y referencia a la decisión conservada fuera del repositorio cuando contenga datos personales o contactos.
 
-La recomendación técnica prellenada es un `GO CON CONDICIONES` limitado a un máximo de 5 socios, con dry-run previo, autorización separada de `--apply`, soporte durante la ventana y aborto fail-closed. Esta recomendación no equivale a aprobación.
+La decisión adoptada es un `GO CON CONDICIONES` limitado a un máximo de 5 socios, con dry-run previo, autorización separada de `--apply`, soporte durante la ventana y aborto fail-closed.
+
+El dry-run autorizado se ejecutó el 30 de septiembre de 2026 y produjo `5 ready`, `0 rejected`, `0 conflicts`, sin cambios. La verificación posterior confirmó Auth y profiles en cero. Evidencia sin PII: `docs/PROD_COHORT_DRY_RUN.md`.
 
 ## Reunión GO/NO-GO
 
@@ -90,18 +92,18 @@ Agenda obligatoria:
 
 | Campo | Valor |
 | --- | --- |
-| Fecha/hora y zona | **PENDING** |
-| SHA autorizado | **PENDING — debe ser SHA completo** |
-| Alcance autorizado | **PENDING — no inferir “todos los socios”** |
-| Ventana | **PENDING** |
-| Decisión | **PENDING: GO / GO CON CONDICIONES / NO-GO** |
-| Condiciones y vencimiento | **PENDING** |
-| Aprobador negocio | **PENDING** |
-| Aprobador operación/soporte | **PENDING** |
-| Aprobador privacidad/datos | **PENDING** |
-| Aprobador técnico | **PENDING** |
-| Incident Commander | **PENDING** |
-| Evidencia externa restringida | **PENDING — referencia sin PII** |
+| Fecha/hora y zona | **2026-09-30 21:06, America/Montevideo** |
+| SHA funcional PROD autorizado | **`e91327e17fa0b813f354f4d00345ef26cd55d38f`** |
+| Alcance autorizado | **cohorte inicial máxima de 5, solo hasta dry-run** |
+| Ventana | **dry-run autorizado; ventana de alta PENDING** |
+| Decisión | **GO CON CONDICIONES** |
+| Condiciones y vencimiento | **sin `--apply`; detener ante rechazo/conflicto; nueva autorización para alta o ampliación** |
+| Aprobador/solicitante | **Jorge, registrado en la tarea del proyecto** |
+| Responsable operación/soporte | **Jorge, temporal** |
+| Aprobador privacidad/datos | **PENDING antes de `--apply`** |
+| Responsable técnico | **Jorge, temporal** |
+| Incident Commander | **Jorge, temporal** |
+| Evidencia externa restringida | **PII fuera de Git; referencias operativas/privacidad PENDING antes de `--apply`** |
 
 ## Reglas de decisión
 
@@ -109,14 +111,14 @@ Agenda obligatoria:
 - `GO CON CONDICIONES`: solo si cada condición tiene dueño, plazo, criterio verificable y no afecta Auth/RLS, privacidad, soporte, backup o rollback.
 - `NO-GO`: cualquier gate pendiente, evidencia contradictoria, drift, incidente abierto material, falta de soporte, falta de aprobación de datos o ausencia de rollback.
 
-Un `GO` de B10 no ejecuta scripts ni crea usuarios. La incorporación de personas reales exige una autorización posterior, explícita y acotada que identifique el procedimiento, entorno, cohorte, fecha y rollback. Pilot 01 permanece `PARKED` hasta entonces.
+Este `GO CON CONDICIONES` autoriza el preflight/dry-run documentado, pero no crea usuarios. La incorporación de personas reales exige una autorización posterior, explícita y acotada que identifique procedimiento, entorno, cohorte, fecha y rollback. Pilot 01 masivo permanece `PARKED`.
 
 ## Próxima secuencia después de una decisión GO
 
 1. congelar y volver a verificar el SHA autorizado;
 2. confirmar responsables y canal de soporte de la ventana;
-3. ejecutar un preflight/dry-run con el conjunto real expresamente autorizado, sin aplicar cambios;
-4. revisar el reporte y detenerse ante cualquier rechazo o conflicto;
+3. [completado] ejecutar un preflight/dry-run con el conjunto real expresamente autorizado, sin aplicar cambios;
+4. [completado] revisar el reporte: `5 ready`, `0 rejected`, `0 conflicts`;
 5. solicitar una autorización separada para el `--apply` exacto;
 6. observar, ejecutar smoke/RLS relevante y conservar el rollback listo;
 7. suspender y revertir/desactivar según el journal ante cualquier criterio de abortar.

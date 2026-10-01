@@ -1,10 +1,10 @@
 # AFUCOA V2 — Borrador de decisión institucional B10
 
-Estado: **READY FOR DECISION — NOT APPROVED**
+Estado: **APPROVED — GO CON CONDICIONES, SOLO HASTA DRY-RUN**
 
 Fecha de preparación: 30 de septiembre de 2026 (America/Montevideo)
 
-Este documento reduce B10 a las decisiones humanas imprescindibles. No constituye una aprobación, no reactiva Pilot 01, no crea usuarios y no autoriza un `--apply`. Los nombres, contactos, cédulas y cualquier evidencia con PII deben conservarse fuera del repositorio.
+La decisión fue registrada el 30 de septiembre de 2026 a las 21:06 (`America/Montevideo`). Autoriza preparar una cohorte productiva inicial máxima de cinco socios y ejecutar únicamente su dry-run. No crea usuarios, no reactiva Pilot 01 masivo y no autoriza un `--apply`. Los contactos, cédulas y cualquier evidencia con PII deben conservarse fuera del repositorio.
 
 ## Hechos técnicos ya cerrados
 
@@ -47,10 +47,9 @@ Modelo inicial recomendado:
 | Evidencia con PII | repositorio/directorio restringido aprobado, nunca GitHub público |
 | Verificación de identidad | cédula + ficha contra fuente institucional y segundo dato controlado; nunca contraseña, TOTP o código Recovery |
 
-Para aprobar I01 falta registrar fuera del repositorio:
+Para la ventana se designó temporalmente a Jorge como responsable de soporte, Incident Commander y responsable técnico. Antes de autorizar un `--apply` todavía debe registrarse fuera del repositorio:
 
-- responsable titular, suplente e Incident Commander;
-- responsable de privacidad/seguridad;
+- suplente y responsable de privacidad/seguridad;
 - direcciones/canales concretos;
 - referencia al directorio restringido;
 - aceptación o modificación del horario y cadencias.
@@ -67,7 +66,7 @@ Tratamiento mínimo propuesto para la cohorte:
 
 Controles ya implementados: RLS, buckets privados, signed URLs, recuperación neutra, payload Push sin PII, trazabilidad y preservación de historial cuando existe actividad.
 
-Para aprobar I02 falta una referencia externa restringida que confirme:
+La decisión permite usar los datos mínimos del archivo autorizado para normalización y consultas de conflicto en el dry-run. Antes de autorizar un `--apply` falta una referencia externa restringida que confirme:
 
 - finalidad y fundamento institucional/legal;
 - texto informativo/consentimiento, versión y momento de presentación;
@@ -90,7 +89,7 @@ Propuesta recomendada:
 - observación individual de login, cambio/recuperación de acceso, Mi Cuenta, carné, biblioteca y un trámite;
 - evaluación al cierre antes de incorporar otra persona.
 
-Falta decidir fecha/hora exactas, fuente del listado autorizado, canal de entrega de acceso y referencia externa al consentimiento. Pilot 01 no se considera reactivado por aprobar este borrador.
+La fuente local autorizada se identifica por su hash SHA-256, no por nombres ni cédulas en Git. La fecha/hora de alta, el canal de entrega de acceso y la referencia externa al consentimiento siguen pendientes. Pilot 01 masivo no se considera reactivado por esta decisión.
 
 ## Criterios de aborto
 
@@ -109,26 +108,26 @@ Detener altas y preservar evidencia ante cualquiera de estos eventos:
 
 | Campo | Estado |
 | --- | --- |
-| Decisión: GO condicionado / NO-GO | **PENDING** |
-| Fecha/hora y zona | **PENDING** |
-| SHA autorizado | **PENDING** |
-| Aprobador negocio | **PENDING** |
-| Aprobador operación/soporte | **PENDING** |
-| Aprobador privacidad/datos | **PENDING** |
-| Aprobador técnico/release | **PENDING** |
-| Incident Commander | **PENDING** |
-| Referencia restringida I01 | **PENDING** |
-| Referencia restringida I02 | **PENDING** |
-| Referencia restringida I03/cohorte | **PENDING** |
-| Condiciones/vencimiento | **PENDING** |
+| Decisión: GO condicionado / NO-GO | **GO CON CONDICIONES — dry-run only** |
+| Fecha/hora y zona | **2026-09-30 21:06, America/Montevideo** |
+| SHA funcional PROD autorizado | **`e91327e17fa0b813f354f4d00345ef26cd55d38f`** |
+| Aprobador/solicitante | **Jorge, registrado en la tarea del proyecto** |
+| Responsable operación/soporte | **Jorge, temporal para esta ventana** |
+| Responsable privacidad/datos | **PENDING antes de `--apply`** |
+| Responsable técnico/release | **Jorge, temporal para esta ventana** |
+| Incident Commander | **Jorge, temporal para esta ventana** |
+| Referencia restringida I01 | **PENDING antes de `--apply`** |
+| Referencia restringida I02 | **PENDING antes de `--apply`** |
+| Referencia restringida I03/cohorte | **hash local en `docs/PROD_COHORT_DRY_RUN.md`; PII fuera de Git** |
+| Condiciones/vencimiento | **máximo 5; solo dry-run; `--apply` y ampliación requieren nueva autorización** |
 
-## Texto sugerido de aprobación
+## Decisión registrada
 
-La autoridad competente puede registrar externamente una decisión equivalente a:
+El texto aprobado en la tarea del proyecto fue:
 
-> AFUCOA aprueba I01, I02 e I03 según las referencias restringidas indicadas y adopta un GO CON CONDICIONES para una cohorte máxima de 5 socios, en la ventana aprobada, sobre el SHA completo autorizado. Esta decisión no autoriza por sí sola un `--apply`; la ejecución requiere revisar el dry-run sin rechazos/conflictos y emitir una autorización separada. Pilot 01 y cualquier ampliación permanecen suspendidos fuera de ese alcance.
+> Apruebo B10 como GO CON CONDICIONES según `B10_INSTITUTIONAL_DECISION_DRAFT.md`. Autorizo preparar una cohorte productiva inicial máxima de 5 socios, únicamente hasta el dry-run. Jorge será temporalmente responsable de soporte, Incident Commander y responsable técnico durante la ventana. Pilot 01 masivo y cualquier `--apply` permanecen sin autorización.
 
-Una confirmación informal o sin las referencias/responsables anteriores no cierra B10.
+Esta aprobación resuelve la decisión B10 para el alcance indicado. No completa las referencias operativas/privacidad exigidas antes de crear cuentas ni sustituye la autorización separada de `--apply`.
 
 ## Secuencia después de la aprobación
 
@@ -139,4 +138,3 @@ Una confirmación informal o sin las referencias/responsables anteriores no cier
 5. entregar el resumen público y detenerse;
 6. solicitar autorización explícita para el `--apply` exacto;
 7. ejecutar, verificar, observar y cerrar o revertir según el journal.
-

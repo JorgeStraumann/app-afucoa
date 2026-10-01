@@ -1,6 +1,6 @@
 # AFUCOA V2 — Modelo mínimo de soporte de producción
 
-Estado: **DRAFT — PENDING INSTITUTIONAL APPROVAL**
+Estado: **PARTIAL — RESPONSABLES TEMPORALES DESIGNADOS; COMPLETAR ANTES DE `--apply`**
 
 Este documento define qué debe decidir AFUCOA antes de habilitar personas reales. No publica contactos, no crea canales y no convierte objetivos provisionales en SLA.
 
@@ -11,9 +11,9 @@ Este documento define qué debe decidir AFUCOA antes de habilitar personas reale
 | Canal primario para socios | **PENDING** |
 | Canal alternativo ante caída total | **PENDING** |
 | Horario y zona | **PENDING** |
-| Responsable primario | **PENDING** |
+| Responsable primario | **Jorge, temporal para la cohorte inicial** |
 | Responsable suplente | **PENDING** |
-| Incident Commander | **PENDING** |
+| Incident Commander | **Jorge, temporal para la cohorte inicial** |
 | Responsable privacidad/seguridad | **PENDING** |
 | Tiempo objetivo de primera respuesta por severidad | **PENDING — no usar los valores provisionales como SLA** |
 | Lugar restringido para evidencia con PII | **PENDING** |
@@ -55,4 +55,4 @@ Detener nuevas altas o la cohorte en curso ante cualquiera de estos eventos:
 - [ ] criterios de suspensión aceptados;
 - [ ] fecha y aprobadores registrados fuera del repositorio.
 
-Mientras exista un campo `PENDING`, I01 y B10 permanecen abiertos.
+Los campos pendientes no impiden el dry-run autorizado, que no crea cuentas. Sí impiden cualquier `--apply` o ventana de alta hasta completarse fuera del repositorio.

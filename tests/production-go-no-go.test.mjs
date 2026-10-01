@@ -4,19 +4,19 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('B10 permanece abierto y el paquete no autoriza personas reales ni Pilot 01', async () => {
+test('B10 queda condicionado al dry-run y no autoriza apply ni Pilot 01 masivo', async () => {
   const [packet, readiness] = await Promise.all([
     read('docs/PROD_GO_NO_GO_PACKET.md'),
     read('docs/PRODUCTION_READINESS.md'),
   ]);
 
-  assert.match(packet, /NO DECISION — B10 OPEN/);
-  assert.match(packet, /NO-GO OPERATIVO \/ GO TÉCNICO/);
-  assert.match(packet, /Pilot 01 permanece `PARKED`/);
+  assert.match(packet, /GO CON CONDICIONES — AUTORIZADO SOLO HASTA DRY-RUN/);
+  assert.match(packet, /GO TÉCNICO \/ DRY-RUN AUTORIZADO \/ ALTAS NO AUTORIZADAS/);
+  assert.match(packet, /Pilot 01 masivo permanece `PARKED`/);
   assert.match(packet, /autorización posterior, explícita y acotada/);
   assert.match(packet, /E01[\s\S]*CLOSED — 112\/112, cleanup 0/);
   assert.match(packet, /E02[\s\S]*CLOSED — sin SLA inferido/);
-  assert.match(readiness, /B10 — \*\*OPEN\*\*/);
+  assert.match(readiness, /B10 — \*\*GO CON CONDICIONES\*\*/);
 });
 
 test('checklist separa gates técnicos cerrados de aprobaciones humanas pendientes', async () => {
@@ -24,22 +24,22 @@ test('checklist separa gates técnicos cerrados de aprobaciones humanas pendient
 
   assert.match(checklist, /\[x\] \*\*B01 cerrado:/);
   assert.match(checklist, /\[x\] \*\*Mecanismo de piloto:/);
-  assert.match(checklist, /\[ \] \*\*Soporte:/);
-  assert.match(checklist, /\[ \] \*\*Datos reales:/);
+  assert.match(checklist, /\[ \] \*\*Soporte para alta:/);
+  assert.match(checklist, /\[ \] \*\*Datos reales para alta:/);
   assert.match(checklist, /\[ \] \*\*Activación de cohorte real:/);
-  assert.match(checklist, /\[ \] \*\*Decisión B10:/);
+  assert.match(checklist, /\[x\] \*\*Decisión B10:/);
 });
 
-test('plantillas de soporte y datos siguen fail-closed mientras haya PENDING', async () => {
+test('plantillas de soporte y datos permiten dry-run pero bloquean apply mientras haya PENDING', async () => {
   const [support, data] = await Promise.all([
     read('docs/PRODUCTION_SUPPORT_MODEL.md'),
     read('docs/PRODUCTION_DATA_APPROVAL.md'),
   ]);
 
-  assert.match(support, /PENDING INSTITUTIONAL APPROVAL/);
-  assert.match(support, /Mientras exista un campo `PENDING`, I01 y B10 permanecen abiertos/);
-  assert.match(data, /PENDING POLICY\/LEGAL\/BUSINESS APPROVAL/);
-  assert.match(data, /Mientras exista un campo `PENDING`, I02 y B10 permanecen abiertos/);
+  assert.match(support, /PARTIAL — RESPONSABLES TEMPORALES DESIGNADOS/);
+  assert.match(support, /impiden cualquier `--apply`/);
+  assert.match(data, /PARTIAL — USO MÍNIMO AUTORIZADO PARA DRY-RUN/);
+  assert.match(data, /I02 impide cualquier `--apply`/);
 });
 
 test('paquete documental no contiene material privilegiado literal', async () => {

@@ -1,6 +1,6 @@
 # AFUCOA V2 — Gate de datos, privacidad y consentimiento
 
-Estado: **DRAFT — PENDING POLICY/LEGAL/BUSINESS APPROVAL**
+Estado: **PARTIAL — USO MÍNIMO AUTORIZADO PARA DRY-RUN; COMPLETAR ANTES DE `--apply`**
 
 Este documento organiza las decisiones necesarias antes de incorporar personas reales. No constituye asesoramiento legal y no habilita purgas, importaciones ni tratamiento real.
 
@@ -41,4 +41,4 @@ Estas garantías técnicas no sustituyen la aprobación institucional del tratam
 - procedimiento de derechos e incidentes;
 - referencia restringida a la aprobación, sin copiar PII al repositorio.
 
-Mientras exista un campo `PENDING`, I02 y B10 permanecen abiertos.
+La decisión B10 permite normalizar el archivo autorizado y consultar conflictos contra PROD sin crear registros. Mientras exista un campo `PENDING`, I02 impide cualquier `--apply`, alta o tratamiento operativo posterior.

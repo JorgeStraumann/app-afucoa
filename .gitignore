@@ -5,4 +5,5 @@ dist/
 .env.*.local
 *.log
 pilot-output/
+prod-cohort-output/
 supabase/.temp/
