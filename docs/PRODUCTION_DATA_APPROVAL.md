@@ -2,7 +2,7 @@
 
 Estado: **LOTE INICIAL EXACTO DE 5 APLICADO BAJO AUTORIZACIÓN B10; POLÍTICA GENERAL Y AMPLIACIÓN PENDIENTES**
 
-Este documento organiza las decisiones institucionales generales. No constituye asesoramiento legal ni reemplaza aprobaciones del responsable competente. Una autorización B10 posterior permitió únicamente el tratamiento mínimo de las cinco identidades del batch `prod-cohort-3a15c4d1272f`, ya aplicado; no autoriza otros lotes, ampliación, purgas ni automatizaciones. Los campos `PENDING` de esta matriz se refieren al marco general pendiente.
+Este documento organiza las decisiones institucionales generales. No constituye asesoramiento legal ni reemplaza aprobaciones del responsable competente. Una autorización B10 posterior permitió únicamente el tratamiento mínimo de las cinco identidades del batch `prod-cohort-3a15c4d1272f`, ya aplicado; no autoriza otros lotes, ampliación, purgas ni automatizaciones. El inventario técnico de las 28 tablas/buckets está en `docs/PRODUCTION_DATA_INVENTORY.md`; los campos `PENDING` de esta matriz se refieren al marco general pendiente.
 
 ## Decisiones requeridas
 

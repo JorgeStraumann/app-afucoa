@@ -19,7 +19,7 @@ Este documento reúne lo que aún debe decidirse para convertir la operación li
 
 | ID | Decisión institucional | Evidencia mínima para cerrar | Responsable por función | Estado |
 | --- | --- | --- | --- | --- |
-| G01 | Inventario de datos, minimización y finalidad por módulo; campos excluidos | Matriz versión/fecha, finalidad y aprobación de negocio/datos | Data Owner + Product Owner | PENDIENTE |
+| G01 | Inventario de datos, minimización y finalidad por módulo; campos excluidos | Inventario técnico preparado en `docs/PRODUCTION_DATA_INVENTORY.md`; finalidad/campos aprobados y referencia de decisión aún requeridos | Data Owner + Product Owner | PARCIAL — INVENTARIO TÉCNICO LISTO |
 | G02 | Base institucional/legal, aviso al socio y consentimiento cuando corresponda | Texto aprobado y referencia restringida a aprobación competente | Dirección/Negocio + Privacidad/Legal | PENDIENTE |
 | G03 | Verificación de email de contacto y tratamiento de cuentas sin email válido | Procedimiento aprobado que no permita redirigir códigos ni sustituir destinos | Identity Owner + Data Owner | PENDIENTE |
 | G04 | Retención, reloj por categoría, excepciones y legal hold | Tabla de plazos aprobados y dueño; criterios DB/Storage/logs/backups | Data Owner + Privacidad/Legal + Security | PENDIENTE |

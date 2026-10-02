@@ -32,9 +32,11 @@ test('checklist registra gates técnicos y aprobación humana acotada al batch',
 });
 
 test('plantillas de soporte y datos autorizan el lote exacto pero bloquean ampliación', async () => {
-  const [support, data] = await Promise.all([
+  const [support, data, inventory, closeout] = await Promise.all([
     read('docs/PRODUCTION_SUPPORT_MODEL.md'),
     read('docs/PRODUCTION_DATA_APPROVAL.md'),
+    read('docs/PRODUCTION_DATA_INVENTORY.md'),
+    read('docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md'),
   ]);
 
   assert.match(support, /CONDITIONED — RESPONSABLES TEMPORALES ACTIVOS/);
@@ -42,6 +44,12 @@ test('plantillas de soporte y datos autorizan el lote exacto pero bloquean ampli
   assert.match(data, /LOTE INICIAL EXACTO DE 5 APLICADO BAJO AUTORIZACIÓN B10/);
   assert.match(data, /no autoriza otros lotes, ampliación, purgas ni automatizaciones/);
   assert.match(data, /bloqueando cualquier ampliación/);
+  assert.match(inventory, /28 tablas `public`/);
+  assert.match(inventory, /finalidad\/base legal pendientes de aprobación/i);
+  assert.match(inventory, /No consulta filas/);
+  assert.match(inventory, /no autoriza otro lote/i);
+  assert.match(closeout, /G01[\s\S]*PARCIAL — INVENTARIO TÉCNICO LISTO/);
+  assert.match(support, /únicamente para la ventana\/lote exacto de cinco socios ya aplicado/);
 });
 
 test('paquete documental no contiene material privilegiado literal', async () => {
@@ -54,6 +62,7 @@ test('paquete documental no contiene material privilegiado literal', async () =>
     read('docs/GUIA_PRIMER_ACCESO_SOCIOS.md'),
     read('docs/PROD_COHORT_ACTIVATION_TRACKER.md'),
     read('docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md'),
+    read('docs/PRODUCTION_DATA_INVENTORY.md'),
   ]);
   const combined = docs.join('\n');
 

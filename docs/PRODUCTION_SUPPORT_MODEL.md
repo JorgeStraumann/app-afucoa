@@ -21,6 +21,10 @@ Este documento define qué debe decidir AFUCOA para convertir el soporte tempora
 
 Los nombres, teléfonos y emails operativos deben conservarse en un directorio restringido fuera del repositorio. Aquí solo se registra la existencia y fecha de aprobación.
 
+## Alcance operativo ya autorizado
+
+Jorge es responsable temporal de soporte, responsable técnico e Incident Commander únicamente para la ventana/lote exacto de cinco socios ya aplicado. El seguimiento individual adicional quedó cerrado por decisión del responsable y no se reabre aquí. Esto no define un canal de contacto de socios, horario, suplente ni SLA; esos campos continúan pendientes. No contactar titulares, ampliar la cohorte ni crear otro lote a partir de este modelo.
+
 ## Flujo mínimo
 
 1. Registrar fecha, síntoma, módulo, entorno y medio de contacto; minimizar PII.

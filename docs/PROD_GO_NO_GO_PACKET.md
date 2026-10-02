@@ -55,7 +55,7 @@ Baseline aprobado:
 
 ## Gates institucionales pendientes
 
-La hoja consolidada para resolver los puntos generales antes de una ampliación es `docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md`. Mantiene separadas las decisiones pendientes de la autorización ya ejecutada para el único lote de cinco.
+La hoja consolidada para resolver los puntos generales antes de una ampliación es `docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md`. El inventario técnico está preparado en `docs/PRODUCTION_DATA_INVENTORY.md`, pero finalidad, retención y aprobaciones institucionales siguen pendientes. Estos documentos mantienen separadas las decisiones pendientes de la autorización ya ejecutada para el único lote de cinco.
 
 | ID | Decisión requerida | Evidencia/plantilla | Estado |
 | --- | --- | --- | --- |
