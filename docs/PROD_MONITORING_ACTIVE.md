@@ -2,7 +2,7 @@
 
 Fecha de activación: 8 de septiembre de 2026 (America/Montevideo)
 
-Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. B04 está **CLOSED** y B10 quedó como **GO CON CONDICIONES** limitado al lote inicial exacto de cinco, ya aplicado. Esto no equivale a una habilitación general ni autoriza ampliar la cohorte o ejecutar Pilot 01 masivo; la activación por los titulares continúa bajo seguimiento en `docs/PROD_COHORT_DRY_RUN.md`.
+Estado: **CLOSED — B09**. La cobertura automática combina cinco monitores UptimeRobot FREE cada 5 minutos con un segundo probe externo en GitHub-hosted runners para los contratos avanzados cada 15 minutos. B04 está **CLOSED** y B10 quedó como **GO CON CONDICIONES** limitado al lote inicial exacto de cinco, ya aplicado. El responsable cerró el seguimiento de confirmaciones directas adicionales; esto no altera la evidencia agregada de acceso/recuperación ni autoriza ampliar la cohorte o ejecutar Pilot 01 masivo.
 
 ## Arquitectura operativa
 
@@ -84,7 +84,7 @@ Game day GitHub:
 - el Issue no incluyó PII, response bodies, credenciales ni endpoints privados;
 - staging run `34295461091` del commit de Fase 3J: SUCCESS en 55 segundos.
 
-Los umbrales absolutos de caída quedan activos; thresholds estadísticos y de tráfico continúan provisionales hasta B10.
+Los umbrales absolutos de caída quedan activos. Thresholds estadísticos y de tráfico continúan provisionales hasta reunir una muestra representativa; la cohorte inicial no basta para inferir SLA ni ajustar umbrales.
 
 Cleanup final UptimeRobot: 5 monitores permanentes, 5 `UP`, 0 `DOWN`, 0 pausados, 100% de uptime observado y 0 incidentes permanentes. No quedó monitor game day ni Main API key temporal.
 
@@ -110,7 +110,7 @@ No se copian logs con PII al repositorio.
 - `test:prod-artifact` 16/16 y build sintético PASS;
 - `test:edge-config` 14/14; recovery 18/18; push 47/47; session 11/11; navigation 5/5; MFA 14/14;
 - primera ejecución automática de monitoreo: run `34328893538`, evento `schedule`, rama `afucoa-v2`, `11/11 PASS`, 0 Issues abiertos (evidencia histórica);
-- última auditoría observada al cierre de Fase 4A: run `35668648021`, SUCCESS sobre el commit candidato `1573a3c386df93902095ec74f384fcd187da541a`; la matriz pública vigente permanece `13/13 PASS`, con 0 Issues `production-monitoring` abiertos y PROD sin cambios;
+- auditoría pública más reciente comprobada el 2026-10-01: run `36922550986`, evento `schedule`, rama `afucoa-v2`, SHA `6e205b01473f87c5496263f03d602c29a0a16679`, `SUCCESS`; 0 Issues `production-monitoring` abiertos. El runner falla si cualquiera de los 13 contratos no pasa; PROD no fue modificado;
 - `test:staging` PASS y workflow staging run `34295461091` SUCCESS para Fase 3J; el run final de Fase 3K se registra al publicar este cierre documental.
 
 No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió ejecutar un deploy Cloudflare PROD.
@@ -118,7 +118,7 @@ No cambió ningún archivo de `src/` ni `public/`, por lo que no correspondió e
 ## Riesgos residuales
 
 - Recovery/email PROD está `ACTIVE`. Los probes periódicos request/confirm son `OPTIONS` read-only y no envían email ni crean/consumen códigos o rate limits.
-- Señales basadas en tráfico real permanecen `BASELINE_PENDING_REAL_TRAFFIC` hasta B10.
+- Señales basadas en tráfico real siguen provisionales hasta reunir volumen representativo; no se infiere SLA de esta cohorte pequeña.
 - UptimeRobot FREE aporta una única región.
 - GitHub Actions no ofrece SLA del scheduler y los contratos Edge/Storage se comprueban nominalmente cada 15 minutos, no cada 5 minutos.
 - Uptime y status de entrega no garantizan experiencia del navegador, Web Push exactly-once ni ausencia total de incidentes.
