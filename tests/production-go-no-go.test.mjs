@@ -53,6 +53,7 @@ test('paquete documental no contiene material privilegiado literal', async () =>
     read('docs/PROD_SYNTHETIC_READINESS.md'),
     read('docs/GUIA_PRIMER_ACCESO_SOCIOS.md'),
     read('docs/PROD_COHORT_ACTIVATION_TRACKER.md'),
+    read('docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md'),
   ]);
   const combined = docs.join('\n');
 
@@ -61,8 +62,10 @@ test('paquete documental no contiene material privilegiado literal', async () =>
   assert.doesNotMatch(combined, /eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/);
   assert.doesNotMatch(combined, /\b\d{8}\b/);
   assert.doesNotMatch(combined, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  assert.match(docs.at(-2), /https:\/\/afucoa-v2-prod\.pages\.dev/);
-  assert.match(docs.at(-1), /No completar por persona/);
+  assert.match(combined, /NO AUTORIZADA/);
+  assert.match(combined, /No está autorizada otra alta, ampliación ni Pilot 01 masivo/);
+  assert.match(docs[5], /https:\/\/afucoa-v2-prod\.pages\.dev/);
+  assert.match(docs[6], /No completar por persona/);
 });
 
 test('readiness vigente distingue el lote aplicado del cierre operativo de seguimiento individual', async () => {

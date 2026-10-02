@@ -55,6 +55,8 @@ Baseline aprobado:
 
 ## Gates institucionales pendientes
 
+La hoja consolidada para resolver los puntos generales antes de una ampliación es `docs/PRODUCTION_GOVERNANCE_CLOSEOUT.md`. Mantiene separadas las decisiones pendientes de la autorización ya ejecutada para el único lote de cinco.
+
 | ID | Decisión requerida | Evidencia/plantilla | Estado |
 | --- | --- | --- | --- |
 | I01 | Aprobar canal, horario, responsables, severidades, escalamiento y verificación de identidad para soporte | `docs/PRODUCTION_SUPPORT_MODEL.md` | **CONDITIONED — Jorge designado temporalmente para este lote** |
