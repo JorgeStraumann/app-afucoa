@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de la app · AFUCOA</title>
+<meta name="theme-color" content="#1a237e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo:#1a237e; --indigo2:#283593; --deep:#0e1350;
+    --azul:#3d5afe; --oro:#c99a24; --oro-claro:#e8c466;
+    --tinta:#1c1e2a; --suave:#5a6076; --linea:#e4e7f3;
+    --fondo:#f5f6fc; --blanco:#fff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Outfit',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+    line-height:1.55;font-size:17px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;background:var(--blanco);box-shadow:0 0 60px rgba(26,35,126,.08)}
+  img{max-width:100%;display:block}
+
+  /* HERO */
+  .hero{background:
+      radial-gradient(120% 70% at 85% 0%, #26307f 0%, rgba(38,48,127,0) 55%),
+      linear-gradient(170deg,#1a237e,#141a63 70%,#0f1352);
+    color:#fff;padding:40px 26px 36px;position:relative;overflow:hidden;text-align:center}
+  .hero .seal{width:84px;height:84px;border-radius:50%;background:#fff;display:grid;place-items:center;
+    margin:0 auto 18px;box-shadow:0 8px 26px rgba(0,0,0,.3)}
+  .hero .seal img{width:74px;height:74px}
+  .hero .kick{font-size:12px;letter-spacing:3px;color:#b9c0ef;font-weight:700;text-transform:uppercase}
+  .hero h1{font-family:'Gloock';font-weight:400;font-size:40px;line-height:1.05;margin:10px 0 6px;letter-spacing:.3px}
+  .hero p{color:#d7dcff;font-size:17px;max-width:420px;margin:0 auto}
+  .hero .chip{display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(232,196,102,.5);color:var(--oro-claro);padding:9px 18px;border-radius:40px;
+    font-weight:700;font-size:14px;letter-spacing:.5px}
+
+  /* SECCIÓN */
+  section{padding:34px 24px;border-bottom:1px solid var(--linea)}
+  .snum{display:inline-flex;align-items:center;gap:10px;margin-bottom:6px}
+  .snum b{width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-size:15px;font-weight:700;flex:none}
+  .snum span{font-size:12.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--azul);font-weight:700}
+  h2{font-family:'Gloock';font-weight:400;color:var(--indigo);font-size:28px;line-height:1.12;margin:4px 0 14px}
+  .lead{font-size:17.5px;color:var(--suave)}
+  .lead.b{color:var(--tinta)}
+
+  /* PASOS */
+  .pasos{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+  .paso{display:flex;gap:14px;align-items:flex-start;background:var(--fondo);border:1px solid var(--linea);
+    border-radius:16px;padding:16px 16px}
+  .paso .n{width:32px;height:32px;border-radius:9px;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:17px;flex:none}
+  .paso .tx b{display:block;font-weight:700;font-size:17px;margin-bottom:2px}
+  .paso .tx p{font-size:15.5px;color:var(--suave);margin:0}
+  .paso .tx .pill{display:inline-block;background:#eef1ff;color:var(--azul);font-weight:700;font-size:13px;
+    padding:2px 9px;border-radius:6px;margin:0 2px}
+
+  /* DOS COLUMNAS (android/iphone) */
+  .dos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .so{background:var(--fondo);border:1px solid var(--linea);border-radius:16px;padding:16px;overflow:hidden}
+  .so h3{display:flex;align-items:center;gap:9px;font-size:16px;color:var(--indigo);margin-bottom:12px;font-weight:700}
+  .so h3 svg{width:22px;height:22px}
+  .so ol{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:11px}
+  .so ol li{counter-increment:s;position:relative;padding-left:32px;font-size:14.5px;line-height:1.45}
+  .so ol li::before{content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;
+    background:var(--indigo);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+  .so b{color:var(--indigo)}
+  @media(max-width:520px){.dos{grid-template-columns:1fr}}
+
+  /* AVISO */
+  .nota{display:flex;gap:12px;align-items:flex-start;background:#fff7e6;border:1px solid #f0dca2;
+    border-radius:14px;padding:14px 16px;margin-top:16px}
+  .nota svg{width:22px;height:22px;color:var(--oro);flex:none;margin-top:1px}
+  .nota p{font-size:15px;color:#6b5717;margin:0}
+  .nota b{color:#5a4710}
+
+  /* GRID SECCIONES DE LA APP */
+  .feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .feat{background:var(--fondo);border:1px solid var(--linea);border-radius:16px;padding:16px 15px}
+  .feat .ic{width:40px;height:40px;border-radius:11px;background:var(--indigo);display:grid;place-items:center;margin-bottom:11px}
+  .feat .ic svg{width:23px;height:23px;color:#fff}
+  .feat b{display:block;font-size:16px;color:var(--indigo);margin-bottom:3px}
+  .feat p{font-size:14px;color:var(--suave);margin:0;line-height:1.4}
+
+  /* FAQ */
+  .faq{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+  .q{background:var(--fondo);border:1px solid var(--linea);border-radius:14px;padding:15px 16px}
+  .q b{display:block;font-size:16px;color:var(--indigo);margin-bottom:5px}
+  .q p{font-size:15px;color:var(--suave);margin:0}
+
+  /* AYUDA */
+  .ayuda{background:linear-gradient(170deg,#1a237e,#121860);color:#fff;border-radius:20px;padding:24px;margin-top:8px;text-align:center}
+  .ayuda h2{color:#fff;margin-bottom:6px}
+  .ayuda p{color:#d7dcff;font-size:16px;margin-bottom:16px}
+  .btns{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:0 auto}
+  .btns a{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:var(--indigo);
+    text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:40px}
+  .btns a svg{width:19px;height:19px}
+  .btns a.alt{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+
+  footer{text-align:center;padding:28px 24px 40px;color:var(--suave);font-size:13px}
+  footer .tl{font-family:'Gloock';color:var(--indigo);font-size:17px;margin-bottom:6px}
+
+  /* mini phone */
+  .phone{width:200px;margin:18px auto 0;border-radius:30px;background:#0a0d33;padding:9px;box-shadow:0 18px 40px rgba(26,35,126,.25)}
+  .phone .sc{border-radius:23px;overflow:hidden;background:#fff}
+  .ph-h{background:#1a237e;padding:12px 12px;display:flex;align-items:center;gap:7px}
+  .ph-h .s{width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center}
+  .ph-h .s img{width:23px;height:23px}
+  .ph-h b{color:#fff;font-size:12px;letter-spacing:1px}
+  .ph-b{padding:11px}
+  .ph-b .t{font-weight:700;color:#1a237e;font-size:13px;margin-bottom:8px}
+  .ph-card{border:1px solid #e2e5f3;border-radius:10px;overflow:hidden;margin-bottom:8px}
+  .ph-card .i{height:48px;background:linear-gradient(120deg,#1a237e,#3d5afe)}
+  .ph-card .c{padding:7px 9px}
+  .ph-card .c span{font-size:7px;font-weight:700;letter-spacing:1px;color:#3d5afe;background:#eef1ff;padding:2px 5px;border-radius:4px}
+  .ph-card .c h5{font-size:10px;color:#1b1b1f;margin:5px 0 0}
+
+  @media print{
+    body{background:#fff;font-size:12pt}
+    .wrap{max-width:100%;box-shadow:none}
+    section{padding:20px 24px}
+    .paso,.feat,.so,.q,.nota,.ayuda,.phone{break-inside:avoid;page-break-inside:avoid}
+    .hero{break-inside:avoid}
+    a{color:inherit;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="seal"><img src="logo-header.png" alt="AFUCOA"></div>
+    <div class="kick">Asociación de Funcionarios · Comisión Administrativa</div>
+    <h1>Manual de la app</h1>
+    <p>Una guía fácil, paso a paso, para usar la app de AFUCOA en tu celular.</p>
+    <div class="chip">⏱ En 5 minutos la tenés funcionando</div>
+  </div>
+
+  <!-- 1 -->
+  <section>
+    <div class="snum"><b>1</b><span>Para empezar</span></div>
+    <h2>¿Qué es la app de AFUCOA?</h2>
+    <p class="lead">Es la app oficial de la Asociación, <b>solo para socios</b>. Desde tu celular podés ver las novedades, consultar y pedir convenios, llevar tu carnet de socio con código QR, leer documentos y enviar sugerencias o propuestas. Todo lo que antes era papel y mostrador, ahora en tu mano.</p>
+    <div class="phone">
+      <div class="sc">
+        <div class="ph-h"><div class="s"><img src="logo-header.png"></div><b>AFUCOA</b></div>
+        <div class="ph-b">
+          <div class="t">Novedades</div>
+          <div class="ph-card"><div class="i"></div><div class="c"><span>COMUNICADO</span><h5>Ya está disponible la app</h5></div></div>
+          <div class="ph-card"><div class="i"></div><div class="c"><span>CONVENIOS</span><h5>Nuevos beneficios</h5></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <div class="snum"><b>2</b><span>Instalación</span></div>
+    <h2>Instalá la app en tu celular</h2>
+    <p class="lead">No se descarga de ninguna tienda. Se instala desde el navegador, en un toque. Entrá a <b>afucoa.netlify.app</b> y seguí los pasos según tu teléfono:</p>
+    <div class="dos">
+      <div class="so">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9a6 6 0 0 1 12 0v8H6z"/><path d="M9 21h6M8 4l-1-2M16 4l1-2"/></svg>Android</h3>
+        <ol>
+          <li>Abrí <b>afucoa.netlify.app</b> en Chrome.</li>
+          <li>Tocá el menú <b>⋮</b> arriba a la derecha.</li>
+          <li>Elegí <b>“Agregar a pantalla de inicio”</b> o “Instalar app”.</li>
+          <li>Confirmá. Queda el ícono en tu teléfono.</li>
+        </ol>
+      </div>
+      <div class="so">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>iPhone</h3>
+        <ol>
+          <li>Abrí <b>afucoa.netlify.app</b> en Safari.</li>
+          <li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha).</li>
+          <li>Elegí <b>“Agregar a inicio”</b>.</li>
+          <li>Tocá <b>Agregar</b>. Listo, queda el ícono.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿Preferís no instalarla?</b> También podés usarla entrando siempre a afucoa.netlify.app desde el navegador. Igual funciona.</p></div>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <div class="snum"><b>3</b><span>Tu primera vez</span></div>
+    <h2>Creá tu clave</h2>
+    <p class="lead">La primera vez tenés que crear una clave. Es rápido y se hace una sola vez.</p>
+    <div class="pasos">
+      <div class="paso"><div class="n">1</div><div class="tx"><b>Tocá “Acceder”</b><p>Al abrir la app, tocá el botón <span class="pill">Acceder</span> en la pantalla de bienvenida.</p></div></div>
+      <div class="paso"><div class="n">2</div><div class="tx"><b>Escribí tu cédula</b><p>Sin puntos ni guiones. Si figurás en el padrón, la app te deja seguir.</p></div></div>
+      <div class="paso"><div class="n">3</div><div class="tx"><b>Creá una clave</b><p>Elegí una clave de al menos 4 caracteres y repetila. Usá una que recuerdes.</p></div></div>
+      <div class="paso"><div class="n">4</div><div class="tx"><b>Cargá tu correo</b><p>Importante: con ese correo vas a poder recuperar la clave si algún día la olvidás.</p></div></div>
+      <div class="paso"><div class="n">5</div><div class="tx"><b>¡Listo!</b><p>Tocá <span class="pill">Crear clave e ingresar</span> y ya estás adentro.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <div class="snum"><b>4</b><span>El día a día</span></div>
+    <h2>Entrar es muy simple</h2>
+    <div class="pasos">
+      <div class="paso"><div class="n">1</div><div class="tx"><b>Abrí la app y tocá “Acceder”</b><p>Escribí tu cédula.</p></div></div>
+      <div class="paso"><div class="n">2</div><div class="tx"><b>Poné tu clave y tocá “Ingresar”</b><p>Entrás directo a las novedades.</p></div></div>
+    </div>
+    <div class="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p>Por seguridad, cada tanto la app te vuelve a pedir la clave. Es normal y protege tu cuenta.</p></div>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <div class="snum"><b>5</b><span>Si te olvidás</span></div>
+    <h2>¿Olvidaste tu clave?</h2>
+    <p class="lead">Si cargaste tu correo, la recuperás solo:</p>
+    <div class="pasos">
+      <div class="paso"><div class="n">1</div><div class="tx"><b>Tocá “Recuperar mi clave”</b><p>Está en la pantalla de ingreso.</p></div></div>
+      <div class="paso"><div class="n">2</div><div class="tx"><b>Revisá tu correo</b><p>Te llega un código de 6 dígitos (mirá también la carpeta de correo no deseado).</p></div></div>
+      <div class="paso"><div class="n">3</div><div class="tx"><b>Creá una clave nueva</b><p>Escribí el código en la app y elegí tu clave nueva.</p></div></div>
+    </div>
+    <div class="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿No cargaste correo?</b> Escribinos al WhatsApp <b>098 469 285</b> o a <b>afucoa@gmail.com</b> y te ayudamos a restablecerla.</p></div>
+  </section>
+
+  <!-- 6 -->
+  <section>
+    <div class="snum"><b>6</b><span>Recorrido</span></div>
+    <h2>Qué hay adentro</h2>
+    <p class="lead">Estas son las secciones de la app:</p>
+    <div class="feats">
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l18-5v12L3 14z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg></div><b>Novedades</b><p>Comunicados y anuncios de la Asociación.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg></div><b>Convenios</b><p>Beneficios y descuentos. Pedí el que te interese.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M13 9h5M13 13h5"/></svg></div><b>Mi carnet</b><p>Tu credencial digital con QR verificable.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></div><b>Documentos</b><p>Reglamentos y leyes de interés.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg></div><b>Enviar</b><p>Sugerencias, reclamos y propuestas a la comisión.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9V5l7 7-7 7v-4H3V9z"/></svg></div><b>Propuestas</b><p>Proponé temas y apoyá los de otros socios.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Mi cuenta</b><p>Cambiar clave y correo, ver tus datos.</p></div>
+      <div class="feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><b>Avisos</b><p>Notificaciones en tu celular, aunque la app esté cerrada.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section>
+    <div class="snum"><b>7</b><span>Dudas comunes</span></div>
+    <h2>Preguntas frecuentes</h2>
+    <div class="faq">
+      <div class="q"><b>¿La app tiene costo?</b><p>No. Es gratuita y exclusiva para socios de AFUCOA.</p></div>
+      <div class="q"><b>¿Se actualiza sola?</b><p>Sí. Cada vez que la abrís con internet toma la última versión. No hay que reinstalar nada.</p></div>
+      <div class="q"><b>¿Para qué sirve el carnet con QR?</b><p>Es tu credencial de socio. En un comercio con convenio escanean el QR y confirman al instante que sos socio activo.</p></div>
+      <div class="q"><b>¿Mis datos están seguros?</b><p>Sí. Se usan solo para gestionar tu condición de socio y no se comparten con terceros, salvo lo necesario para un convenio que vos pidas.</p></div>
+      <div class="q"><b>Todavía no soy socio, ¿puedo afiliarme?</b><p>Sí. En la pantalla de ingreso tocá “Quiero afiliarme” y completá el formulario.</p></div>
+    </div>
+  </section>
+
+  <!-- AYUDA -->
+  <section style="border-bottom:none">
+    <div class="ayuda">
+      <h2>¿Necesitás una mano?</h2>
+      <p>Si algo no te funciona o tenés dudas, escribinos. Te ayudamos.</p>
+      <div class="btns">
+        <a href="https://wa.me/59898469285"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2zm4.4 12c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.3 11.3 0 0 0 4.3 3.8c1 .4 1.7.5 2.3.4s1.4-.6 1.6-1.1a2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z"/></svg>WhatsApp 098 469 285</a>
+        <a class="alt" href="mailto:afucoa@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M4 7l8 5 8-5"/></svg>afucoa@gmail.com</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="tl">La Asociación, más cerca que nunca.</div>
+    Asociación de Funcionarios de la Comisión Administrativa del Poder Legislativo · AFUCOA
+  </footer>
+
+</div>
+</body>
+</html>
