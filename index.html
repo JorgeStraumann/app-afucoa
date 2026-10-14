@@ -695,6 +695,49 @@
   .manual-pasos{margin:10px 0 0;padding-left:20px}
   .manual-pasos li{font-size:14.5px;color:var(--tinta);line-height:1.55;margin-bottom:7px}
 
+  /* Manual nuevo (contenido completo dentro de la app) */
+  .man-sec{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:18px 16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(26,35,126,.05)}
+  .man-snum{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .man-snum b{width:28px;height:28px;border-radius:50%;background:var(--verde);color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+  .man-snum span{font-size:11.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--dorado);font-weight:700}
+  .man-h2{font-size:21px;color:var(--verde);line-height:1.15;margin:3px 0 10px;font-weight:700}
+  .man-lead{font-size:15.5px;color:var(--tinta);line-height:1.6;margin:0}
+  .man-lead b{color:var(--verde)}
+  .man-dos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .man-so{background:var(--arena-2);border:1px solid var(--linea);border-radius:13px;padding:14px}
+  .man-so h4{font-size:15px;color:var(--verde);margin-bottom:11px;font-weight:700}
+  .man-so ol{list-style:none;counter-reset:s;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .man-so li{counter-increment:s;position:relative;padding-left:28px;font-size:13.5px;line-height:1.4;color:var(--tinta)}
+  .man-so li::before{content:counter(s);position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:var(--verde);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+  .man-so b{color:var(--verde)}
+  @media(max-width:430px){.man-dos{grid-template-columns:1fr}}
+  .man-pasos{margin-top:12px;display:flex;flex-direction:column;gap:11px}
+  .man-paso{display:flex;gap:12px;align-items:flex-start;background:var(--arena-2);border:1px solid var(--linea);border-radius:13px;padding:13px}
+  .man-paso .n{width:28px;height:28px;border-radius:8px;background:var(--verde);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none}
+  .man-paso .tx b{display:block;font-weight:700;font-size:15.5px;color:var(--tinta);margin-bottom:2px}
+  .man-paso .tx p{font-size:14px;color:var(--tinta-suave);margin:0;line-height:1.45}
+  .man-nota{display:flex;gap:11px;align-items:flex-start;background:#fff7e6;border:1px solid #f0dca2;border-radius:12px;padding:13px 14px;margin-top:14px}
+  .man-nota svg{width:21px;height:21px;color:#b8860b;flex:none;margin-top:1px}
+  .man-nota p{font-size:14px;color:#6b5717;margin:0;line-height:1.5}
+  .man-nota b{color:#5a4710}
+  .man-feats{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+  .man-feat{background:var(--arena-2);border:1px solid var(--linea);border-radius:14px;padding:14px 13px}
+  .man-feat .ic{width:38px;height:38px;border-radius:10px;background:var(--verde);display:grid;place-items:center;margin-bottom:10px}
+  .man-feat .ic svg{width:21px;height:21px;color:#fff}
+  .man-feat b{display:block;font-size:15px;color:var(--verde);margin-bottom:2px}
+  .man-feat p{font-size:13px;color:var(--tinta-suave);margin:0;line-height:1.4}
+  .man-faq{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+  .man-q{background:var(--arena-2);border:1px solid var(--linea);border-radius:12px;padding:13px 14px}
+  .man-q b{display:block;font-size:15px;color:var(--verde);margin-bottom:4px}
+  .man-q p{font-size:14px;color:var(--tinta-suave);margin:0;line-height:1.5}
+  .man-ayuda{background:linear-gradient(170deg,var(--verde),#121860);color:#fff;border-radius:16px;padding:22px;text-align:center;margin-bottom:14px}
+  .man-ayuda h3{color:#fff;font-size:21px;margin-bottom:6px;font-weight:700}
+  .man-ayuda p{color:#d7dcff;font-size:15px;margin-bottom:15px}
+  .man-btns{display:flex;flex-direction:column;gap:10px;max-width:360px;margin:0 auto}
+  .man-btns a{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:var(--verde);text-decoration:none;font-weight:700;font-size:15.5px;padding:13px;border-radius:40px}
+  .man-btns a svg{width:19px;height:19px}
+  .man-btns a.alt{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)}
+
   /* Al imprimir el manual, mostrar SOLO el manual (sin cabecera, menú ni barra) */
   @media print{
     body.imprimiendo-manual *{visibility:hidden}
@@ -704,9 +747,13 @@
       position:absolute;left:0;top:0;width:100%;padding:0;display:block;
     }
     body.imprimiendo-manual .btn-descargar-manual{display:none}
-    body.imprimiendo-manual .manual-cap{
-      break-inside:avoid;page-break-inside:avoid;
-      box-shadow:none;border-color:#bbb;
+    body.imprimiendo-manual .man-sec,
+    body.imprimiendo-manual .man-paso,
+    body.imprimiendo-manual .man-feat,
+    body.imprimiendo-manual .man-so,
+    body.imprimiendo-manual .man-q,
+    body.imprimiendo-manual .man-ayuda{
+      break-inside:avoid;page-break-inside:avoid;box-shadow:none;
     }
     body.imprimiendo-manual .titulo-seccion{color:#000}
   }
@@ -1612,7 +1659,108 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></svg>
       Descargar / imprimir el manual
     </button>
-    <div id="lista-manual"></div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>1</b><span>Para empezar</span></div>
+      <h3 class="man-h2">¿Qué es la app de AFUCOA?</h3>
+      <p class="man-lead">Es la app oficial de la Asociación, <b>solo para socios</b>. Desde tu celular podés ver las novedades, consultar y pedir convenios, llevar tu carnet de socio con código QR, leer documentos y enviar sugerencias o propuestas. Todo lo que antes era papel y mostrador, ahora en tu mano.</p>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>2</b><span>Instalación</span></div>
+      <h3 class="man-h2">Instalá la app en tu celular</h3>
+      <p class="man-lead">No se descarga de ninguna tienda. Se instala desde el navegador, en un toque. Seguí los pasos según tu teléfono:</p>
+      <div class="man-dos">
+        <div class="man-so">
+          <h4>Android</h4>
+          <ol>
+            <li>Abrí la app en Chrome.</li>
+            <li>Tocá el menú <b>⋮</b> arriba a la derecha.</li>
+            <li>Elegí <b>“Agregar a pantalla de inicio”</b> o “Instalar app”.</li>
+            <li>Confirmá. Queda el ícono en tu teléfono.</li>
+          </ol>
+        </div>
+        <div class="man-so">
+          <h4>iPhone</h4>
+          <ol>
+            <li>Abrí la app en Safari.</li>
+            <li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha).</li>
+            <li>Elegí <b>“Agregar a inicio”</b>.</li>
+            <li>Tocá <b>Agregar</b>. Listo, queda el ícono.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>3</b><span>Tu primera vez</span></div>
+      <h3 class="man-h2">Creá tu clave</h3>
+      <p class="man-lead">La primera vez tenés que crear una clave. Es rápido y se hace una sola vez.</p>
+      <div class="man-pasos">
+        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Acceder”</b><p>En la pantalla de bienvenida.</p></div></div>
+        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Escribí tu cédula</b><p>Sin puntos ni guiones. Si figurás en el padrón, la app te deja seguir.</p></div></div>
+        <div class="man-paso"><div class="n">3</div><div class="tx"><b>Creá una clave</b><p>De al menos 4 caracteres. Usá una que recuerdes.</p></div></div>
+        <div class="man-paso"><div class="n">4</div><div class="tx"><b>Cargá tu correo</b><p>Con ese correo vas a poder recuperar la clave si algún día la olvidás.</p></div></div>
+        <div class="man-paso"><div class="n">5</div><div class="tx"><b>¡Listo!</b><p>Tocá “Crear clave e ingresar” y ya estás adentro.</p></div></div>
+      </div>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>4</b><span>El día a día</span></div>
+      <h3 class="man-h2">Entrar es muy simple</h3>
+      <div class="man-pasos">
+        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Acceder” y escribí tu cédula</b></div></div>
+        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Poné tu clave y tocá “Ingresar”</b><p>Entrás directo a las novedades.</p></div></div>
+      </div>
+      <div class="man-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p>Por seguridad, cada tanto la app te vuelve a pedir la clave. Es normal y protege tu cuenta.</p></div>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>5</b><span>Si te olvidás</span></div>
+      <h3 class="man-h2">¿Olvidaste tu clave?</h3>
+      <p class="man-lead">Si cargaste tu correo, la recuperás solo:</p>
+      <div class="man-pasos">
+        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Recuperar mi clave”</b><p>Está en la pantalla de ingreso.</p></div></div>
+        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Revisá tu correo</b><p>Te llega un código de 6 dígitos (mirá también el correo no deseado).</p></div></div>
+        <div class="man-paso"><div class="n">3</div><div class="tx"><b>Creá una clave nueva</b><p>Escribí el código en la app y elegí tu clave nueva.</p></div></div>
+      </div>
+      <div class="man-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿No cargaste correo?</b> Escribinos al WhatsApp 098 469 285 o a afucoa@gmail.com y te ayudamos.</p></div>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>6</b><span>Recorrido</span></div>
+      <h3 class="man-h2">Qué hay adentro</h3>
+      <div class="man-feats">
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l18-5v12L3 14z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg></div><b>Novedades</b><p>Comunicados y anuncios de la Asociación.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg></div><b>Convenios</b><p>Beneficios y descuentos. Pedí el que te interese.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M13 9h5M13 13h5"/></svg></div><b>Mi carnet</b><p>Tu credencial digital con QR verificable.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></div><b>Documentos</b><p>Reglamentos y leyes de interés.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg></div><b>Enviar</b><p>Sugerencias, reclamos y propuestas.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9V5l7 7-7 7v-4H3V9z"/></svg></div><b>Propuestas</b><p>Proponé temas y apoyá los de otros socios.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Mi cuenta</b><p>Cambiar clave y correo, ver tus datos.</p></div>
+        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><b>Avisos</b><p>Notificaciones en tu celular, aunque esté cerrada.</p></div>
+      </div>
+    </div>
+
+    <div class="man-sec">
+      <div class="man-snum"><b>7</b><span>Dudas comunes</span></div>
+      <h3 class="man-h2">Preguntas frecuentes</h3>
+      <div class="man-faq">
+        <div class="man-q"><b>¿La app tiene costo?</b><p>No. Es gratuita y exclusiva para socios de AFUCOA.</p></div>
+        <div class="man-q"><b>¿Se actualiza sola?</b><p>Sí. Cada vez que la abrís con internet toma la última versión.</p></div>
+        <div class="man-q"><b>¿Para qué sirve el carnet con QR?</b><p>Es tu credencial de socio. En un comercio con convenio escanean el QR y confirman al instante que sos socio activo.</p></div>
+        <div class="man-q"><b>¿Mis datos están seguros?</b><p>Sí. Se usan solo para gestionar tu condición de socio y no se comparten con terceros, salvo lo necesario para un convenio que vos pidas.</p></div>
+      </div>
+    </div>
+
+    <div class="man-ayuda">
+      <h3>¿Necesitás una mano?</h3>
+      <p>Si algo no te funciona o tenés dudas, escribinos. Te ayudamos.</p>
+      <div class="man-btns">
+        <a href="https://wa.me/59898469285"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2zm4.4 12c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.3 11.3 0 0 0 4.3 3.8c1 .4 1.7.5 2.3.4s1.4-.6 1.6-1.1a2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z"/></svg>WhatsApp 098 469 285</a>
+        <a class="alt" href="mailto:afucoa@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M4 7l8 5 8-5"/></svg>afucoa@gmail.com</a>
+      </div>
+    </div>
   </section>
 
   <!-- ======== PRIVACIDAD Y DATOS ======== -->
@@ -1661,6 +1809,7 @@
           <select id="admin-menu" onchange="adminTabSelect(this.value)">
             <option value="estadisticas">Resumen / Estadísticas</option>
             <option value="alta">Dar de alta un socio</option>
+            <option value="editar">Editar datos de un socio</option>
             <option value="baja">Dar de baja un socio</option>
             <option value="reactivar">Reactivar un socio</option>
             <option value="resetclave">Restablecer clave de socio</option>
@@ -1689,6 +1838,14 @@
         <div class="campo"><label>Nombre</label><input type="text" id="adm-alta-nombre" placeholder="Ej: Juan"></div>
         <div class="campo"><label>Apellido</label><input type="text" id="adm-alta-apellido" placeholder="Ej: Pérez"></div>
         <button class="btn" onclick="adminAlta()">Dar de alta</button>
+      </div>
+
+      <!-- EDITAR DATOS -->
+      <div class="admin-panel" id="admin-panel-editar" style="display:none">
+        <p class="propuestas-intro">Buscá al socio por su número o nombre y corregí sus datos (cédula, nombre, apellido o cuota). Los cambios quedan al instante en el padrón.</p>
+        <div class="campo"><label>Número o nombre del socio</label><input type="text" id="adm-edit-numero" placeholder="Ej: 350 o Juan Pérez" oninput="buscarSocioVivo('editar')"></div>
+        <div class="admin-resultados-vivos" id="adm-edit-resultados"></div>
+        <div class="admin-ficha" id="adm-edit-ficha" style="display:none"></div>
       </div>
 
       <!-- BAJA -->
@@ -2258,107 +2415,8 @@ const FAQ = [
   },
 ];
 
-/* ===== MANUAL DE LA APP =====
-   Cada capítulo tiene un título y su contenido. En "intro" va un texto
-   de presentación (opcional) y en "pasos" van los pasos numerados (opcional).
-   Para agregar o cambiar algo, editá el texto de abajo. */
-
-const MANUAL = [
-  {
-    titulo: "Qué es esta app",
-    intro: "Es la app oficial de AFUCOA para los socios. Desde el celular o la computadora podés ver las novedades de la Asociación, consultar los convenios y solicitarlos, llevar tu carnet de socio con código QR, leer documentos, y enviar sugerencias, reclamos y propuestas. Es de uso exclusivo para socios."
-  },
-  {
-    titulo: "Ingresar por primera vez",
-    intro: "La primera vez tenés que crear tu clave. Es un paso rápido y solo se hace una vez.",
-    pasos: [
-      "Escribí tu número de cédula (sin puntos ni guiones) y tocá \"Acceder\".",
-      "Si figurás en el padrón, la app te pide crear una clave. Elegí una de al menos 4 caracteres y repetila.",
-      "Cargá tu correo electrónico. Es importante: con ese correo vas a poder recuperar la clave si algún día la olvidás.",
-      "Tocá \"Crear clave e ingresar\". Listo, ya estás adentro."
-    ]
-  },
-  {
-    titulo: "Ingresar todos los días",
-    intro: "Una vez que ya tenés clave, entrar es muy simple.",
-    pasos: [
-      "Escribí tu cédula y tocá \"Acceder\".",
-      "Ingresá tu clave y tocá \"Ingresar\".",
-      "La sesión queda abierta unas horas. Si pasás mucho tiempo sin usar la app, te va a pedir la clave de nuevo por seguridad."
-    ]
-  },
-  {
-    titulo: "Si olvidás tu clave",
-    intro: "Podés recuperarla vos mismo si tenés un correo cargado.",
-    pasos: [
-      "En la pantalla de ingreso, tocá \"Recuperar mi clave\".",
-      "Te llega un código de 6 dígitos al correo que registraste (revisá también la carpeta de correo no deseado).",
-      "Escribí ese código en la app y creá una clave nueva.",
-      "Si no tenés correo cargado, escribinos a afucoa@gmail.com o al WhatsApp 098 469 285 y te ayudamos."
-    ]
-  },
-  {
-    titulo: "Novedades (pantalla principal)",
-    intro: "Es lo primero que ves al entrar. Ahí aparecen los comunicados y anuncios de la Asociación, del más nuevo al más viejo. Cuando hay novedades sin leer, se marca con un aviso. Si un anuncio tiene varias imágenes, deslizá o usá las flechas para verlas todas."
-  },
-  {
-    titulo: "Convenios",
-    intro: "En la sección Convenios están todos los beneficios y descuentos para socios, agrupados por rubro.",
-    pasos: [
-      "Entrá a Convenios desde el menú de abajo.",
-      "Tocá un convenio para ver los beneficios, las condiciones y los datos de contacto.",
-      "Si el convenio tiene archivos para descargar, aparecen dentro del convenio.",
-      "Para pedir un beneficio, tocá \"Solicitar convenio\", completá tus datos y enviá. AFUCOA gestiona el resto."
-    ]
-  },
-  {
-    titulo: "Tu carnet de socio y el QR",
-    intro: "Tu carnet es tu credencial digital. Lo encontrás en el menú (arriba a la derecha), en \"Mi carnet de socio\".",
-    pasos: [
-      "Mostrá tu carnet en un comercio con convenio como comprobante de que sos socio.",
-      "El carnet tiene un código QR. Al escanearlo, se confirma al instante que sos socio activo.",
-      "El carnet se actualiza solo con tus datos; no tenés que renovarlo."
-    ]
-  },
-  {
-    titulo: "Documentos",
-    intro: "En la sección Documentos (dentro del menú) están los reglamentos, estatutos y leyes de interés para los funcionarios. Tocá cualquiera para abrirlo o descargarlo en PDF."
-  },
-  {
-    titulo: "Enviar sugerencias, reclamos y propuestas",
-    intro: "Tu voz importa. Tenés dos formas de participar.",
-    pasos: [
-      "En la sección Enviar podés mandar una sugerencia, un reclamo o una propuesta de reestructura. Llega directo a la comisión directiva.",
-      "En la sección Propuestas podés proponer un tema para que la Asociación lo trate, y apoyar las propuestas de otros socios. Las más apoyadas ganan fuerza."
-    ]
-  },
-  {
-    titulo: "Notificaciones",
-    intro: "La app te puede avisar cuando hay novedades importantes, aunque no la tengas abierta. La primera vez te pregunta si querés recibirlas; si aceptás, quedan activadas. Podés cambiarlo después desde los ajustes de tu celular o navegador."
-  },
-  {
-    titulo: "Mi cuenta",
-    intro: "En \"Mi cuenta\" (dentro del menú) manejás tus datos.",
-    pasos: [
-      "Ver tus datos de socio.",
-      "Cambiar tu clave cuando quieras.",
-      "Agregar o modificar tu correo electrónico (el que se usa para recuperar la clave)."
-    ]
-  },
-  {
-    titulo: "Instalar la app en el celular",
-    intro: "Podés dejar la app instalada como una aplicación más, con su ícono en la pantalla de inicio.",
-    pasos: [
-      "Abrí la app en el navegador del celular.",
-      "Abrí el menú del navegador y buscá \"Agregar a pantalla de inicio\" o \"Instalar app\".",
-      "Confirmá. Queda el ícono de AFUCOA en tu celular y se abre a pantalla completa."
-    ]
-  },
-  {
-    titulo: "Privacidad y seguridad de tus datos",
-    intro: "Tus datos se usan solo para gestionar tu condición de socio y no se comparten con terceros salvo lo necesario para un convenio que vos pidas. Según la Ley N.º 18.331 podés pedir acceder a tus datos, corregirlos o eliminarlos escribiendo a afucoa@gmail.com. Encontrás el detalle completo en el menú, en \"Privacidad y datos\"."
-  },
-];
+/* El contenido del manual ahora es fijo dentro de la sección #v-manual del HTML
+   (es el mismo que manual.html). Para editarlo, cambiá ese bloque. */
 
 /* ▲▲▲  FIN DE LA ZONA EDITABLE  ▲▲▲
    De acá para abajo es el funcionamiento interno. Mejor no tocar
@@ -4169,24 +4227,10 @@ window.toggleFaq = function(i){
 };
 
 // ----- Manual de la app -----
-function pintarManual(){
-  const cont = document.getElementById('lista-manual');
-  if(!cont || cont.dataset.listo === '1') return;  // se arma una sola vez
-  if(!MANUAL || MANUAL.length === 0){
-    cont.innerHTML = estadoVacio('faq', 'Manual en preparación', 'Muy pronto vas a encontrar acá la guía completa de la app.');
-    return;
-  }
-  cont.innerHTML = MANUAL.map((c,i)=>`
-    <article class="manual-cap">
-      <div class="manual-num">${i+1}</div>
-      <div class="manual-cuerpo">
-        <h3>${c.titulo}</h3>
-        ${c.intro ? `<p>${c.intro}</p>` : ``}
-        ${(c.pasos && c.pasos.length) ? `<ol class="manual-pasos">${c.pasos.map(p=>`<li>${p}</li>`).join('')}</ol>` : ``}
-      </div>
-    </article>`).join('');
-  cont.dataset.listo = '1';
-}
+// El manual ahora es contenido fijo dentro de la sección v-manual (igual que
+// manual.html). No hace falta armarlo por JS. Se deja la función vacía porque
+// descargarManual() y la navegación la llaman.
+function pintarManual(){ /* contenido estático en el HTML de #v-manual */ }
 
 // descargar / imprimir el manual: abre el diálogo de impresión del navegador,
 // que en el celular y la computadora permite "Guardar como PDF". No usa ninguna
@@ -4724,6 +4768,7 @@ window.entrarPanelAdmin = async function(){
 window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-estadisticas').style.display = (cual==='estadisticas') ? 'block' : 'none';
   document.getElementById('admin-panel-alta').style.display = (cual==='alta') ? 'block' : 'none';
+  document.getElementById('admin-panel-editar').style.display = (cual==='editar') ? 'block' : 'none';
   document.getElementById('admin-panel-baja').style.display = (cual==='baja') ? 'block' : 'none';
   document.getElementById('admin-panel-reactivar').style.display = (cual==='reactivar') ? 'block' : 'none';
   document.getElementById('admin-panel-resetclave').style.display = (cual==='resetclave') ? 'block' : 'none';
@@ -5682,6 +5727,7 @@ const _cfgBuscar = {
   baja:      { input:'adm-baja-numero',  res:'adm-baja-resultados',  soloInactivos:false },
   reactivar: { input:'adm-react-numero', res:'adm-react-resultados', soloInactivos:false },
   reset:     { input:'reset-numero',     res:'reset-resultados',     soloInactivos:false },
+  editar:    { input:'adm-edit-numero',  res:'adm-edit-resultados',  soloInactivos:false },
 };
 
 // se dispara al tipear en los buscadores de socio
@@ -5729,6 +5775,7 @@ window.seleccionarSocio = function(tipo, numero){
   document.getElementById(cfg.input).value = numero;
   document.getElementById(cfg.res).innerHTML = '';
   if(tipo === 'reset'){ adminBuscarParaReset(numero); }
+  else if(tipo === 'editar'){ adminCargarEdicion(numero); }
   else{ adminBuscar(tipo, numero); }
 };
 
@@ -5911,6 +5958,98 @@ window.adminConfirmar = async function(tipo, numero){
     }
   }catch(e){
     mostrarResultadoAdmin('No se pudo conectar. Revisá tu conexión e intentá de nuevo.', false);
+  }
+};
+
+// ===== EDITAR DATOS DE UN SOCIO =====
+// valida el dígito verificador de una cédula uruguaya (acepta puntos y guiones)
+function cedulaValidaUy(ci){
+  const d = String(ci||'').replace(/\D/g,'');
+  if(d.length < 7 || d.length > 8) return false;
+  const c = d.padStart(8,'0');
+  const pesos = [2,9,8,7,6,3,4];
+  let s = 0;
+  for(let i=0;i<7;i++) s += parseInt(c[i],10) * pesos[i];
+  const dv = (10 - (s % 10)) % 10;
+  return dv === parseInt(c[7],10);
+}
+
+// carga la ficha del socio con un formulario editable
+window.adminCargarEdicion = async function(numeroDirecto){
+  const numero = (numeroDirecto != null) ? String(numeroDirecto) : document.getElementById('adm-edit-numero').value.trim();
+  const ficha = document.getElementById('adm-edit-ficha');
+  const res = document.getElementById('admin-resultado');
+  res.textContent = ''; res.className = 'admin-resultado';
+  if(!numero){ mostrarResultadoAdmin('Ingresá el número o nombre del socio.', false); return; }
+  ficha.style.display = 'block';
+  ficha.innerHTML = '<p class="admin-buscando">Buscando...</p>';
+  try{
+    const r = await llamarAdmin('admin_buscar_socio', { clave: claveAdmin, p_numero: parseInt(numero,10) });
+    if(!Array.isArray(r) || r.length === 0){
+      ficha.innerHTML = '<p class="admin-nohay">No se encontró ningún socio con el número ' + numero + '.</p>';
+      return;
+    }
+    const s = r[0];
+    const nombre = formatearNombre((s.primer_nombre||'') + ' ' + (s.primer_apellido||''));
+    const estadoTxt = s.activo
+      ? '<span class="admin-estado activo">Activo</span>'
+      : '<span class="admin-estado inactivo">Inactivo</span>';
+    const cuotaVal = (s.cuota != null) ? String(s.cuota) : '';
+    ficha.innerHTML = `
+      <div class="admin-ficha-nombre">${nombre}</div>
+      <div class="admin-ficha-dato">Ficha N.º ${s.numero}</div>
+      <div class="admin-ficha-estado">Estado: ${estadoTxt}</div>
+      <div class="campo"><label>Cédula de identidad</label><input type="text" id="adm-edit-cedula" inputmode="numeric" value="${escapar(s.documento||'')}"></div>
+      <div class="campo"><label>Nombre</label><input type="text" id="adm-edit-nombre" value="${escapar(s.primer_nombre||'')}"></div>
+      <div class="campo"><label>Apellido</label><input type="text" id="adm-edit-apellido" value="${escapar(s.primer_apellido||'')}"></div>
+      <div class="campo"><label>Cuota (dejá vacío para no cambiarla)</label><input type="text" id="adm-edit-cuota" inputmode="numeric" value="${escapar(cuotaVal)}" placeholder="Ej: 150"></div>
+      <button class="btn" onclick="adminGuardarEdicion(${s.numero})">Guardar cambios</button>`;
+  }catch(e){
+    ficha.innerHTML = '<p class="admin-nohay">No se pudo conectar. Intentá de nuevo.</p>';
+  }
+};
+
+// guarda los cambios del socio (valida la cédula antes de enviar)
+window.adminGuardarEdicion = async function(numero){
+  const cedula = document.getElementById('adm-edit-cedula').value.trim();
+  const nombre = document.getElementById('adm-edit-nombre').value.trim();
+  const apellido = document.getElementById('adm-edit-apellido').value.trim();
+  const cuotaTxt = document.getElementById('adm-edit-cuota').value.trim();
+  if(!cedula || !nombre || !apellido){
+    mostrarResultadoAdmin('Cédula, nombre y apellido no pueden quedar vacíos.', false); return;
+  }
+  const cedulaLimpia = cedula.replace(/\D/g,'');
+  if(!cedulaValidaUy(cedulaLimpia)){
+    mostrarResultadoAdmin('La cédula ' + cedula + ' no es válida: el dígito verificador no cierra. Revisala antes de guardar.', false);
+    return;
+  }
+  let cuota = null;
+  if(cuotaTxt !== ''){
+    cuota = parseInt(cuotaTxt.replace(/\D/g,''), 10);
+    if(isNaN(cuota) || cuota < 0){ mostrarResultadoAdmin('La cuota tiene que ser un número.', false); return; }
+  }
+  const res = document.getElementById('admin-resultado');
+  res.textContent = 'Guardando...'; res.className = 'admin-resultado';
+  try{
+    const r = await llamarAdmin('admin_editar_socio', {
+      clave: claveAdmin,
+      p_numero: parseInt(numero,10),
+      p_documento: cedulaLimpia,
+      p_nombre: nombre,
+      p_apellido: apellido,
+      p_cuota: cuota
+    });
+    const ok = String(r).indexOf('OK') === 0;
+    mostrarResultadoAdmin(r, ok);
+    if(ok){
+      invalidarCacheSocios();  // el padrón cambió
+      const ficha = document.getElementById('adm-edit-ficha');
+      if(ficha){ ficha.style.display = 'none'; ficha.innerHTML = ''; }
+      const campo = document.getElementById('adm-edit-numero');
+      if(campo) campo.value = '';
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo conectar. Intentá de nuevo.', false);
   }
 };
 
