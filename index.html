@@ -1819,6 +1819,7 @@
             <option value="propuestas">Gestionar propuestas</option>
             <option value="convenios">Gestionar convenios</option>
             <option value="historial">Historial de movimientos</option>
+            <option value="reporte">Reporte mensual de altas y bajas (PDF)</option>
           </select>
           <svg class="admin-select-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
@@ -1952,6 +1953,14 @@
       <div class="admin-panel" id="admin-panel-historial" style="display:none">
         <p class="propuestas-intro">Últimos movimientos realizados en el padrón.</p>
         <div id="admin-historial-lista"></div>
+      </div>
+
+      <!-- REPORTE MENSUAL DE ALTAS Y BAJAS -->
+      <div class="admin-panel" id="admin-panel-reporte" style="display:none">
+        <p class="propuestas-intro">Elegí el mes y descargá un PDF con las altas, bajas y reactivaciones, con los datos de cada socio.</p>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--tinta-suave);margin-bottom:6px">Mes del reporte</label>
+        <input type="month" id="rep-mes" style="padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px;margin-bottom:14px">
+        <button class="btn" onclick="generarReporteMensual()">Descargar PDF</button>
       </div>
 
       <p class="admin-resultado" id="admin-resultado"></p>
@@ -4778,6 +4787,8 @@ window.adminTabSelect = function(cual){
   document.getElementById('admin-panel-convenios').style.display = (cual==='convenios') ? 'block' : 'none';
   document.getElementById('admin-panel-propuestas').style.display = (cual==='propuestas') ? 'block' : 'none';
   document.getElementById('admin-panel-historial').style.display = (cual==='historial') ? 'block' : 'none';
+  document.getElementById('admin-panel-reporte').style.display = (cual==='reporte') ? 'block' : 'none';
+  if(cual==='reporte') document.getElementById('rep-mes').value = reporteMesActual();
   const res = document.getElementById('admin-resultado');
   res.textContent = ''; res.className = 'admin-resultado';
   if(cual==='historial') cargarHistorial();
@@ -5603,6 +5614,97 @@ async function cargarHistorial(){
     cont.innerHTML = '<p class="admin-nohay">No se pudo cargar el historial. Intentá de nuevo.</p>';
   }
 }
+
+// ===== reporte mensual de altas y bajas (PDF) =====
+function reporteMesActual(){
+  const h = new Date();
+  return h.getFullYear() + '-' + String(h.getMonth()+1).padStart(2,'0');
+}
+
+window.generarReporteMensual = async function(){
+  const res = document.getElementById('admin-resultado');
+  const mes = document.getElementById('rep-mes').value; // formato AAAA-MM
+  if(!mes){ mostrarResultadoAdmin('Elegí un mes.', false); return; }
+  res.textContent = 'Generando reporte...'; res.className = 'admin-resultado';
+  try{
+    const [hist, socios] = await Promise.all([
+      llamarAdmin('admin_ver_historial', { clave: claveAdmin }),
+      llamarAdmin('admin_listar_socios', { clave: claveAdmin, filtro: 'todos' })
+    ]);
+    if(!Array.isArray(hist)){ mostrarResultadoAdmin('No se pudo generar el reporte. Intentá de nuevo.', false); return; }
+
+    // datos del padrón por número de ficha (para sumar cédula y nombre)
+    const padron = {};
+    (Array.isArray(socios) ? socios : []).forEach(s => { padron[s.numero] = s; });
+
+    // movimientos del mes elegido, en orden de fecha
+    const delMes = hist.filter(m => {
+      const f = new Date(m.fecha);
+      return f.getFullYear() + '-' + String(f.getMonth()+1).padStart(2,'0') === mes;
+    }).sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+    const secciones = [
+      { accion:'alta', titulo:'Altas' },
+      { accion:'baja', titulo:'Bajas' },
+      { accion:'reactivar', titulo:'Reactivaciones' }
+    ];
+    const conteo = {};
+    secciones.forEach(sec => { conteo[sec.accion] = delMes.filter(m => m.accion === sec.accion).length; });
+
+    const filasDe = (accion) => delMes.filter(m => m.accion === accion).map(m => {
+      const f = new Date(m.fecha);
+      const fecha = f.toLocaleDateString('es-UY') + ' ' + f.toLocaleTimeString('es-UY', {hour:'2-digit', minute:'2-digit'});
+      const p = padron[m.numero_socio] || {};
+      const nombre = (p.primer_apellido || p.primer_nombre)
+        ? formatearNombre((p.primer_apellido||'') + ', ' + (p.primer_nombre||''))
+        : formatearNombre(m.detalle || '');
+      return `<tr><td>${fecha}</td><td>${m.numero_socio}</td><td>${escapar(nombre)}</td><td>${escapar(p.documento || '—')}</td></tr>`;
+    }).join('');
+
+    const bloques = secciones.map(sec => {
+      const filas = filasDe(sec.accion);
+      return `
+        <h3>${sec.titulo} (${conteo[sec.accion]})</h3>
+        ${filas
+          ? `<table><thead><tr><th>Fecha</th><th>Ficha</th><th>Apellido y nombre</th><th>Cédula</th></tr></thead><tbody>${filas}</tbody></table>`
+          : '<p>Sin movimientos en el mes.</p>'}`;
+    }).join('');
+
+    const [anio, mm] = mes.split('-');
+    const nombreMes = new Date(Number(anio), Number(mm)-1, 1).toLocaleDateString('es-UY', {month:'long', year:'numeric'});
+    const titulo = 'Reporte de altas y bajas · ' + nombreMes;
+    const ahora = new Date();
+    const generado = ahora.toLocaleDateString('es-UY') + ' ' + ahora.toLocaleTimeString('es-UY', {hour:'2-digit', minute:'2-digit'});
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${titulo}</title><style>
+      body{font-family:Arial,sans-serif;padding:20px;color:#222}
+      h2{color:#1a237e;margin-bottom:4px}
+      h3{color:#1a237e;margin:22px 0 8px}
+      .resumen{font-size:13px;margin-bottom:10px}
+      .pie{font-size:10px;color:#666;margin-top:24px}
+      table{border-collapse:collapse;width:100%}
+      th,td{border:1px solid #999;padding:6px 8px;text-align:left;font-size:12px}
+      th{background:#1a237e;color:#fff}
+      @media print{ button{display:none} }
+    </style></head><body>
+      <h2>${titulo}</h2>
+      <p class="resumen">Altas: ${conteo.alta} · Bajas: ${conteo.baja} · Reactivaciones: ${conteo.reactivar}</p>
+      ${bloques}
+      <p class="pie">Generado el ${generado}. Asociación de Funcionarios de la Comisión Administrativa (AFUCOA).</p>
+      <script>window.onload=function(){window.print();}<\/script>
+    </body></html>`;
+
+    const ventana = window.open('', '_blank');
+    if(ventana){
+      ventana.document.write(html); ventana.document.close();
+      mostrarResultadoAdmin('Reporte listo: ' + delMes.length + ' movimiento(s) en el mes.', true);
+    }else{
+      mostrarResultadoAdmin('Permití las ventanas emergentes para descargar el PDF.', false);
+    }
+  }catch(e){
+    mostrarResultadoAdmin('No se pudo generar el reporte. Intentá de nuevo.', false);
+  }
+};
 
 // llamada genérica a una función protegida de Supabase
 async function llamarAdmin(funcion, params){
