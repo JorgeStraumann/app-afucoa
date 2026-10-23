@@ -441,6 +441,37 @@
     border:none;outline:none;padding:14px 0;font-size:15px;font-family:inherit;
     width:100%;background:none;color:var(--tinta);
   }
+  /* ===== Grilla compacta de convenios ===== */
+  .grilla-cat{
+    display:flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+    color:var(--verde);margin:20px 4px 10px;
+  }
+  .grilla-cat:first-child{margin-top:4px}
+  .grilla-cat-num{background:#e3e7f5;color:var(--verde);font-size:11px;padding:2px 9px;border-radius:20px}
+  .grilla-conv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+  .grilla-card{
+    text-align:left;background:#fff;border:1px solid #e4e7f2;border-radius:16px;
+    overflow:hidden;box-shadow:0 3px 12px rgba(26,35,126,.07);cursor:pointer;
+    font-family:inherit;padding:0;display:flex;flex-direction:column;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .grilla-card:active{transform:scale(.98);box-shadow:0 2px 6px rgba(26,35,126,.12)}
+  .grilla-card-logo{
+    height:92px;background:#f6f7fb;display:flex;align-items:center;justify-content:center;
+    border-bottom:1px solid #eef0f7;overflow:hidden;
+  }
+  .grilla-card-logo img{width:100%;height:100%;object-fit:cover;display:block}
+  .grilla-card-logo.sin-img{background:var(--verde)}
+  .grilla-card-logo.sin-img span{color:#fff;font-size:15px;font-weight:800;text-align:center;padding:0 8px;line-height:1.15}
+  .grilla-card-cuerpo{padding:12px 13px 14px;flex:1;display:flex;flex-direction:column}
+  .grilla-card-rubro{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dorado);margin-bottom:4px}
+  .grilla-card-nombre{font-size:15px;font-weight:700;color:var(--verde);line-height:1.2;margin-bottom:7px}
+  .grilla-card-desc{font-size:12.5px;color:var(--tinta-suave);line-height:1.35;margin-bottom:11px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .grilla-card-ver{margin-top:auto;display:flex;align-items:center;gap:5px;color:var(--dorado);font-size:12px;font-weight:700}
+  .grilla-card-ver svg{width:14px;height:14px}
+
   .convenio{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
     margin-bottom:16px;overflow:hidden;
@@ -1548,6 +1579,7 @@
       </button>
       <div id="conv-indice-lista" class="conv-indice-lista" style="display:none"></div>
     </div>
+    <div id="grilla-convenios"></div>
     <div id="lista-convenios"></div>
     <p id="sin-resultados-conv" class="propuestas-cargando" style="display:none">No se encontraron convenios con esa búsqueda.</p>
   </section>
@@ -2739,6 +2771,9 @@ function revisarConvenioEnlace(){
 
 // al tocar un nombre del índice: mostrar solo ese convenio
 window.abrirConvenioDesdeIndice = function(indice){
+  // ocultar la grilla y mostrar solo el detalle elegido
+  const grilla = document.getElementById('grilla-convenios');
+  if(grilla) grilla.style.display = 'none';
   const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
   tarjetas.forEach((t, i)=>{ t.style.display = (i===indice) ? '' : 'none'; });
   document.getElementById('sin-resultados-conv').style.display = 'none';
@@ -2753,32 +2788,106 @@ window.abrirConvenioDesdeIndice = function(indice){
   if(buscador) buscador.value = '';
 };
 
-// volver a mostrar todos los convenios
+// volver a mostrar la grilla de convenios
 window.verTodosConvenios = function(){
-  document.querySelectorAll('#lista-convenios .convenio').forEach(t=>{ t.style.display = ''; });
+  mostrarGrillaConvenios();
   document.getElementById('conv-indice-label').textContent = 'Ver lista de convenios';
   document.getElementById('conv-indice-lista').style.display = 'none';
   document.getElementById('conv-indice-flecha').style.transform = '';
   document.getElementById('conv-indice-btn').setAttribute('data-modo', 'cerrado');
+  const buscador = document.getElementById('buscar-convenio');
+  if(buscador) buscador.value = '';
 };
 
 function filtrarConvenios(){
   // quita tildes y pasa a minúsculas, para que "optica" encuentre "Óptica"
   const normalizar = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const texto = normalizar(document.getElementById('buscar-convenio').value.trim());
-  const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
-  let visibles = 0;
-  tarjetas.forEach((t, i)=>{
-    const c = CONVENIOS[i];
-    const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
-    if(!texto || contenido.includes(texto)){
-      t.style.display = '';
-      visibles++;
-    }else{
-      t.style.display = 'none';
+  const grilla = document.getElementById('grilla-convenios');
+
+  // sin texto: volver a la grilla completa (tarjetas de detalle ocultas)
+  if(!texto){
+    document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
+    if(grilla){
+      grilla.style.display = '';
+      grilla.querySelectorAll('.grilla-card, .grilla-cat, .grilla-conv').forEach(c=> c.style.display = '');
     }
+    document.getElementById('sin-resultados-conv').style.display = 'none';
+    return;
+  }
+
+  // con texto: filtrar las tarjetas de la grilla
+  if(grilla){
+    grilla.style.display = '';
+    document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
+    let visibles = 0;
+    grilla.querySelectorAll('.grilla-card').forEach((t)=>{
+      const i = parseInt(t.getAttribute('onclick').match(/\d+/)[0], 10);
+      const c = CONVENIOS[i];
+      const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
+      const ok = contenido.includes(texto);
+      t.style.display = ok ? '' : 'none';
+      if(ok) visibles++;
+    });
+    // ocultar los encabezados de categoría que quedan sin tarjetas visibles
+    grilla.querySelectorAll('.grilla-conv').forEach(fila=>{
+      const algunaVisible = [...fila.querySelectorAll('.grilla-card')].some(c=> c.style.display !== 'none');
+      fila.style.display = algunaVisible ? '' : 'none';
+      const titulo = fila.previousElementSibling;
+      if(titulo && titulo.classList.contains('grilla-cat')) titulo.style.display = algunaVisible ? '' : 'none';
+    });
+    document.getElementById('sin-resultados-conv').style.display = visibles===0 ? 'block' : 'none';
+  }
+}
+
+// ====== GRILLA DE CONVENIOS (vista compacta por categoría) ======
+// Dibuja una grilla de tarjetas chicas (logo real + nombre + rubro),
+// agrupadas por categoría. Al tocar una, abre el detalle completo
+// reutilizando abrirConvenioDesdeIndice(). Las tarjetas de detalle
+// siguen existiendo (ocultas) debajo, con toda su lógica intacta.
+function pintarGrillaConvenios(){
+  const cont = document.getElementById('grilla-convenios');
+  if(!cont) return;
+  if(!CONVENIOS || CONVENIOS.length === 0){ cont.innerHTML = ''; return; }
+
+  // agrupar índices por categoría (lo que va antes del "·" del rubro)
+  const grupos = {};
+  CONVENIOS.forEach((c, i)=>{
+    const cat = categoriaDeRubro(c.rubro);
+    (grupos[cat] = grupos[cat] || []).push(i);
   });
-  document.getElementById('sin-resultados-conv').style.display = visibles===0 ? 'block' : 'none';
+  // ordenar las categorías alfabéticamente
+  const cats = Object.keys(grupos).sort((a,b)=> a.localeCompare(b, 'es'));
+
+  let html = '';
+  cats.forEach(cat=>{
+    const items = grupos[cat];
+    html += `<div class="grilla-cat"><span>${cat}</span><span class="grilla-cat-num">${items.length}</span></div>`;
+    html += `<div class="grilla-conv">`;
+    items.forEach(i=>{
+      const c = CONVENIOS[i];
+      const img = (c.imagenes && c.imagenes.length) ? c.imagenes[0] : '';
+      // primera línea de beneficio, recortada, como gancho
+      const gancho = (c.beneficios && c.beneficios.length) ? c.beneficios[0] : '';
+      const logo = img
+        ? `<img src="${img}" alt="${c.titulo}" loading="lazy" onerror="this.closest('.grilla-card-logo').classList.add('sin-img');this.remove();">`
+        : '';
+      html += `
+        <button class="grilla-card" onclick="abrirConvenioDesdeIndice(${i}); irArriba();">
+          <div class="grilla-card-logo ${img?'':'sin-img'}">${logo}${img?'':`<span>${(c.titulo||'?').slice(0,12)}</span>`}</div>
+          <div class="grilla-card-cuerpo">
+            ${c.rubro ? `<div class="grilla-card-rubro">${c.rubro}</div>` : ``}
+            <div class="grilla-card-nombre">${c.titulo||''}</div>
+            ${gancho ? `<div class="grilla-card-desc">${gancho}</div>` : ``}
+            <div class="grilla-card-ver">Ver convenio
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+          </div>
+        </button>`;
+    });
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
 }
 
 function pintarConvenios(){
@@ -2886,6 +2995,18 @@ function pintarConvenios(){
       </div>
     </article>`;
   }).join('');
+  // dibujar la grilla compacta y arrancar mostrándola (las tarjetas de
+  // detalle quedan ocultas hasta que se toca una de la grilla)
+  pintarGrillaConvenios();
+  mostrarGrillaConvenios();
+}
+
+// muestra la grilla y oculta todas las tarjetas de detalle
+function mostrarGrillaConvenios(){
+  const grilla = document.getElementById('grilla-convenios');
+  if(grilla) grilla.style.display = '';
+  document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
+  const sr = document.getElementById('sin-resultados-conv'); if(sr) sr.style.display = 'none';
 }
 
 // muestra u oculta el formulario de un convenio
