@@ -403,6 +403,7 @@
   .anuncio time{font-size:11px;color:var(--tinta-suave)}
   .anuncio h3{font-size:16px;margin-bottom:6px;line-height:1.3}
   .anuncio p{font-size:14px;color:var(--tinta-suave);line-height:1.5}
+  .nov-enlace{color:var(--verde);font-weight:600;text-decoration:underline;word-break:break-word}
 
   /* ---------- Convenios ---------- */
   .conv-indice{margin-bottom:16px}
@@ -2477,6 +2478,30 @@ function estadoVacio(icono, titulo, texto){
 }
 
 // pinta un conjunto de anuncios (recibe la lista ya lista)
+// convierte el texto de una novedad en HTML seguro, con los links y correos
+// clickeables y respetando los saltos de línea. Primero escapa todo (para que
+// nadie pueda meter HTML), y después transforma las direcciones en enlaces.
+function cuerpoNovedadHTML(texto){
+  if(!texto) return '';
+  // 1) escapar caracteres peligrosos
+  let t = String(texto)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 2) enlaces http(s)://...  (se corta en espacios y en < por si quedó pegado)
+  t = t.replace(/(https?:\/\/[^\s<]+)/g, function(url){
+    // no arrastrar un punto o coma final de la oración dentro del enlace
+    let cola = '';
+    const m = url.match(/[.,;:)]+$/);
+    if(m){ cola = m[0]; url = url.slice(0, -cola.length); }
+    return `<a href="${url}" target="_blank" rel="noopener" class="nov-enlace">${url}</a>${cola}`;
+  });
+  // 3) correos electrónicos
+  t = t.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
+    '<a href="mailto:$1" class="nov-enlace">$1</a>');
+  // 4) respetar los saltos de línea
+  t = t.replace(/\n/g, '<br>');
+  return t;
+}
+
 function renderAnuncios(lista){
   const cont = document.getElementById('lista-anuncios');
   if(!lista || lista.length === 0){
@@ -2510,7 +2535,7 @@ function renderAnuncios(lista){
         ${fecha ? `<time>${fecha}</time>` : ``}
       </div>
       <h3>${a.titulo}</h3>
-      ${a.cuerpo ? `<p>${a.cuerpo}</p>` : ``}
+      ${a.cuerpo ? `<p>${cuerpoNovedadHTML(a.cuerpo)}</p>` : ``}
       ${a.convenio_enlace ? `<button class="btn-ver-convenio" onclick="irAlConvenio('${(a.convenio_enlace||'').replace(/'/g,"\\'")}')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 18l6-6-6-6"/></svg>
         Ver convenio completo
