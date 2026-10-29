@@ -1,7 +1,7 @@
 {
-  "name": "AFUCOA - Sindicato",
+  "name": "AFUCOA - Asociación de Funcionarios",
   "short_name": "AFUCOA",
-  "description": "App del sindicato AFUCOA: novedades, sugerencias, propuestas y convenios.",
+  "description": "App de la Asociación de Funcionarios de la Comisión Administrativa (AFUCOA): novedades, sugerencias, propuestas y convenios.",
   "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
