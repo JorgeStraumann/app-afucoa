@@ -4391,13 +4391,39 @@ function pintarManual(){ /* contenido estático en el HTML de #v-manual */ }
 // que en el celular y la computadora permite "Guardar como PDF". No usa ninguna
 // librería externa. Se muestra solo el manual mientras se imprime.
 window.descargarManual = function(){
-  pintarManual();
-  document.body.classList.add('imprimiendo-manual');
-  const limpiar = ()=> document.body.classList.remove('imprimiendo-manual');
-  window.addEventListener('afterprint', limpiar, { once:true });
-  // respaldo por si algún navegador no dispara afterprint
-  setTimeout(limpiar, 1500);
-  window.print();
+  // el manual se copia en una ventana nueva, con sus estilos, y ahí se imprime
+  // (así no depende de cómo está armada la pantalla de la app)
+  const original = document.querySelector('#v-manual .mn-root');
+  if(!original){ alert('No se encontró el manual.'); return; }
+
+  // tomar los estilos del manual (los que empiezan con .mn-root)
+  let css = '';
+  for(const hoja of document.styleSheets){
+    let reglas;
+    try{ reglas = hoja.cssRules; }catch(e){ continue; }
+    for(const r of reglas){
+      if(r.cssText.indexOf('.mn-root') !== -1) css += r.cssText + '\n';
+    }
+  }
+
+  // que el logo se vea desde la ventana nueva
+  const contenido = original.innerHTML.replace(/src="logo-header\.png"/g,
+    'src="' + new URL('logo-header.png', window.location.href).href + '"');
+
+  const html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Manual de la app · AFUCOA</title>' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
+    '<style>body{margin:0;background:#fff}\n' + css + '</style></head>' +
+    '<body><div class="mn-root">' + contenido + '</div>' +
+    '<script>window.onload=function(){setTimeout(function(){window.print();},500);}<\/script>' +
+    '</body></html>';
+
+  const ventana = window.open('', '_blank');
+  if(ventana){ ventana.document.write(html); ventana.document.close(); }
+  else{ alert('Permití las ventanas emergentes para descargar el manual.'); }
 };
 
 // tocar el logo lleva a la pantalla principal (Novedades)
