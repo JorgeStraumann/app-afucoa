@@ -370,7 +370,7 @@
   }
   .anuncio:active{transform:scale(.985);box-shadow:0 2px 8px rgba(26,35,126,.12)}
   .anuncio::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--verde),var(--dorado))}
-  .anuncio-img{width:calc(100% + 32px);margin:-16px -16px 12px;display:block;max-height:220px;object-fit:cover;border-radius:14px 14px 0 0}
+  .anuncio-img{cursor:zoom-in;width:calc(100% + 32px);margin:-16px -16px 12px;display:block;max-height:220px;object-fit:cover;border-radius:14px 14px 0 0}
   .nov-galeria{position:relative;width:calc(100% + 32px);margin:-16px -16px 12px}
   .nov-galeria-img{width:100%;margin:0;max-height:340px}
   .nov-galeria-flecha{
@@ -1183,10 +1183,11 @@
     /* anuncios y convenios en varias columnas.
        Usamos columnas CSS (no grid) para que al expandir el formulario
        de un convenio, los demás NO queden con espacio en blanco. */
-    #lista-anuncios, #lista-convenios{
+    #lista-convenios{
       column-count: 2;
       column-gap: 16px;
     }
+    #lista-anuncios{ column-count: 1; max-width: 760px; margin: 0 auto; }
     #lista-anuncios > *, #lista-convenios > *{
       break-inside: avoid;
       -webkit-column-break-inside: avoid;
@@ -1201,7 +1202,7 @@
 
   /* Pantalla muy ancha: tres columnas */
   @media (min-width: 1000px){
-    #lista-anuncios, #lista-convenios{ column-count: 3; }
+    #lista-convenios{ column-count: 3; }
   }
 
 /* ===== Manual de la app (versión nueva, con clases prefijadas mn-) ===== */
@@ -1520,6 +1521,9 @@
       <button class="header-accion" onclick="abrirDesdeMenu('v-faq')" aria-label="Preguntas frecuentes" title="Preguntas frecuentes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.5 2.5 0 0 1 5 0c0 1.6-2.5 2-2.5 3.6"/><circle cx="12" cy="16.8" r="0.6" fill="currentColor"/></svg>
       </button>
+      <button class="header-accion" onclick="compartirApp()" aria-label="Compartir la app" title="Compartir la app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+      </button>
       <button class="menu-btn" id="menu-btn" aria-label="Menú">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
@@ -1579,10 +1583,6 @@
       <h2>Bienvenido/a</h2>
       <p>Acá vas a encontrar las novedades de la Asociación, y podés hacer llegar tu voz: sugerencias, propuestas y planteos de reestructura.</p>
     </div>
-    <button class="btn-compartir" onclick="compartirApp()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
-      Compartir la app
-    </button>
     <div class="titulo-seccion">Novedades</div>
     <div id="aviso-novedades-nuevas" class="aviso-nuevas" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -2589,7 +2589,7 @@ botonesNav.forEach(b=>b.addEventListener('click',()=>{
   b.classList.add('activo');
   if(b.dataset.vista==='v-mis') pintarMisEnvios();
   if(b.dataset.vista==='v-propuestas') cargarPropuestas();
-  if(b.dataset.vista==='v-inicio') marcarNovedadesVistas();
+  if(b.dataset.vista==='v-inicio'){ marcarNovedadesVistas(); pintarAnuncios(); }
   irArriba();
 }));
 
@@ -2636,11 +2636,11 @@ function renderAnuncios(lista){
     const imgs = (a.imagen||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
     let galeria = '';
     if(imgs.length === 1){
-      galeria = `<img class="anuncio-img" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">`;
+      galeria = `<img class="anuncio-img" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onclick="ampliarImagenNovedad(${idx}, 0)" onerror="this.style.display='none'">`;
     }else if(imgs.length > 1){
       galeria = `
       <div class="nov-galeria">
-        <img class="anuncio-img nov-galeria-img" id="nov-img-${idx}" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">
+        <img class="anuncio-img nov-galeria-img" id="nov-img-${idx}" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onclick="ampliarImagenNovedad(${idx}, window._novedadesImgIdx[${idx}]||0)" onerror="this.style.display='none'">
         <button class="nov-galeria-flecha izq" onclick="cambiarImgNovedad(${idx}, -1)" aria-label="Anterior">‹</button>
         <button class="nov-galeria-flecha der" onclick="cambiarImgNovedad(${idx}, 1)" aria-label="Siguiente">›</button>
         <div class="nov-galeria-puntos" id="nov-puntos-${idx}">
@@ -2734,19 +2734,27 @@ function marcarNovedadesVistas(){
 }
 
 async function pintarAnuncios(){
-  // intenta traer las novedades de Supabase; si falla, usa las del código como respaldo
+  // trae las novedades de Supabase, sin usar copias guardadas del navegador
   try{
     const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/listar_novedades`, {
       method: 'POST',
+      cache: 'no-store',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type':'application/json' },
       body: JSON.stringify({})
     });
     if(resp.ok){
       const data = await resp.json();
-      if(Array.isArray(data)){ renderAnuncios(data); return; }
+      if(Array.isArray(data)){
+        try{ localStorage.setItem('afucoa_novedades_cache', JSON.stringify(data)); }catch(e){}
+        renderAnuncios(data);
+        return;
+      }
     }
-  }catch(e){ /* sin conexión: usar respaldo */ }
-  // respaldo: los anuncios del código
+  }catch(e){ /* sin conexión: se usa la última copia */ }
+  // sin conexión: la última lista que se cargó; si nunca se cargó, los anuncios del código
+  let guardado = null;
+  try{ guardado = JSON.parse(localStorage.getItem('afucoa_novedades_cache') || 'null'); }catch(e){}
+  if(Array.isArray(guardado)){ renderAnuncios(guardado); return; }
   renderAnuncios(ANUNCIOS.map(a=>({ etiqueta:a.etiqueta, titulo:a.titulo, cuerpo:a.texto, fecha:a.fecha })));
 }
 // arma un dato de contacto, clickeable según su tipo
@@ -3048,7 +3056,17 @@ window.ampliarImagen = function(indiceConv, indiceImg){
   _visorImgs = (c && c.imagenes) ? c.imagenes.slice() : [];
   if(_visorImgs.length === 0) return;
   _visorIdx = indiceImg || 0;
-
+  abrirVisorImagenes();
+};
+// ampliar una imagen de novedad (galería o imagen única)
+window.ampliarImagenNovedad = function(idxNov, indiceImg){
+  _visorImgs = ((window._novedadesImgs && window._novedadesImgs[idxNov]) || []).slice();
+  if(_visorImgs.length === 0) return;
+  _visorIdx = indiceImg || 0;
+  abrirVisorImagenes();
+};
+// abre el visor con _visorImgs y _visorIdx ya cargados
+function abrirVisorImagenes(){
   const overlay = document.createElement('div');
   overlay.className = 'lightbox';
   overlay.id = 'visor-lightbox';
@@ -3093,7 +3111,7 @@ window.ampliarImagen = function(indiceConv, indiceImg){
     });
     obs.observe(document.body, {childList:true});
   }
-};
+}
 
 // cambia la imagen del visor ampliado
 function moverVisor(dir){
@@ -6338,6 +6356,9 @@ window.adminGuardarEdicion = async function(numero){
 /* Arranque */
 document.body.classList.add('con-login');
 pintarAnuncios();
+// refrescar novedades cada 5 minutos y al volver a la app
+setInterval(()=>{ if(document.visibilityState === 'visible') pintarAnuncios(); }, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') pintarAnuncios(); });
 // convierte un convenio de Supabase (texto plano) al formato que usa la app
 function convenioDesdeBase(c){
   const lineas = t => (t||'').split('\n').map(s=>s.trim()).filter(Boolean);
