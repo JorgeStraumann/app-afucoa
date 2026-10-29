@@ -403,8 +403,6 @@
   .anuncio time{font-size:11px;color:var(--tinta-suave)}
   .anuncio h3{font-size:16px;margin-bottom:6px;line-height:1.3}
   .anuncio p{font-size:14px;color:var(--tinta-suave);line-height:1.5}
-  .nov-enlace{color:var(--verde);font-weight:600;text-decoration:underline;word-break:break-word}
-  .nov-ampliable{cursor:zoom-in}
 
   /* ---------- Convenios ---------- */
   .conv-indice{margin-bottom:16px}
@@ -441,37 +439,6 @@
     border:none;outline:none;padding:14px 0;font-size:15px;font-family:inherit;
     width:100%;background:none;color:var(--tinta);
   }
-  /* ===== Grilla compacta de convenios ===== */
-  .grilla-cat{
-    display:flex;align-items:center;gap:8px;
-    font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-    color:var(--verde);margin:20px 4px 10px;
-  }
-  .grilla-cat:first-child{margin-top:4px}
-  .grilla-cat-num{background:#e3e7f5;color:var(--verde);font-size:11px;padding:2px 9px;border-radius:20px}
-  .grilla-conv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
-  .grilla-card{
-    text-align:left;background:#fff;border:1px solid #e4e7f2;border-radius:16px;
-    overflow:hidden;box-shadow:0 3px 12px rgba(26,35,126,.07);cursor:pointer;
-    font-family:inherit;padding:0;display:flex;flex-direction:column;
-    transition:transform .15s ease, box-shadow .15s ease;
-  }
-  .grilla-card:active{transform:scale(.98);box-shadow:0 2px 6px rgba(26,35,126,.12)}
-  .grilla-card-logo{
-    height:92px;background:#f6f7fb;display:flex;align-items:center;justify-content:center;
-    border-bottom:1px solid #eef0f7;overflow:hidden;
-  }
-  .grilla-card-logo img{width:100%;height:100%;object-fit:cover;display:block}
-  .grilla-card-logo.sin-img{background:var(--verde)}
-  .grilla-card-logo.sin-img span{color:#fff;font-size:15px;font-weight:800;text-align:center;padding:0 8px;line-height:1.15}
-  .grilla-card-cuerpo{padding:12px 13px 14px;flex:1;display:flex;flex-direction:column}
-  .grilla-card-rubro{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dorado);margin-bottom:4px}
-  .grilla-card-nombre{font-size:15px;font-weight:700;color:var(--verde);line-height:1.2;margin-bottom:7px}
-  .grilla-card-desc{font-size:12.5px;color:var(--tinta-suave);line-height:1.35;margin-bottom:11px;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .grilla-card-ver{margin-top:auto;display:flex;align-items:center;gap:5px;color:var(--dorado);font-size:12px;font-weight:700}
-  .grilla-card-ver svg{width:14px;height:14px}
-
   .convenio{
     background:#fff;border:1px solid var(--linea);border-radius:14px;
     margin-bottom:16px;overflow:hidden;
@@ -1236,7 +1203,111 @@
   @media (min-width: 1000px){
     #lista-anuncios, #lista-convenios{ column-count: 3; }
   }
+
+/* ===== Manual de la app (versión nueva, con clases prefijadas mn-) ===== */
+.mn-root {
+    --indigo:#1a237e; --indigo2:#283593; --deep:#0e1350;
+    --azul:#3d5afe; --oro:#c99a24; --oro-claro:#e8c466;
+    --tinta:#1c1e2a; --suave:#5a6076; --linea:#e4e7f3;
+    --fondo:#f5f6fc; --blanco:#fff;
+  }
+.mn-root * {margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+.mn-root {font-family:'Outfit',system-ui,sans-serif;background:var(--fondo);color:var(--tinta);
+    line-height:1.55;font-size:17px;-webkit-font-smoothing:antialiased}
+.mn-root .mn-wrap {max-width:640px;margin:0 auto;background:var(--blanco);box-shadow:0 0 60px rgba(26,35,126,.08)}
+.mn-root img {max-width:100%;display:block}
+.mn-root .mn-hero {background:
+      radial-gradient(120% 70% at 85% 0%, #26307f 0%, rgba(38,48,127,0) 55%),
+      linear-gradient(170deg,#1a237e,#141a63 70%,#0f1352);
+    color:#fff;padding:40px 26px 36px;position:relative;overflow:hidden;text-align:center}
+.mn-root .mn-hero .mn-seal {width:84px;height:84px;border-radius:50%;background:#fff;display:grid;place-items:center;
+    margin:0 auto 18px;box-shadow:0 8px 26px rgba(0,0,0,.3)}
+.mn-root .mn-hero .mn-seal img {width:74px;height:74px}
+.mn-root .mn-hero .mn-kick {font-size:12px;letter-spacing:3px;color:#b9c0ef;font-weight:700;text-transform:uppercase}
+.mn-root .mn-hero h1 {font-family:'Gloock';font-weight:400;font-size:40px;line-height:1.05;margin:10px 0 6px;letter-spacing:.3px}
+.mn-root .mn-hero p {color:#d7dcff;font-size:17px;max-width:420px;margin:0 auto}
+.mn-root .mn-hero .mn-chip {display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:rgba(255,255,255,.12);
+    border:1px solid rgba(232,196,102,.5);color:var(--oro-claro);padding:9px 18px;border-radius:40px;
+    font-weight:700;font-size:14px;letter-spacing:.5px}
+.mn-root section {padding:34px 24px;border-bottom:1px solid var(--linea)}
+.mn-root .mn-snum {display:inline-flex;align-items:center;gap:10px;margin-bottom:6px}
+.mn-root .mn-snum b {width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-size:15px;font-weight:700;flex:none}
+.mn-root .mn-snum span {font-size:12.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--azul);font-weight:700}
+.mn-root h2 {font-family:'Gloock';font-weight:400;color:var(--indigo);font-size:28px;line-height:1.12;margin:4px 0 14px}
+.mn-root .mn-lead {font-size:17.5px;color:var(--suave)}
+.mn-root .mn-lead.b {color:var(--tinta)}
+.mn-root .mn-pasos {margin-top:16px;display:flex;flex-direction:column;gap:14px}
+.mn-root .mn-paso {display:flex;gap:14px;align-items:flex-start;background:var(--fondo);border:1px solid var(--linea);
+    border-radius:16px;padding:16px 16px}
+.mn-root .mn-paso .mn-n {width:32px;height:32px;border-radius:9px;background:var(--indigo);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:17px;flex:none}
+.mn-root .mn-paso .mn-tx b {display:block;font-weight:700;font-size:17px;margin-bottom:2px}
+.mn-root .mn-paso .mn-tx p {font-size:15.5px;color:var(--suave);margin:0}
+.mn-root .mn-paso .mn-tx .mn-pill {display:inline-block;background:#eef1ff;color:var(--azul);font-weight:700;font-size:13px;
+    padding:2px 9px;border-radius:6px;margin:0 2px}
+.mn-root .mn-dos {display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.mn-root .mn-so {background:var(--fondo);border:1px solid var(--linea);border-radius:16px;padding:16px;overflow:hidden}
+.mn-root .mn-so h3 {display:flex;align-items:center;gap:9px;font-size:16px;color:var(--indigo);margin-bottom:12px;font-weight:700}
+.mn-root .mn-so h3 svg {width:22px;height:22px}
+.mn-root .mn-so ol {list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:11px}
+.mn-root .mn-so ol li {counter-increment:s;position:relative;padding-left:32px;font-size:14.5px;line-height:1.45}
+.mn-root .mn-so ol li::before {content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;
+    background:var(--indigo);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.mn-root .mn-so b {color:var(--indigo)}
+@media(max-width:520px){.mn-root .mn-dos {grid-template-columns:1fr}}
+.mn-root .mn-nota {display:flex;gap:12px;align-items:flex-start;background:#fff7e6;border:1px solid #f0dca2;
+    border-radius:14px;padding:14px 16px;margin-top:16px}
+.mn-root .mn-nota svg {width:22px;height:22px;color:var(--oro);flex:none;margin-top:1px}
+.mn-root .mn-nota p {font-size:15px;color:#6b5717;margin:0}
+.mn-root .mn-nota b {color:#5a4710}
+.mn-root .mn-feats {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.mn-root .mn-feat {background:var(--fondo);border:1px solid var(--linea);border-radius:16px;padding:16px 15px}
+.mn-root .mn-feat .mn-ic {width:40px;height:40px;border-radius:11px;background:var(--indigo);display:grid;place-items:center;margin-bottom:11px}
+.mn-root .mn-feat .mn-ic svg {width:23px;height:23px;color:#fff}
+.mn-root .mn-feat b {display:block;font-size:16px;color:var(--indigo);margin-bottom:3px}
+.mn-root .mn-feat p {font-size:14px;color:var(--suave);margin:0;line-height:1.4}
+.mn-root .mn-faq {margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.mn-root .mn-q {background:var(--fondo);border:1px solid var(--linea);border-radius:14px;padding:15px 16px}
+.mn-root .mn-q b {display:block;font-size:16px;color:var(--indigo);margin-bottom:5px}
+.mn-root .mn-q p {font-size:15px;color:var(--suave);margin:0}
+.mn-root .mn-ayuda {background:linear-gradient(170deg,#1a237e,#121860);color:#fff;border-radius:20px;padding:24px;margin-top:8px;text-align:center}
+.mn-root .mn-ayuda h2 {color:#fff;margin-bottom:6px}
+.mn-root .mn-ayuda p {color:#d7dcff;font-size:16px;margin-bottom:16px}
+.mn-root .mn-btns {display:flex;flex-direction:column;gap:10px;max-width:360px;margin:0 auto}
+.mn-root .mn-btns a {display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:var(--indigo);
+    text-decoration:none;font-weight:700;font-size:16px;padding:14px;border-radius:40px}
+.mn-root .mn-btns a svg {width:19px;height:19px}
+.mn-root .mn-btns a.mn-alt {background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.mn-root footer {text-align:center;padding:28px 24px 40px;color:var(--suave);font-size:13px}
+.mn-root footer .mn-tl {font-family:'Gloock';color:var(--indigo);font-size:17px;margin-bottom:6px}
+.mn-root .mn-phone {width:200px;margin:18px auto 0;border-radius:30px;background:#0a0d33;padding:9px;box-shadow:0 18px 40px rgba(26,35,126,.25)}
+.mn-root .mn-phone .mn-sc {border-radius:23px;overflow:hidden;background:#fff}
+.mn-root .mn-ph-h {background:#1a237e;padding:12px 12px;display:flex;align-items:center;gap:7px}
+.mn-root .mn-ph-h .mn-s {width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.mn-root .mn-ph-h .mn-s img {width:23px;height:23px}
+.mn-root .mn-ph-h b {color:#fff;font-size:12px;letter-spacing:1px}
+.mn-root .mn-ph-b {padding:11px}
+.mn-root .mn-ph-b .mn-t {font-weight:700;color:#1a237e;font-size:13px;margin-bottom:8px}
+.mn-root .mn-ph-card {border:1px solid #e2e5f3;border-radius:10px;overflow:hidden;margin-bottom:8px}
+.mn-root .mn-ph-card .mn-i {height:48px;background:linear-gradient(120deg,#1a237e,#3d5afe)}
+.mn-root .mn-ph-card .mn-c {padding:7px 9px}
+.mn-root .mn-ph-card .mn-c span {font-size:7px;font-weight:700;letter-spacing:1px;color:#3d5afe;background:#eef1ff;padding:2px 5px;border-radius:4px}
+.mn-root .mn-ph-card .mn-c h5 {font-size:10px;color:#1b1b1f;margin:5px 0 0}
+@media print{.mn-root {background:#fff;font-size:12pt}
+.mn-root .mn-wrap {max-width:100%;box-shadow:none}
+.mn-root section {padding:20px 24px}
+.mn-root .mn-paso, .mn-root .mn-feat, .mn-root .mn-so, .mn-root .mn-q, .mn-root .mn-nota, .mn-root .mn-ayuda, .mn-root .mn-phone {break-inside:avoid;page-break-inside:avoid}
+.mn-root .mn-hero {break-inside:avoid}
+.mn-root a {color:inherit;text-decoration:none}
+
+  }
+
+
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <!-- Pantalla de verificación de carnet (la ve el comercio al escanear el QR) -->
@@ -1579,7 +1650,6 @@
       </button>
       <div id="conv-indice-lista" class="conv-indice-lista" style="display:none"></div>
     </div>
-    <div id="grilla-convenios"></div>
     <div id="lista-convenios"></div>
     <p id="sin-resultados-conv" class="propuestas-cargando" style="display:none">No se encontraron convenios con esa búsqueda.</p>
   </section>
@@ -1688,112 +1758,154 @@
   <!-- ======== MANUAL DE LA APP ======== -->
   <section class="vista" id="v-manual">
     <div class="titulo-seccion">Manual de la app</div>
-    <p class="propuestas-intro">Todo lo que podés hacer en la app, explicado paso a paso. Si tenés una duda puntual, mirá también las Preguntas frecuentes.</p>
     <button class="btn-descargar-manual" onclick="descargarManual()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></svg>
       Descargar / imprimir el manual
     </button>
+    <div class="mn-root">
 
-    <div class="man-sec">
-      <div class="man-snum"><b>1</b><span>Para empezar</span></div>
-      <h3 class="man-h2">¿Qué es la app de AFUCOA?</h3>
-      <p class="man-lead">Es la app oficial de la Asociación, <b>solo para socios</b>. Desde tu celular podés ver las novedades, consultar y pedir convenios, llevar tu carnet de socio con código QR, leer documentos y enviar sugerencias o propuestas. Todo lo que antes era papel y mostrador, ahora en tu mano.</p>
-    </div>
+<div class="mn-wrap">
 
-    <div class="man-sec">
-      <div class="man-snum"><b>2</b><span>Instalación</span></div>
-      <h3 class="man-h2">Instalá la app en tu celular</h3>
-      <p class="man-lead">No se descarga de ninguna tienda. Se instala desde el navegador, en un toque. Seguí los pasos según tu teléfono:</p>
-      <div class="man-dos">
-        <div class="man-so">
-          <h4>Android</h4>
-          <ol>
-            <li>Abrí la app en Chrome.</li>
-            <li>Tocá el menú <b>⋮</b> arriba a la derecha.</li>
-            <li>Elegí <b>“Agregar a pantalla de inicio”</b> o “Instalar app”.</li>
-            <li>Confirmá. Queda el ícono en tu teléfono.</li>
-          </ol>
-        </div>
-        <div class="man-so">
-          <h4>iPhone</h4>
-          <ol>
-            <li>Abrí la app en Safari.</li>
-            <li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha).</li>
-            <li>Elegí <b>“Agregar a inicio”</b>.</li>
-            <li>Tocá <b>Agregar</b>. Listo, queda el ícono.</li>
-          </ol>
+  <div class="mn-hero">
+    <div class="mn-seal"><img src="logo-header.png" alt="AFUCOA"></div>
+    <div class="mn-kick">Asociación de Funcionarios · Comisión Administrativa</div>
+    <h1>Manual de la app</h1>
+    <p>Una guía fácil, paso a paso, para usar la app de AFUCOA en tu celular.</p>
+    <div class="mn-chip">⏱ En 5 minutos la tenés funcionando</div>
+  </div>
+
+  <!-- 1 -->
+  <section>
+    <div class="mn-snum"><b>1</b><span>Para empezar</span></div>
+    <h2>¿Qué es la app de AFUCOA?</h2>
+    <p class="mn-lead">Es la app oficial de la Asociación, <b>solo para socios</b>. Desde tu celular podés ver las novedades, consultar y pedir convenios, llevar tu carnet de socio con código QR, leer documentos y enviar sugerencias o propuestas. Todo lo que antes era papel y mostrador, ahora en tu mano.</p>
+    <div class="mn-phone">
+      <div class="mn-sc">
+        <div class="mn-ph-h"><div class="mn-s"><img src="logo-header.png"></div><b>AFUCOA</b></div>
+        <div class="mn-ph-b">
+          <div class="mn-t">Novedades</div>
+          <div class="mn-ph-card"><div class="mn-i"></div><div class="mn-c"><span>COMUNICADO</span><h5>Ya está disponible la app</h5></div></div>
+          <div class="mn-ph-card"><div class="mn-i"></div><div class="mn-c"><span>CONVENIOS</span><h5>Nuevos beneficios</h5></div></div>
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="man-sec">
-      <div class="man-snum"><b>3</b><span>Tu primera vez</span></div>
-      <h3 class="man-h2">Creá tu clave</h3>
-      <p class="man-lead">La primera vez tenés que crear una clave. Es rápido y se hace una sola vez.</p>
-      <div class="man-pasos">
-        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Acceder”</b><p>En la pantalla de bienvenida.</p></div></div>
-        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Escribí tu cédula</b><p>Sin puntos ni guiones. Si figurás en el padrón, la app te deja seguir.</p></div></div>
-        <div class="man-paso"><div class="n">3</div><div class="tx"><b>Creá una clave</b><p>De al menos 4 caracteres. Usá una que recuerdes.</p></div></div>
-        <div class="man-paso"><div class="n">4</div><div class="tx"><b>Cargá tu correo</b><p>Con ese correo vas a poder recuperar la clave si algún día la olvidás.</p></div></div>
-        <div class="man-paso"><div class="n">5</div><div class="tx"><b>¡Listo!</b><p>Tocá “Crear clave e ingresar” y ya estás adentro.</p></div></div>
+  <!-- 2 -->
+  <section>
+    <div class="mn-snum"><b>2</b><span>Instalación</span></div>
+    <h2>Instalá la app en tu celular</h2>
+    <p class="mn-lead">No se descarga de ninguna tienda. Se instala desde el navegador, en un toque. Entrá a <b>afucoapp.netlify.app</b> y seguí los pasos según tu teléfono:</p>
+    <div class="mn-dos">
+      <div class="mn-so">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9a6 6 0 0 1 12 0v8H6z"/><path d="M9 21h6M8 4l-1-2M16 4l1-2"/></svg>Android</h3>
+        <ol>
+          <li>Abrí <b>afucoapp.netlify.app</b> en Chrome.</li>
+          <li>Tocá el menú <b>⋮</b> arriba a la derecha.</li>
+          <li>Elegí <b>“Agregar a pantalla de inicio”</b> o “Instalar app”.</li>
+          <li>Confirmá. Queda el ícono en tu teléfono.</li>
+        </ol>
+      </div>
+      <div class="mn-so">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>iPhone</h3>
+        <ol>
+          <li>Abrí <b>afucoapp.netlify.app</b> en Safari.</li>
+          <li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha).</li>
+          <li>Elegí <b>“Agregar a inicio”</b>.</li>
+          <li>Tocá <b>Agregar</b>. Listo, queda el ícono.</li>
+        </ol>
       </div>
     </div>
+    <div class="mn-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿Preferís no instalarla?</b> También podés usarla entrando siempre a afucoapp.netlify.app desde el navegador. Igual funciona.</p></div>
+  </section>
 
-    <div class="man-sec">
-      <div class="man-snum"><b>4</b><span>El día a día</span></div>
-      <h3 class="man-h2">Entrar es muy simple</h3>
-      <div class="man-pasos">
-        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Acceder” y escribí tu cédula</b></div></div>
-        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Poné tu clave y tocá “Ingresar”</b><p>Entrás directo a las novedades.</p></div></div>
-      </div>
-      <div class="man-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p>Por seguridad, cada tanto la app te vuelve a pedir la clave. Es normal y protege tu cuenta.</p></div>
+  <!-- 3 -->
+  <section>
+    <div class="mn-snum"><b>3</b><span>Tu primera vez</span></div>
+    <h2>Creá tu clave</h2>
+    <p class="mn-lead">La primera vez tenés que crear una clave. Es rápido y se hace una sola vez.</p>
+    <div class="mn-pasos">
+      <div class="mn-paso"><div class="mn-n">1</div><div class="mn-tx"><b>Tocá “Acceder”</b><p>Al abrir la app, tocá el botón <span class="mn-pill">Acceder</span> en la pantalla de bienvenida.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">2</div><div class="mn-tx"><b>Escribí tu cédula</b><p>Sin puntos ni guiones. Si figurás en el padrón, la app te deja seguir.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">3</div><div class="mn-tx"><b>Creá una clave</b><p>Elegí una clave de al menos 4 caracteres y repetila. Usá una que recuerdes.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">4</div><div class="mn-tx"><b>Cargá tu correo</b><p>Importante: con ese correo vas a poder recuperar la clave si algún día la olvidás.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">5</div><div class="mn-tx"><b>¡Listo!</b><p>Tocá <span class="mn-pill">Crear clave e ingresar</span> y ya estás adentro.</p></div></div>
     </div>
+  </section>
 
-    <div class="man-sec">
-      <div class="man-snum"><b>5</b><span>Si te olvidás</span></div>
-      <h3 class="man-h2">¿Olvidaste tu clave?</h3>
-      <p class="man-lead">Si cargaste tu correo, la recuperás solo:</p>
-      <div class="man-pasos">
-        <div class="man-paso"><div class="n">1</div><div class="tx"><b>Tocá “Recuperar mi clave”</b><p>Está en la pantalla de ingreso.</p></div></div>
-        <div class="man-paso"><div class="n">2</div><div class="tx"><b>Revisá tu correo</b><p>Te llega un código de 6 dígitos (mirá también el correo no deseado).</p></div></div>
-        <div class="man-paso"><div class="n">3</div><div class="tx"><b>Creá una clave nueva</b><p>Escribí el código en la app y elegí tu clave nueva.</p></div></div>
-      </div>
-      <div class="man-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿No cargaste correo?</b> Escribinos al WhatsApp 098 469 285 o a afucoa@gmail.com y te ayudamos.</p></div>
+  <!-- 4 -->
+  <section>
+    <div class="mn-snum"><b>4</b><span>El día a día</span></div>
+    <h2>Entrar es muy simple</h2>
+    <div class="mn-pasos">
+      <div class="mn-paso"><div class="mn-n">1</div><div class="mn-tx"><b>Abrí la app y tocá “Acceder”</b><p>Escribí tu cédula.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">2</div><div class="mn-tx"><b>Poné tu clave y tocá “Ingresar”</b><p>Entrás directo a las novedades.</p></div></div>
     </div>
+    <div class="mn-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p>Por seguridad, cada tanto la app te vuelve a pedir la clave. Es normal y protege tu cuenta.</p></div>
+  </section>
 
-    <div class="man-sec">
-      <div class="man-snum"><b>6</b><span>Recorrido</span></div>
-      <h3 class="man-h2">Qué hay adentro</h3>
-      <div class="man-feats">
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l18-5v12L3 14z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg></div><b>Novedades</b><p>Comunicados y anuncios de la Asociación.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg></div><b>Convenios</b><p>Beneficios y descuentos. Pedí el que te interese.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M13 9h5M13 13h5"/></svg></div><b>Mi carnet</b><p>Tu credencial digital con QR verificable.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></div><b>Documentos</b><p>Reglamentos y leyes de interés.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg></div><b>Enviar</b><p>Sugerencias, reclamos y propuestas.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9V5l7 7-7 7v-4H3V9z"/></svg></div><b>Propuestas</b><p>Proponé temas y apoyá los de otros socios.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Mi cuenta</b><p>Cambiar clave y correo, ver tus datos.</p></div>
-        <div class="man-feat"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><b>Avisos</b><p>Notificaciones en tu celular, aunque esté cerrada.</p></div>
-      </div>
+  <!-- 5 -->
+  <section>
+    <div class="mn-snum"><b>5</b><span>Si te olvidás</span></div>
+    <h2>¿Olvidaste tu clave?</h2>
+    <p class="mn-lead">Si cargaste tu correo, la recuperás solo:</p>
+    <div class="mn-pasos">
+      <div class="mn-paso"><div class="mn-n">1</div><div class="mn-tx"><b>Tocá “Recuperar mi clave”</b><p>Está en la pantalla de ingreso.</p></div></div>
+      <div class="mn-paso"><div class="mn-n">2</div><div class="mn-tx"><b>Revisá tu correo</b><p>Te llega un código de 6 dígitos (mirá también la carpeta de correo no deseado).</p></div></div>
+      <div class="mn-paso"><div class="mn-n">3</div><div class="mn-tx"><b>Creá una clave nueva</b><p>Escribí el código en la app y elegí tu clave nueva.</p></div></div>
     </div>
+    <div class="mn-nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><p><b>¿No cargaste correo?</b> Escribinos al WhatsApp <b>098 469 285</b> o a <b>afucoa@gmail.com</b> y te ayudamos a restablecerla.</p></div>
+  </section>
 
-    <div class="man-sec">
-      <div class="man-snum"><b>7</b><span>Dudas comunes</span></div>
-      <h3 class="man-h2">Preguntas frecuentes</h3>
-      <div class="man-faq">
-        <div class="man-q"><b>¿La app tiene costo?</b><p>No. Es gratuita y exclusiva para socios de AFUCOA.</p></div>
-        <div class="man-q"><b>¿Se actualiza sola?</b><p>Sí. Cada vez que la abrís con internet toma la última versión.</p></div>
-        <div class="man-q"><b>¿Para qué sirve el carnet con QR?</b><p>Es tu credencial de socio. En un comercio con convenio escanean el QR y confirman al instante que sos socio activo.</p></div>
-        <div class="man-q"><b>¿Mis datos están seguros?</b><p>Sí. Se usan solo para gestionar tu condición de socio y no se comparten con terceros, salvo lo necesario para un convenio que vos pidas.</p></div>
-      </div>
+  <!-- 6 -->
+  <section>
+    <div class="mn-snum"><b>6</b><span>Recorrido</span></div>
+    <h2>Qué hay adentro</h2>
+    <p class="mn-lead">Estas son las secciones de la app:</p>
+    <div class="mn-feats">
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l18-5v12L3 14z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg></div><b>Novedades</b><p>Comunicados y anuncios de la Asociación.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg></div><b>Convenios</b><p>Beneficios y descuentos. Pedí el que te interese.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M13 9h5M13 13h5"/></svg></div><b>Mi carnet</b><p>Tu credencial digital con QR verificable.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg></div><b>Documentos</b><p>Reglamentos y leyes de interés.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 12 16-8-6 16-3-7-7-1Z"/></svg></div><b>Enviar</b><p>Sugerencias, reclamos y propuestas a la comisión.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 9V5l7 7-7 7v-4H3V9z"/></svg></div><b>Propuestas</b><p>Proponé temas y apoyá los de otros socios.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><b>Mi cuenta</b><p>Cambiar clave y correo, ver tus datos.</p></div>
+      <div class="mn-feat"><div class="mn-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><b>Avisos</b><p>Notificaciones en tu celular, aunque la app esté cerrada.</p></div>
     </div>
+  </section>
 
-    <div class="man-ayuda">
-      <h3>¿Necesitás una mano?</h3>
+  <!-- 7 -->
+  <section>
+    <div class="mn-snum"><b>7</b><span>Dudas comunes</span></div>
+    <h2>Preguntas frecuentes</h2>
+    <div class="mn-faq">
+      <div class="mn-q"><b>¿La app tiene costo?</b><p>No. Es gratuita y exclusiva para socios de AFUCOA.</p></div>
+      <div class="mn-q"><b>¿Se actualiza sola?</b><p>Sí. Cada vez que la abrís con internet toma la última versión. No hay que reinstalar nada.</p></div>
+      <div class="mn-q"><b>¿Para qué sirve el carnet con QR?</b><p>Es tu credencial de socio. En un comercio con convenio escanean el QR y confirman al instante que sos socio activo.</p></div>
+      <div class="mn-q"><b>¿Mis datos están seguros?</b><p>Sí. Se usan solo para gestionar tu condición de socio y no se comparten con terceros, salvo lo necesario para un convenio que vos pidas.</p></div>
+      <div class="mn-q"><b>Todavía no soy socio, ¿puedo afiliarme?</b><p>Sí. En la pantalla de ingreso tocá “Quiero afiliarme” y completá el formulario.</p></div>
+    </div>
+  </section>
+
+  <!-- AYUDA -->
+  <section style="border-bottom:none">
+    <div class="mn-ayuda">
+      <h2>¿Necesitás una mano?</h2>
       <p>Si algo no te funciona o tenés dudas, escribinos. Te ayudamos.</p>
-      <div class="man-btns">
+      <div class="mn-btns">
         <a href="https://wa.me/59898469285"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2zm4.4 12c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.3 11.3 0 0 0 4.3 3.8c1 .4 1.7.5 2.3.4s1.4-.6 1.6-1.1a2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z"/></svg>WhatsApp 098 469 285</a>
-        <a class="alt" href="mailto:afucoa@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M4 7l8 5 8-5"/></svg>afucoa@gmail.com</a>
+        <a class="mn-alt" href="mailto:afucoa@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M4 7l8 5 8-5"/></svg>afucoa@gmail.com</a>
       </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="mn-tl">La Asociación, más cerca que nunca.</div>
+    Asociación de Funcionarios de la Comisión Administrativa del Poder Legislativo · AFUCOA
+  </footer>
+
+</div>
+
     </div>
   </section>
 
@@ -2511,30 +2623,6 @@ function estadoVacio(icono, titulo, texto){
 }
 
 // pinta un conjunto de anuncios (recibe la lista ya lista)
-// convierte el texto de una novedad en HTML seguro, con los links y correos
-// clickeables y respetando los saltos de línea. Primero escapa todo (para que
-// nadie pueda meter HTML), y después transforma las direcciones en enlaces.
-function cuerpoNovedadHTML(texto){
-  if(!texto) return '';
-  // 1) escapar caracteres peligrosos
-  let t = String(texto)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // 2) enlaces http(s)://...  (se corta en espacios y en < por si quedó pegado)
-  t = t.replace(/(https?:\/\/[^\s<]+)/g, function(url){
-    // no arrastrar un punto o coma final de la oración dentro del enlace
-    let cola = '';
-    const m = url.match(/[.,;:)]+$/);
-    if(m){ cola = m[0]; url = url.slice(0, -cola.length); }
-    return `<a href="${url}" target="_blank" rel="noopener" class="nov-enlace">${url}</a>${cola}`;
-  });
-  // 3) correos electrónicos
-  t = t.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-    '<a href="mailto:$1" class="nov-enlace">$1</a>');
-  // 4) respetar los saltos de línea
-  t = t.replace(/\n/g, '<br>');
-  return t;
-}
-
 function renderAnuncios(lista){
   const cont = document.getElementById('lista-anuncios');
   if(!lista || lista.length === 0){
@@ -2548,11 +2636,11 @@ function renderAnuncios(lista){
     const imgs = (a.imagen||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
     let galeria = '';
     if(imgs.length === 1){
-      galeria = `<img class="anuncio-img nov-ampliable" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'" onclick="ampliarImagenNovedad(${idx}, 0)">`;
+      galeria = `<img class="anuncio-img" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">`;
     }else if(imgs.length > 1){
       galeria = `
       <div class="nov-galeria">
-        <img class="anuncio-img nov-galeria-img nov-ampliable" id="nov-img-${idx}" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'" onclick="ampliarImagenNovedad(${idx})">
+        <img class="anuncio-img nov-galeria-img" id="nov-img-${idx}" src="${imgs[0]}" alt="${a.titulo||''}" loading="lazy" onerror="this.style.display='none'">
         <button class="nov-galeria-flecha izq" onclick="cambiarImgNovedad(${idx}, -1)" aria-label="Anterior">‹</button>
         <button class="nov-galeria-flecha der" onclick="cambiarImgNovedad(${idx}, 1)" aria-label="Siguiente">›</button>
         <div class="nov-galeria-puntos" id="nov-puntos-${idx}">
@@ -2568,7 +2656,7 @@ function renderAnuncios(lista){
         ${fecha ? `<time>${fecha}</time>` : ``}
       </div>
       <h3>${a.titulo}</h3>
-      ${a.cuerpo ? `<p>${cuerpoNovedadHTML(a.cuerpo)}</p>` : ``}
+      ${a.cuerpo ? `<p>${a.cuerpo}</p>` : ``}
       ${a.convenio_enlace ? `<button class="btn-ver-convenio" onclick="irAlConvenio('${(a.convenio_enlace||'').replace(/'/g,"\\'")}')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 18l6-6-6-6"/></svg>
         Ver convenio completo
@@ -2771,9 +2859,6 @@ function revisarConvenioEnlace(){
 
 // al tocar un nombre del índice: mostrar solo ese convenio
 window.abrirConvenioDesdeIndice = function(indice){
-  // ocultar la grilla y mostrar solo el detalle elegido
-  const grilla = document.getElementById('grilla-convenios');
-  if(grilla) grilla.style.display = 'none';
   const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
   tarjetas.forEach((t, i)=>{ t.style.display = (i===indice) ? '' : 'none'; });
   document.getElementById('sin-resultados-conv').style.display = 'none';
@@ -2788,106 +2873,32 @@ window.abrirConvenioDesdeIndice = function(indice){
   if(buscador) buscador.value = '';
 };
 
-// volver a mostrar la grilla de convenios
+// volver a mostrar todos los convenios
 window.verTodosConvenios = function(){
-  mostrarGrillaConvenios();
+  document.querySelectorAll('#lista-convenios .convenio').forEach(t=>{ t.style.display = ''; });
   document.getElementById('conv-indice-label').textContent = 'Ver lista de convenios';
   document.getElementById('conv-indice-lista').style.display = 'none';
   document.getElementById('conv-indice-flecha').style.transform = '';
   document.getElementById('conv-indice-btn').setAttribute('data-modo', 'cerrado');
-  const buscador = document.getElementById('buscar-convenio');
-  if(buscador) buscador.value = '';
 };
 
 function filtrarConvenios(){
   // quita tildes y pasa a minúsculas, para que "optica" encuentre "Óptica"
   const normalizar = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const texto = normalizar(document.getElementById('buscar-convenio').value.trim());
-  const grilla = document.getElementById('grilla-convenios');
-
-  // sin texto: volver a la grilla completa (tarjetas de detalle ocultas)
-  if(!texto){
-    document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
-    if(grilla){
-      grilla.style.display = '';
-      grilla.querySelectorAll('.grilla-card, .grilla-cat, .grilla-conv').forEach(c=> c.style.display = '');
+  const tarjetas = document.querySelectorAll('#lista-convenios .convenio');
+  let visibles = 0;
+  tarjetas.forEach((t, i)=>{
+    const c = CONVENIOS[i];
+    const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
+    if(!texto || contenido.includes(texto)){
+      t.style.display = '';
+      visibles++;
+    }else{
+      t.style.display = 'none';
     }
-    document.getElementById('sin-resultados-conv').style.display = 'none';
-    return;
-  }
-
-  // con texto: filtrar las tarjetas de la grilla
-  if(grilla){
-    grilla.style.display = '';
-    document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
-    let visibles = 0;
-    grilla.querySelectorAll('.grilla-card').forEach((t)=>{
-      const i = parseInt(t.getAttribute('onclick').match(/\d+/)[0], 10);
-      const c = CONVENIOS[i];
-      const contenido = normalizar((c.titulo||'') + ' ' + (c.rubro||''));
-      const ok = contenido.includes(texto);
-      t.style.display = ok ? '' : 'none';
-      if(ok) visibles++;
-    });
-    // ocultar los encabezados de categoría que quedan sin tarjetas visibles
-    grilla.querySelectorAll('.grilla-conv').forEach(fila=>{
-      const algunaVisible = [...fila.querySelectorAll('.grilla-card')].some(c=> c.style.display !== 'none');
-      fila.style.display = algunaVisible ? '' : 'none';
-      const titulo = fila.previousElementSibling;
-      if(titulo && titulo.classList.contains('grilla-cat')) titulo.style.display = algunaVisible ? '' : 'none';
-    });
-    document.getElementById('sin-resultados-conv').style.display = visibles===0 ? 'block' : 'none';
-  }
-}
-
-// ====== GRILLA DE CONVENIOS (vista compacta por categoría) ======
-// Dibuja una grilla de tarjetas chicas (logo real + nombre + rubro),
-// agrupadas por categoría. Al tocar una, abre el detalle completo
-// reutilizando abrirConvenioDesdeIndice(). Las tarjetas de detalle
-// siguen existiendo (ocultas) debajo, con toda su lógica intacta.
-function pintarGrillaConvenios(){
-  const cont = document.getElementById('grilla-convenios');
-  if(!cont) return;
-  if(!CONVENIOS || CONVENIOS.length === 0){ cont.innerHTML = ''; return; }
-
-  // agrupar índices por categoría (lo que va antes del "·" del rubro)
-  const grupos = {};
-  CONVENIOS.forEach((c, i)=>{
-    const cat = categoriaDeRubro(c.rubro);
-    (grupos[cat] = grupos[cat] || []).push(i);
   });
-  // ordenar las categorías alfabéticamente
-  const cats = Object.keys(grupos).sort((a,b)=> a.localeCompare(b, 'es'));
-
-  let html = '';
-  cats.forEach(cat=>{
-    const items = grupos[cat];
-    html += `<div class="grilla-cat"><span>${cat}</span><span class="grilla-cat-num">${items.length}</span></div>`;
-    html += `<div class="grilla-conv">`;
-    items.forEach(i=>{
-      const c = CONVENIOS[i];
-      const img = (c.imagenes && c.imagenes.length) ? c.imagenes[0] : '';
-      // primera línea de beneficio, recortada, como gancho
-      const gancho = (c.beneficios && c.beneficios.length) ? c.beneficios[0] : '';
-      const logo = img
-        ? `<img src="${img}" alt="${c.titulo}" loading="lazy" onerror="this.closest('.grilla-card-logo').classList.add('sin-img');this.remove();">`
-        : '';
-      html += `
-        <button class="grilla-card" onclick="abrirConvenioDesdeIndice(${i}); irArriba();">
-          <div class="grilla-card-logo ${img?'':'sin-img'}">${logo}${img?'':`<span>${(c.titulo||'?').slice(0,12)}</span>`}</div>
-          <div class="grilla-card-cuerpo">
-            ${c.rubro ? `<div class="grilla-card-rubro">${c.rubro}</div>` : ``}
-            <div class="grilla-card-nombre">${c.titulo||''}</div>
-            ${gancho ? `<div class="grilla-card-desc">${gancho}</div>` : ``}
-            <div class="grilla-card-ver">Ver convenio
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
-            </div>
-          </div>
-        </button>`;
-    });
-    html += `</div>`;
-  });
-  cont.innerHTML = html;
+  document.getElementById('sin-resultados-conv').style.display = visibles===0 ? 'block' : 'none';
 }
 
 function pintarConvenios(){
@@ -2995,18 +3006,6 @@ function pintarConvenios(){
       </div>
     </article>`;
   }).join('');
-  // dibujar la grilla compacta y arrancar mostrándola (las tarjetas de
-  // detalle quedan ocultas hasta que se toca una de la grilla)
-  pintarGrillaConvenios();
-  mostrarGrillaConvenios();
-}
-
-// muestra la grilla y oculta todas las tarjetas de detalle
-function mostrarGrillaConvenios(){
-  const grilla = document.getElementById('grilla-convenios');
-  if(grilla) grilla.style.display = '';
-  document.querySelectorAll('#lista-convenios .convenio').forEach(t=> t.style.display = 'none');
-  const sr = document.getElementById('sin-resultados-conv'); if(sr) sr.style.display = 'none';
 }
 
 // muestra u oculta el formulario de un convenio
@@ -3105,56 +3104,6 @@ function moverVisor(dir){
   const puntos = document.querySelector('#visor-lightbox .visor-puntos');
   if(puntos){ [...puntos.children].forEach((p,k)=> p.className = k===_visorIdx ? 'activo' : ''); }
 }
-
-// abre el visor ampliado para las imágenes de una NOVEDAD.
-// Recibe la lista de imágenes directamente (no depende de CONVENIOS),
-// y reutiliza el mismo lightbox, con swipe, flechas y teclado.
-window.ampliarImagenNovedad = function(idxNov, indiceImg){
-  const imgs = (window._novedadesImgs && window._novedadesImgs[idxNov]) || [];
-  if(imgs.length === 0) return;
-  _visorImgs = imgs.slice();
-  _visorIdx = indiceImg || (window._novedadesImgIdx ? (window._novedadesImgIdx[idxNov]||0) : 0);
-
-  const overlay = document.createElement('div');
-  overlay.className = 'lightbox';
-  overlay.id = 'visor-lightbox';
-  const hayVarias = _visorImgs.length > 1;
-  overlay.innerHTML = `
-    <img id="visor-img" src="${_visorImgs[_visorIdx]}" alt="ampliada">
-    ${hayVarias ? `
-      <button class="visor-flecha izq" aria-label="Anterior">‹</button>
-      <button class="visor-flecha der" aria-label="Siguiente">›</button>
-      <div class="visor-puntos">${_visorImgs.map((_,k)=>`<span class="${k===_visorIdx?'activo':''}"></span>`).join('')}</div>
-    ` : ``}
-    <button class="visor-cerrar" aria-label="Cerrar">×</button>`;
-  document.body.appendChild(overlay);
-
-  overlay.onclick = (e)=>{ if(e.target === overlay) overlay.remove(); };
-  overlay.querySelector('.visor-cerrar').onclick = ()=> overlay.remove();
-
-  if(hayVarias){
-    overlay.querySelector('.visor-flecha.izq').onclick = (e)=>{ e.stopPropagation(); moverVisor(-1); };
-    overlay.querySelector('.visor-flecha.der').onclick = (e)=>{ e.stopPropagation(); moverVisor(1); };
-    let x0 = null;
-    overlay.addEventListener('touchstart', ev=>{ x0 = ev.touches[0].clientX; }, {passive:true});
-    overlay.addEventListener('touchend', ev=>{
-      if(x0 === null) return;
-      const dx = ev.changedTouches[0].clientX - x0;
-      if(Math.abs(dx) > 40){ moverVisor(dx < 0 ? 1 : -1); }
-      x0 = null;
-    }, {passive:true});
-    overlay._teclado = (ev)=>{
-      if(ev.key === 'ArrowLeft') moverVisor(-1);
-      else if(ev.key === 'ArrowRight') moverVisor(1);
-      else if(ev.key === 'Escape') overlay.remove();
-    };
-    document.addEventListener('keydown', overlay._teclado);
-    const obs = new MutationObserver(()=>{
-      if(!document.body.contains(overlay)){ document.removeEventListener('keydown', overlay._teclado); obs.disconnect(); }
-    });
-    obs.observe(document.body, {childList:true});
-  }
-};
 
 /* ============================================================
    Envíos
